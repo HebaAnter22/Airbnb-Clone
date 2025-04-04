@@ -35,6 +35,10 @@ ScaffoldingReadMe.txt
 *.nupkg
 # NuGet Symbol Packages
 *.snupkg
+packages/
+
+# Ignore test results
+TestResults/
 
 # Others
 ~$*
@@ -52,3 +56,49 @@ CodeCoverage/
 *.VisualState.xml
 TestResult.xml
 nunit-*.xml
+
+# Visual Studio-specific files
+.vs/
+*.user
+*.suo
+*.sln.docstates
+
+# Sensitive configuration files
+appsettings.Development.json
+appsettings.json
+
+# Angular (Frontend)
+# Ignore node_modules (dependencies can be reinstalled via npm install)
+node_modules/
+
+# Ignore Angular build output
+dist/
+coverage/
+
+# Ignore Angular environment files with sensitive data
+src/environments/environment.*.ts
+!src/environments/environment.ts
+!src/environments/environment.prod.ts
+
+# Ignore npm/yarn logs and lock files (optional, depending on your preference)
+npm-debug.log
+yarn-error.log
+package-lock.json
+yarn.lock
+
+# General
+# Ignore OS-generated files
+.DS_Store
+Thumbs.db
+
+# Ignore editor/IDE files
+.vscode/
+.idea/
+
+# Ignore local database files (if any)
+*.mdf
+*.ldf
+
+# Ignore temporary files
+*.tmp
+*.log
