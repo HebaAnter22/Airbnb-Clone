@@ -5,7 +5,7 @@ This project is a full-stack clone of Airbnb, designed to replicate core functio
 
 
 ## Features
-![Screenshot 2025-04-04 181708](https://github.com/user-attachments/assets/5203afd8-a013-499d-a405-6b437d1bbc41)
+![Screenshot 2025-04-04 181708](https://github.com/user-attachments/assets/b6474f51-c17c-466a-acbf-9e41d361e78a)
 
 - User Authentication: Register, log in, and manage user profiles securely.
 - Property Listings: Browse, search, and filter available properties with details like location, price, and amenities.
@@ -27,11 +27,11 @@ This project is a full-stack clone of Airbnb, designed to replicate core functio
 
   
 ## High-Level Architecture
-![Screenshot 2025-04-04 181733](https://github.com/user-attachments/assets/3c624ef4-78cf-445f-99ad-3044482b545c)
+![Screenshot 2025-04-04 181733](https://github.com/user-attachments/assets/bae38cab-bf49-43ab-b3b6-9d6fbb467e5f)
 
 
 ## Database Design
-![Airbnb](https://github.com/user-attachments/assets/8c3b34a3-5a1f-4039-af47-f6c83542d41c)
+![Airbnb](https://github.com/user-attachments/assets/f7e923f6-a81e-4bd7-b54b-a1b2dbc32f78)
 
 
 ## File Structure
