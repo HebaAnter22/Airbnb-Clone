@@ -112,7 +112,8 @@ ng serve
 
 
 # Usage
-* Start the backend API (dotnet run in AirbnbClone.API).
+* Start the backend API (dotnet run in AirbnbClone.API to run Airbnb-Clone.sln).
+* Open your browser to https://localhost:7228/swagger/ for API testing and documentation
 * Start the frontend (ng serve in AirbnbClone.Client).
 * Open your browser to http://localhost:4200 and explore the app.
 
