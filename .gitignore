@@ -65,9 +65,8 @@ nunit-*.xml
 *.suo
 *.sln.docstates
 
-# Sensitive configuration files
-appsettings.Development.json
-appsettings.json
+# Error logs
+logs/
 
 # Angular (Frontend)
 # Ignore node_modules (dependencies can be reinstalled via npm install)
