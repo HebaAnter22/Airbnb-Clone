@@ -34,9 +34,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Models\" />
     <Folder Include="DTOs\" />
-    <Folder Include="Data\" />
     <Folder Include="Middleware\" />
     <Folder Include="Services\" />
   </ItemGroup>
