@@ -14,6 +14,8 @@ namespace API
             //// Configure Swagger (Swashbuckle)
             builder.Services.AddSwaggerGen();
 
+            builder.Services.AddDALService(builder.Configuration);
+
 
             //// Configure CORS
             builder.Services.AddCors(options => {
