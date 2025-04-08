@@ -78,7 +78,7 @@ namespace API.Controllers
         [Authorize]
         public async Task<IActionResult> GetMyProperties()
         {
-            var hostId = int.Parse(User.FindFirst("id")?.Value);
+            var hostId = GetHostId();
             var properties = await _propertyService.GetHostPropertiesAsync(hostId);
             return Ok(properties);
         }
