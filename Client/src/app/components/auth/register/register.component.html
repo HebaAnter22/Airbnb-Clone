@@ -4,6 +4,38 @@
       <h2>Welcome to Airbnb</h2>
       
       <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+        
+        <div class="form-group">
+          <label>First Name</label>
+          <input type="text" formControlName="firstName" class="form-control" placeholder="First Name">
+          <div *ngIf="registerForm.get('firstName')?.invalid && registerForm.get('firstName')?.touched" class="error-message">
+            First name is required
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label>Last Name</label>
+          <input type="text" formControlName="lastName" class="form-control" placeholder="Last Name">
+          <div *ngIf="registerForm.get('lastName')?.invalid && registerForm.get('lastName')?.touched" class="error-message">
+            Last name is required
+          </div>
+        </div>
+
+        
+        <div class="form-group">
+          <label>Role</label>
+          <select formControlName="role" class="form-control">
+            <option value="Guest">Guest</option>
+            <option value="Host">Host</option>
+          </select>
+          <div *ngIf="registerForm.get('role')?.invalid && registerForm.get('role')?.touched" class="error-message">
+            Role is required
+          </div>
+
+
+
+
+        </div>
         <div class="form-group">
           <label>Email</label>
           <input type="email" formControlName="email" class="form-control" placeholder="Email">
@@ -13,23 +45,7 @@
           </div>
         </div>
 
-        <div class="form-group">
-          <label>First Name</label>
-          <input type="text" formControlName="firstName" class="form-control" placeholder="First Name">
-          <div *ngIf="registerForm.get('firstName')?.invalid && registerForm.get('firstName')?.touched" class="error-message">
-            First name is required
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label>Last Name</label>
-          <input type="text" formControlName="lastName" class="form-control" placeholder="Last Name">
-          <div *ngIf="registerForm.get('lastName')?.invalid && registerForm.get('lastName')?.touched" class="error-message">
-            Last name is required
-          </div>
-        </div>
         
-       
         
         <div class="form-group">
           <label>Password</label>
@@ -55,10 +71,15 @@
         <span>or</span>
       </div>
       
-      <button class="btn-social">
-        <i class="fab fa-google"></i> Continue with Google
-      </button>
-      
+      <div class="btn-social google-btn" >
+        
+        <asl-google-signin-button class="google-btn ">
+          
+        </asl-google-signin-button>
+        <span>
+          Continue with Google
+        </span> 
+      </div>
       <button class="btn-social">
         <i class="fab fa-apple"></i> Continue with Apple
       </button>

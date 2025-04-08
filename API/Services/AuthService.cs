@@ -70,17 +70,46 @@ namespace API.Services
             {
                 throw new Exception("User already exists with the same Email");
             }
-            var user = new User();
-            var hashedPassword = new PasswordHasher<User>().HashPassword(user, userDto.Password);
 
-            user.PasswordHash = hashedPassword;
-            user.Email = userDto.Email;
-            user.FirstName = userDto.FirstName;
-            user.LastName = userDto.LastName;
-            user.Role = "Guest";
-            _context.Users.Add(user);
-            await _context.SaveChangesAsync();
-            return user;
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                var user = new User();
+
+                var hashedPassword = new PasswordHasher<User>().HashPassword(user, userDto.Password);
+
+                user.PasswordHash = hashedPassword;
+                user.Email = userDto.Email;
+                user.FirstName = userDto.FirstName;
+                user.LastName = userDto.LastName;
+                user.Role = userDto.Role;
+                _context.Users.Add(user);
+                await _context.SaveChangesAsync();
+
+
+                if (user.Role == "Host")
+                {
+
+                    var host = new Models.Host
+                    {
+                        HostId = user.Id,
+                    };
+
+                    _context.HostProfules.Add(host);
+                    await _context.SaveChangesAsync();
+                }
+
+
+                await transaction.CommitAsync();
+                return user;
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                // Handle the exception as needed
+                Console.WriteLine($"Error saving user: {ex.Message}");
+                throw new Exception("Error saving user to the database.", ex);
+            }
 
 
         }
@@ -161,8 +190,30 @@ namespace API.Services
             await _context.SaveChangesAsync();
             return user;
 
+
         }
-       
+        public async Task<User?> GetOrCreateGoogleUser(string email, string firstName, string lastName)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(x => x.Email == email);
+
+            if (user == null)
+            {
+                user = new User
+                {
+                    Email = email,
+                    FirstName = firstName,
+                    LastName = lastName,
+                    Role = "Guest",
+                    PasswordHash = "" // No password for Google users
+                };
+                
+                _context.Users.Add(user);
+                await _context.SaveChangesAsync();
+                
+      
+            }
+                return user;
+        }
 
 
     }

@@ -4,28 +4,35 @@ import { AuthService } from '../auth.service';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { NgIf } from '@angular/common';
+import { GoogleSigninButtonModule, SocialAuthService } from '@abacritt/angularx-social-login';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [ReactiveFormsModule, CommonModule, NgIf],
+  imports: [ReactiveFormsModule, CommonModule, NgIf, GoogleSigninButtonModule],
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css']
 })
 export class LoginComponent {
   loginForm: FormGroup;
   errorMessage: string = '';
-
+  
   constructor(
     private authService: AuthService,
     private router: Router,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private socialAuthService: SocialAuthService
   ) {
     this.loginForm = this.fb.group({
       email: ['', Validators.required],
       password: ['', Validators.required]
     });
   }
+
+  signInWithGoogle(): void {
+    this.authService.signInWithGoogle();
+  }
+ 
   goToRegister() {
     this.router.navigate(['/register']);
   }

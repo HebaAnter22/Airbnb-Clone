@@ -37,7 +37,14 @@ namespace API.Controllers
             {
                 return BadRequest("User already exists");
             }
-            return Ok(user);
+            return Ok(new
+            {
+                Id = user.Id,
+                Email = user.Email,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                Role = user.Role
+            });
         }
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginUserDto userDto)
@@ -168,8 +175,72 @@ namespace API.Controllers
             });
         }
 
-       
-    
+        [HttpPost("google-auth")]
+        public async Task<IActionResult> GoogleAuth([FromBody] GoogleAuthRequest googleUser)
+        {
+            try
+            {
+                // Get or create user from Google information
+                var user = await _authService.GetOrCreateGoogleUser(
+                    googleUser.Email,
+                    googleUser.FirstName,
+                    googleUser.LastName
+                );
+
+                // Generate tokens for the user
+                var tokenResponse = await _authService.CreateTokenResponse(user);
+
+                return Ok(tokenResponse);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
+
+        [HttpGet("google-callback")]
+        public async Task<IActionResult> GoogleCallback()
+        {
+            var authenticateResult = await HttpContext.AuthenticateAsync(GoogleDefaults.AuthenticationScheme);
+
+            if (!authenticateResult.Succeeded)
+                return BadRequest("Google authentication failed");
+
+            var claims = authenticateResult.Principal.Claims;
+
+            var email = claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
+            if (string.IsNullOrEmpty(email))
+                return BadRequest("Email claim not found");
+
+            // Check if user exists
+            var user = await _authService.GetUserByEmail(email);
+
+            if (user == null)
+            {
+                // Create new user from Google info
+                var firstName = claims.FirstOrDefault(c => c.Type == ClaimTypes.GivenName)?.Value ?? "";
+                var lastName = claims.FirstOrDefault(c => c.Type == ClaimTypes.Surname)?.Value ?? "";
+
+                user = new User
+                {
+                    Email = email,
+                    FirstName = firstName,
+                    LastName = lastName,
+                    Role = "Guest",
+                    PasswordHash = "" // No password for Google users
+                };
+
+                user = await _authService.CreateUser(user);
+            }
+
+            // Generate tokens
+            var tokenResponse = await _authService.CreateTokenResponse(user);
+
+            // Return tokens to the frontend
+            return Redirect($"http://localhost:4200/login?access_token={tokenResponse.AccessToken}&refresh_token={tokenResponse.RefreshToken}");
+        }
+
     }
 
 }

@@ -1,4 +1,5 @@
 export const environment = {
-  googleClientId: '604495766994-pjlmqtu1ig75cgppgsc2u9vqjpf03f1j.apps.googleusercontent.com',
-  googleRedirectUri: 'http://localhost:4200/oauth-callback'
+  production: false,
+  googleClientId: '1031756027306-qt40so8h1a59955ra6huff4f835hn315.apps.googleusercontent.com',
+  apiUrl: 'https://localhost:7228/api'
 };
