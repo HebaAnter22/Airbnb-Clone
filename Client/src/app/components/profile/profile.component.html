@@ -1,0 +1,30 @@
+<div class="profile-container">
+  <div *ngIf="isLoading" class="loading">Loading profile...</div>
+  
+  <div *ngIf="errorMessage" class="error-message">
+    {{ errorMessage }}
+  </div>
+
+  <div *ngIf="userProfile && !isLoading" class="profile-card">
+    <h2>User Profile</h2>
+    
+  
+    
+    <div class="profile-field">
+      <span class="field-label">Email:</span>
+      <span class="field-value">{{ userProfile.email }}</span>
+    </div>
+    
+    <div class="profile-field">
+      <span class="field-label">First Name:</span>
+      <span class="field-value">{{ userProfile.firstName || 'Not specified' }}</span>
+    </div>
+    
+    <div class="profile-field">
+      <span class="field-label">Last Name:</span>
+      <span class="field-value">{{ userProfile.lastName || 'Not specified' }}</span>
+    </div>
+
+    <button (click)="logout()" class="logout-btn">Logout</button>
+  </div>
+</div>

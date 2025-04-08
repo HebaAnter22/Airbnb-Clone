@@ -1,0 +1,10 @@
+<div class="dashboard-container">
+    <h1>Welcome to your Dashboard</h1>
+    <p>This is an authenticated-only endpoint.</p>
+    
+    <div class="nav">
+      <a href="/host" class="nav-link">Host Dashboard</a>
+      <a href="/profile" class="nav-link" *ngIf="authService.currentUserValue">Profile</a>
+      <button (click)="logout()" class="logout-btn">Logout</button>
+    </div>
+  </div>

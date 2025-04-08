@@ -1,3 +1,11 @@
+using System.Text;
+using API.Data;
+using API.Services;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.Google;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
 namespace API
@@ -7,15 +15,16 @@ namespace API
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
-
-            //// Add services to the container
+         
             builder.Services.AddControllers();
 
-            //// Configure Swagger (Swashbuckle)
             builder.Services.AddSwaggerGen();
 
 
-            //// Configure CORS
+            builder.Services.AddDALService(builder.Configuration);
+
+         
+
             builder.Services.AddCors(options => {
                 options.AddPolicy("AllowAll", policy => {
                     policy.AllowAnyOrigin()
@@ -24,22 +33,46 @@ namespace API
                 });
             });
 
+
+            builder.Services.AddAuthentication(options =>
+            {
+                // For API auth
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                // For external providers
+                options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer(options =>
+            {
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidIssuer = builder.Configuration["Jwt:Issuer"],
+                    ValidateAudience = true,
+                    ValidAudience = builder.Configuration["Jwt:Audience"],
+                    ValidateLifetime = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"])),
+                    ValidateIssuerSigningKey = true,
+                };
+            });
+            
+            
+
+            builder.Services.AddScoped<IAuthService, AuthService>();
+
+          
+
             var app = builder.Build();
-
-
             app.UseSwagger();
             app.UseSwaggerUI();
-
-            app.UseCors("AllowAll"); 
-
+            app.UseCors("AllowAll");
             app.UseHttpsRedirection();
+
+            app.UseAuthentication();
+
             app.UseAuthorization();
             app.MapControllers();
-
             app.Run();
-
-
-
         }
     }
 }

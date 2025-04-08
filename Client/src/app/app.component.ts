@@ -1,14 +1,18 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
-import {  WeatherComponent} from './components/weather-list/weather';
+import { AuthService } from './components/auth/auth.service';
+import { NavbarComponent } from './components/navbar/navbar.component';
+
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, WeatherComponent],
-  template: `
-  <div class="container">
-    <app-weather></app-weather>
-  </div>`
+  standalone: true,
+  imports: [CommonModule, RouterOutlet,NavbarComponent],
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.css']
 })
-export class AppComponent {
-  title = 'Airbnb';
+export class AppComponent{
+  title = 'airbnb-auth';
+ 
+  constructor(public authService: AuthService) {}
 }
