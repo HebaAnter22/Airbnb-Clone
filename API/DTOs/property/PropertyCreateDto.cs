@@ -4,16 +4,27 @@ namespace API.DTOs
 {
     public class PropertyCreateDto
     {
+
+        [Required]
+        public int CategoryId { get; set; }
+
         [Required]
         [StringLength(255)]
         public string Title { get; set; }
 
+
+
         [Required]
         public string Description { get; set; }
+
 
         [Required]
         [StringLength(50)]
         public string PropertyType { get; set; }
+
+        [Required]
+        [StringLength(100)]
+        public string Country { get; set; }
 
         [Required]
         [StringLength(255)]
@@ -61,5 +72,16 @@ namespace API.DTOs
 
         [Range(1, int.MaxValue)]
         public int? MaxGuests { get; set; }
+
+
+        [Required]
+        [StringLength(3)]
+        public string Currency { get; set; }
+
+        public bool? InstantBook { get; set; }
+
+
+        public int? CancellationPolicyId { get; set; }
+
     }
 }

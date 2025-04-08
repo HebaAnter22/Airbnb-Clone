@@ -34,8 +34,16 @@ namespace API.Controllers
         public async Task<IActionResult> AddProperty([FromBody] PropertyCreateDto propertyDto)
         {
             var hostId = GetHostId();
+            try
+            {
+
             var createdProperty = await _propertyService.AddPropertyAsync(propertyDto, hostId);
             return CreatedAtAction(nameof(GetProperty), new { id = createdProperty.Id }, createdProperty);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Error creating property: {ex.Message}");
+            }
         }
 
         [HttpPut("{id}")]

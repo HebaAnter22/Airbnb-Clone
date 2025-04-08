@@ -22,6 +22,14 @@ namespace API.Services
 
         public async Task<PropertyDto> AddPropertyAsync(PropertyCreateDto propertyDto, int hostId)
         {
+
+            var hostExists =
+                await _context.Users.AnyAsync(u => u.Id == hostId && u.Role == "Host");
+            if (!hostExists)
+            {
+                throw new ArgumentException($"Host with ID {hostId} does not exist.");
+            }
+
             var property = _mapper.Map<Property>(propertyDto);
             property.HostId = hostId;
             property.CreatedAt = DateTime.UtcNow;
@@ -29,8 +37,20 @@ namespace API.Services
             property.Status = "Active";
 
             _context.Properties.Add(property);
+            try
+            {
+
             await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                // Handle the exception as needed
+                Console.WriteLine($"Error saving property: {ex.Message}");
+                throw new Exception("Error saving property to the database.", ex);
+            }
+
             return _mapper.Map<PropertyDto>(property);
+           
         }
 
         public async Task<PropertyDto> EditPropertyAsync(int propertyId, PropertyUpdateDto updatedPropertyDto, int hostId)

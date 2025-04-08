@@ -76,12 +76,12 @@ namespace API
 
 
             var app = builder.Build();
-            if (app.Environment.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-            }
+            //if (app.Environment.IsDevelopment())
+            //{
+            //    app.UseDeveloperExceptionPage();
+            //}
             
-            app.UseExceptionMiddleware();
+            //app.UseExceptionMiddleware();
             app.UseSwagger();
             app.UseSwaggerUI();
             app.UseCors("AllowAll");
