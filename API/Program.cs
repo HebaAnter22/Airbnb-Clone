@@ -1,5 +1,6 @@
 using System.Text;
 using API.Data;
+using API.Middleware;
 using API.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
@@ -58,11 +59,29 @@ namespace API
             
             
 
-            builder.Services.AddScoped<IAuthService, AuthService>();
 
-          
+
+
+
+
+
+            builder.Services.AddScoped<IAuthService, AuthService>();
+            builder.Services.AddScoped<IPropertyService, PropertyService>();
+
+
+            builder.Services.AddAutoMapper(typeof(Program));
+
+
+
+
 
             var app = builder.Build();
+            if (app.Environment.IsDevelopment())
+            {
+                app.UseDeveloperExceptionPage();
+            }
+            
+            app.UseExceptionMiddleware();
             app.UseSwagger();
             app.UseSwaggerUI();
             app.UseCors("AllowAll");

@@ -119,6 +119,7 @@ namespace API.Controllers
             }
         }
         [HttpPost("refresh-token")]
+        [AllowAnonymous] // only for now >>>>>>>>>>>>>>>>>>>>>
         public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequestDto tokenDto)
         {
             var result = await _authService.RefreshTokensAsync(tokenDto);
