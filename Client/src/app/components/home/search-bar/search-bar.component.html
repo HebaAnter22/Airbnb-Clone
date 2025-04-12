@@ -1,0 +1,309 @@
+<div class="search-bar-container" #container>
+    <!-- Mobile Search Button -->
+    <div class="search-filter-container" *ngIf="isMobile">
+      <button class="mobile-search-button" (click)="openSearchModal()">
+        <mat-icon>search</mat-icon>
+        Start your search
+      </button>
+    </div>
+  
+    <!-- Desktop Search Bar -->
+    <div class="search-bar" *ngIf="!isMobile">
+      <div class="search-field" (click)="toggleSection('destination')">
+        <input class="search-input-common" matInput [(ngModel)]="destination" placeholder="Search destinations"
+          aria-label="Search destination" [matAutocomplete]="autoDesktop" />
+        <mat-autocomplete #autoDesktop="matAutocomplete">
+          <mat-option *ngFor="let dest of suggestedDestinations" [value]="dest.name"
+            (onSelectionChange)="selectDestination(dest.name)">
+            <mat-icon>{{ dest.icon }}</mat-icon>
+            <span>{{ dest.name }}</span> | {{ dest.description }}
+          </mat-option>
+        </mat-autocomplete>
+      </div>
+      <div class="search-field" (click)="toggleSection('date')">
+        <input class="search-input-common" matInput [value]="getCheckInDisplay()" readonly aria-label="Check-in date" />
+      </div>
+      <div class="search-field" (click)="toggleSection('date')">
+        <input class="search-input-common" matInput [value]="getCheckOutDisplay()" readonly aria-label="Check-out date" />
+        <button class="clear-dates" *ngIf="checkIn && checkOut" (click)="clearDates(); $event.stopPropagation()"
+          aria-label="Clear dates">
+          ✕
+        </button>
+      </div>
+      <div class="search-field" (click)="toggleSection('guests')">
+        <input class="search-input-common" matInput [value]="getGuestSummary()" readonly aria-label="Number of guests" />
+      </div>
+      <button class="search-button" (click)="onSearch()" aria-label="Search">
+        <mat-icon>search</mat-icon>
+      </button>
+    </div>
+  
+    <!-- Desktop Modal -->
+    <div class="search-model-container" *ngIf="!isMobile && modalMode">
+      <div class="search-section" *ngIf="modalMode === 'destination'">
+        <div class="section-content">
+          <h3>Where</h3>
+          <input class="search-input-common" [(ngModel)]="destination" placeholder="Search destinations"
+            aria-label="Search destination" matInput [matAutocomplete]="autoDesktopModal" />
+          <mat-autocomplete #autoDesktopModal="matAutocomplete">
+            <mat-option *ngFor="let dest of suggestedDestinations" [value]="dest.name"
+              (onSelectionChange)="selectDestination(dest.name)">
+              <mat-icon>{{ dest.icon }}</mat-icon>
+              <span>{{ dest.name }}</span> | {{ dest.description }}
+            </mat-option>
+          </mat-autocomplete>
+        </div>
+      </div>
+      <div class="search-section" *ngIf="modalMode === 'date'">
+        <div class="section-header">
+          <span class="section-value">{{
+            checkIn && checkOut ? getCheckInDisplay() + ' - ' + getCheckOutDisplay() : 'Select dates'
+          }}</span>
+        </div>
+        <div class="section-content">
+          <div class="date-picker-container">
+            <div class="date-picker">
+                <div class="date-picker-header">
+                    <button class="nav-button" (click)="previousMonth()" aria-label="Previous month">
+                      <mat-icon>chevron_left</mat-icon>
+                        </button>
+                        <span class="month-year">{{ getMonthYear(currentDate) }}</span>
+                        <button class="nav-button" (click)="nextMonth()" aria-label="Next month">
+                      <mat-icon>chevron_right</mat-icon>
+                        </button>
+                    </div>
+              <div class="date-picker-grid">
+                <div class="day-header">Su</div>
+                <div class="day-header">Mo</div>
+                <div class="day-header">Tu</div>
+                <div class="day-header">We</div>
+                <div class="day-header">Th</div>
+                <div class="day-header">Fr</div>
+                <div class="day-header">Sa</div>
+                <div class="day empty" *ngFor="let empty of emptyDaysBefore"></div>
+                <div class="day" *ngFor="let day of daysInMonth">
+                  <span [class.selected]="isDaySelected(day)" [class.in-range]="isDayInRange(day)"
+                    (click)="selectDay(day); $event.stopPropagation()">{{ day }}</span>
+                </div>
+              </div>
+              <div class="date-picker-header">
+                <span class="month-year">{{ getMonthYear(nextMonthDate) }}</span>
+              </div>
+              <div class="date-picker-grid">
+                <div class="day-header">Su</div>
+                <div class="day-header">Mo</div>
+                <div class="day-header">Tu</div>
+                <div class="day-header">We</div>
+                <div class="day-header">Th</div>
+                <div class="day-header">Fr</div>
+                <div class="day-header">Sa</div>
+                <div class="day empty" *ngFor="let empty of emptyDaysBeforeNext"></div>
+                <div class="day" *ngFor="let day of daysInNextMonth">
+                  <span [class.selected]="isDaySelected(day, true)" [class.in-range]="isDayInRange(day, true)"
+                    (click)="selectDay(day, true); $event.stopPropagation()">{{ day }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="search-section" *ngIf="modalMode === 'guests'">
+        <div class="section-content">
+          <div class="guest-type">
+            <div class="guest-label">
+              <span>Adults</span>
+              <p>Ages 13 or above</p>
+            </div>
+            <div class="counter">
+              <button class="counter-button" (click)="updateGuests('adults', false); $event.stopPropagation()"
+                [disabled]="guests.adults === 0" aria-label="Decrease adults">-</button>
+              <span class="counter-number">{{ guests.adults }}</span>
+              <button class="counter-button" (click)="updateGuests('adults', true); $event.stopPropagation()"
+                aria-label="Increase adults">+</button>
+            </div>
+          </div>
+          <hr class="divider">
+          <div class="guest-type">
+            <div class="guest-label">
+              <span>Children</span>
+              <p>Ages 2 – 12</p>
+            </div>
+            <div class="counter">
+              <button class="counter-button" (click)="updateGuests('children', false); $event.stopPropagation()"
+                [disabled]="guests.children === 0" aria-label="Decrease children">-</button>
+              <span class="counter-number">{{ guests.children }}</span>
+              <button class="counter-button" (click)="updateGuests('children', true); $event.stopPropagation()"
+                aria-label="Increase children">+</button>
+            </div>
+          </div>
+          <hr class="divider">
+          <div class="guest-type">
+            <div class="guest-label">
+              <span>Infants</span>
+              <p>Under 2</p>
+            </div>
+            <div class="counter">
+              <button class="counter-button" (click)="updateGuests('infants', false); $event.stopPropagation()"
+                [disabled]="guests.infants === 0" aria-label="Decrease infants">-</button>
+              <span class="counter-number">{{ guests.infants }}</span>
+              <button class="counter-button" (click)="updateGuests('infants', true); $event.stopPropagation()"
+                aria-label="Increase infants">+</button>
+            </div>
+          </div>
+          <hr class="divider">
+          <div class="guest-type">
+            <div class="guest-label">
+              <span>Pets</span>
+              <p><a href="#" class="service-animal-link">Bringing a service animal?</a></p>
+            </div>
+            <div class="counter">
+              <button class="counter-button" (click)="updateGuests('pets', false); $event.stopPropagation()"
+                [disabled]="guests.pets === 0" aria-label="Decrease pets">-</button>
+              <span class="counter-number">{{ guests.pets }}</span>
+              <button class="counter-button" (click)="updateGuests('pets', true); $event.stopPropagation()"
+                aria-label="Increase pets">+</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  
+    <!-- Mobile Modal -->
+    <div class="search-model" *ngIf="isMobile && isSearchModalOpen">
+      <div class="search-model-header">
+        <button class="close-button" (click)="closeSearchModal()" aria-label="Close">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+      <div class="search-model-content">
+        <div class="search-section" (click)="toggleSection('destination')">
+          <div class="section-header">
+            <h2>Where</h2>
+            <span class="section-value">{{ destination || 'Search destinations' }}</span>
+          </div>
+          <div class="section-content" [class.hidden]="modalMode !== 'destination'">
+            <input class="search-input-common" [(ngModel)]="destination" placeholder="Search destinations"
+              aria-label="Search destination" matInput [matAutocomplete]="autoMobile" />
+            <mat-autocomplete #autoMobile="matAutocomplete">
+              <mat-option *ngFor="let dest of suggestedDestinations" [value]="dest.name"
+                (onSelectionChange)="selectDestination(dest.name)">
+                <mat-icon>{{ dest.icon }}</mat-icon>
+                <span>{{ dest.name }}</span> | {{ dest.description }}
+              </mat-option>
+            </mat-autocomplete>
+          </div>
+        </div>
+        <div class="search-section" (click)="toggleSection('date')">
+          <div class="section-header">
+            <h2>When</h2>
+            <span class="section-value">{{
+              checkIn && checkOut ? getCheckInDisplay() + ' - ' + getCheckOutDisplay() : 'Add dates'
+            }}</span>
+          </div>
+          <div class="section-content" [class.hidden]="modalMode !== 'date'">
+            <div class="date-picker">
+              <div class="date-picker-header">
+                <button class="nav-button" (click)="previousMonth()" aria-label="Previous month">
+                  <mat-icon>chevron_left</mat-icon>
+                    </button>
+                    <span class="month-year">{{ getMonthYear(currentDate) }}</span>
+                    <button class="nav-button" (click)="nextMonth()" aria-label="Next month">
+                  <mat-icon>chevron_right</mat-icon>
+                    </button>
+                </div>
+              <div class="date-picker-grid">
+                <div class="day-header">Su</div>
+                <div class="day-header">Mo</div>
+                <div class="day-header">Tu</div>
+                <div class="day-header">We</div>
+                <div class="day-header">Th</div>
+                <div class="day-header">Fr</div>
+                <div class="day-header">Sa</div>
+                <div class="day empty" *ngFor="let empty of emptyDaysBefore"></div>
+                <div class="day" *ngFor="let day of daysInMonth">
+                  <span [class.selected]="isDaySelected(day)" [class.in-range]="isDayInRange(day)"
+                    (click)="selectDay(day)">{{ day }}</span>
+                </div>
+              </div>
+             
+            </div>
+          </div>
+        </div>
+        <div class="search-section" (click)="toggleSection('guests')">
+          <div class="section-header">
+            <h2>Who</h2>
+            <span class="section-value">{{ getGuestSummary() }}</span>
+          </div>
+          <div class="section-content" [class.hidden]="modalMode !== 'guests'">
+            <div class="guest-type">
+              <div>
+                <span>Adults</span>
+                <p>Ages 13 or above</p>
+              </div>
+              <div class="counter">
+                <button mat-icon-button (click)="updateGuests('adults', false)" aria-label="Decrease adults">
+                  <mat-icon>remove</mat-icon>
+                </button>
+                <span>{{ guests.adults }}</span>
+                <button mat-icon-button (click)="updateGuests('adults', true)" aria-label="Increase adults">
+                  <mat-icon>add</mat-icon>
+                </button>
+              </div>
+            </div>
+            <div class="guest-type">
+              <div>
+                <span>Children</span>
+                <p>Ages 2 – 12</p>
+              </div>
+              <div class="counter">
+                <button mat-icon-button (click)="updateGuests('children', false)" aria-label="Decrease children">
+                  <mat-icon>remove</mat-icon>
+                </button>
+                <span>{{ guests.children }}</span>
+                <button mat-icon-button (click)="updateGuests('children', true)" aria-label="Increase children">
+                  <mat-icon>add</mat-icon>
+                </button>
+              </div>
+            </div>
+            <div class="guest-type">
+              <div>
+                <span>Infants</span>
+                <p>Under 2</p>
+              </div>
+              <div class="counter">
+                <button mat-icon-button (click)="updateGuests('infants', false)" aria-label="Decrease infants">
+                  <mat-icon>remove</mat-icon>
+                </button>
+                <span>{{ guests.infants }}</span>
+                <button mat-icon-button (click)="updateGuests('infants', true)" aria-label="Increase infants">
+                  <mat-icon>add</mat-icon>
+                </button>
+              </div>
+            </div>
+            <div class="guest-type">
+              <div>
+                <span>Pets</span>
+                <p>Bringing a service animal?</p>
+              </div>
+              <div class="counter">
+                <button mat-icon-button (click)="updateGuests('pets', false)" aria-label="Decrease pets">
+                  <mat-icon>remove</mat-icon>
+                </button>
+                <span>{{ guests.pets }}</span>
+                <button mat-icon-button (click)="updateGuests('pets', true)" aria-label="Increase pets">
+                  <mat-icon>add</mat-icon>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="search-actions">
+        <button class="clear-button" (click)="clearAll()">Clear all</button>
+        <button class="search-button" (click)="onSearch()">
+          <mat-icon>search</mat-icon>
+          Search
+        </button>
+      </div>
+    </div>
+  </div>
