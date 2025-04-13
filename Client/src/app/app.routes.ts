@@ -9,14 +9,15 @@ import { NotFoundComponent } from './components/not-found/not-found.component';
 import { ForbiddenComponent } from './components/forbidden/forbidden.component';
 import { ProfileComponent } from './components/profile/profile.component';
 import { SearchBarComponent } from './components/home/search-bar/search-bar.component';
-import { PropertyListingsComponent } from './components/property-listing/property-listing.component';
+import { PropertyListingsComponent } from './components/home/property-listing/property-listing.component';
 import { HeaderComponent } from './components/home/header/header.component';
+import { AddPropertyComponent } from './components/add-property/add-property.component';
 export const routes: Routes = [
   {path: 'home', component: PropertyListingsComponent},
   {path: '', redirectTo: 'home', pathMatch: 'full'},
-  {path: 'become-a-host', component: HostComponent,
-  canActivate: [authGuard], 
-  data: { role: 'Host' }
+  {path: 'become-a-host', component: AddPropertyComponent,
+  // canActivate: [authGuard], 
+  // data: { role: 'Host' }
   },
   { path: 'login', component: LoginComponent },
   { path: 'register', component: RegisterComponent },

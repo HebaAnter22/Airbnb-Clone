@@ -1,12 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { PropertyService } from '../../services/property.service';
+import { PropertyService } from '../../../services/property.service';
 import { DecimalPipe } from '@angular/common';
-import { PropertyDto } from '../../models/property';
+import { PropertyDto } from '../../../models/property';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { HeaderComponent } from '../home/header/header.component';
+import { HeaderComponent } from '../header/header.component';
 
 @Component({
   selector: 'app-property-listings',

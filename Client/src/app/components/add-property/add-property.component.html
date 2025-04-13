@@ -1,1 +1,283 @@
-<p>add-property works!</p>
+<header class="header">
+    <div class="header-container">
+        <div class="left">
+            <a routerLink="/" class="header-logo">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="airbnb-icon">
+                    <path fill="#FF5A5F"
+                        d="M224 373.1c-25.2-31.7-40.1-59.4-45-83.2-22.6-88 112.6-88 90.1 0-5.5 24.3-20.3 52-45 83.2zm138.2 73.2c-42.1 18.3-83.7-10.9-119.3-50.5 103.9-130.1 46.1-200-18.9-200-54.9 0-85.2 46.5-73.3 100.5 6.9 29.2 25.2 62.4 54.4 99.5-32.5 36.1-60.6 52.7-85.2 54.9-50 7.4-89.1-41.1-71.3-91.1 15.1-39.2 111.7-231.2 115.9-241.6 15.8-30.1 25.6-57.4 59.4-57.4 32.3 0 43.4 25.9 60.4 59.9 36 70.6 89.4 177.5 114.8 239.1 13.2 33.1-1.4 71.3-37 86z" />
+                </svg>
+                <span class="logo-text">airbnb</span>
+            </a>
+        </div>
+        <div class="right">
+            <button class="question-button" routerLink="/help">
+                <span>Questions?</span>
+            </button>
+            <button class="exit-button" routerLink="/host">
+                <span>Exit</span>
+            </button>
+        </div>
+    </div>
+</header>
+
+<main class="main-content">
+    <!-- Welcome Section -->
+    <div class="content-section" *ngIf="currentSection === 1 && !showForm">
+        <div class="hero-container">
+            <div class="old-host">
+                <h1>Welcome back, old host!</h1>
+                <p>Finish your listing</p>
+                <div class="unfinished-listing">
+                    <h2>Unfinished listing</h2>
+                </div>
+            </div>
+        </div>
+        <div class="section-footer">
+            <button class="next-button" (click)="nextSection()">Continue</button>
+        </div>
+    </div>
+
+    <!-- New Listing Section -->
+    <div class="content-section" *ngIf="currentSection === 2 && !showForm">
+        <div class="new-listing">
+            <h1>Start a new listing</h1>
+            <button class="new-listing-btn" (click)="nextSection()">
+                New listing <span class="material-icons">chevron_right</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Instructions Section -->
+    <div class="content-section" *ngIf="currentSection === 3 && !showForm">
+        <div class="instruction">
+            <h1>It's easy to get started on Airbnb!</h1>
+            <ul class="instruction-list">
+                <li>1. Tell us about your place</li>
+                <li>2. Add photos</li>
+                <li>3. Set your price</li>
+                <li>4. Publish your listing</li>
+            </ul>
+            <button class="start-button" (click)="displayForm()">
+                <span>Get Started</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Error Message Display -->
+    <div *ngIf="errorMessage" class="error-message">
+        {{ errorMessage }}
+    </div>
+
+    <!-- Form Section -->
+    <form *ngIf="showForm" [formGroup]="propertyForm" (ngSubmit)="submitForm()">
+        <!-- Step 1: Property Type -->
+        <div class="form-step" *ngIf="currentStep === 1">
+            <h1 class="step-title">What kind of place are you listing?</h1>
+            <p class="step-subtitle">Choose a property type</p>
+
+            <div class="property-type-grid">
+                <button type="button" class="property-type-option"
+                    *ngFor="let type of ['Apartment', 'House', 'Condo', 'Townhouse', 'Villa', 'Cabin', 'Loft', 'Other']"
+                    [class.selected]="propertyForm.get('propertyType')?.value === type.toLowerCase()"
+                    (click)="propertyForm.get('propertyType')?.setValue(type.toLowerCase())">
+                    <span>{{type}}</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Step 2: Location -->
+        <div class="form-step" *ngIf="currentStep === 2">
+            <h1 class="step-title">Where's your place located?</h1>
+            <p class="step-subtitle">Enter your address</p>
+
+            <div class="form-group">
+                <label for="country">Country</label>
+                <select id="country" formControlName="country" class="form-control">
+                    <option value="US">United States</option>
+                    <option value="CA">Canada</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="address">Street Address</label>
+                <input type="text" id="address" formControlName="address" class="form-control">
+            </div>
+
+            <div class="form-group">
+                <label for="city">City</label>
+                <input type="text" id="city" formControlName="city" class="form-control">
+            </div>
+
+            <div class="form-group">
+                <label for="state">State/Province</label>
+                <input type="text" id="state" formControlName="state" class="form-control">
+            </div>
+
+            <div class="form-group">
+                <label for="postalCode">ZIP/Postal Code</label>
+                <input type="text" id="postalCode" formControlName="postalCode" class="form-control">
+            </div>
+        </div>
+
+        <!-- Step 3: Basics -->
+        <div class="form-step" *ngIf="currentStep === 3">
+            <h1 class="step-title">Share some basics about your place</h1>
+            <p class="step-subtitle">What amenities do you offer?</p>
+
+            <div class="basics-grid">
+                <div class="form-group">
+                    <label>Bedrooms</label>
+                    <div class="counter">
+                        <button type="button" class="counter-btn" (click)="decrement('bedrooms')">-</button>
+                        <span>{{ propertyForm.get('bedrooms')?.value }}</span>
+                        <button type="button" class="counter-btn" (click)="increment('bedrooms')">+</button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Bathrooms</label>
+                    <div class="counter">
+                        <button type="button" class="counter-btn" (click)="decrement('bathrooms')">-</button>
+                        <span>{{ propertyForm.get('bathrooms')?.value }}</span>
+                        <button type="button" class="counter-btn" (click)="increment('bathrooms')">+</button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Max Guests</label>
+                    <div class="counter">
+                        <button type="button" class="counter-btn" (click)="decrement('maxGuests')">-</button>
+                        <span>{{ propertyForm.get('maxGuests')?.value }}</span>
+                        <button type="button" class="counter-btn" (click)="increment('maxGuests')">+</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+     <!-- Step 4: Amenities -->
+<div class="form-step" *ngIf="currentStep === 4">
+    <h1 class="step-title">Tell guests what your place has to offer</h1>
+    <p class="step-subtitle">Select all that apply</p>
+    
+    <!-- <div class="amenities-grid">
+        <div class="amenity-option" *ngFor="let amenity of getAmenities()">
+            <label>
+                <input type="checkbox" 
+                       [checked]="propertyForm.get('amenities')?.value.includes(amenity.value)"
+                       (change)="updateAmenities(amenity.value, $event.target.checked)">
+                {{ amenity.label }}
+            </label>
+        </div>
+    </div> -->
+</div>>
+
+        <!-- Step 5: Photos -->
+        <div class="form-step" *ngIf="currentStep === 5">
+            <h1 class="step-title">Add some photos of your place</h1>
+            <p class="step-subtitle">Upload at least 1 photo to get started</p>
+
+            <div class="image-upload-container">
+                <div class="upload-area">
+                    <input type="file" id="image-upload" (change)="onImageUpload($event)" multiple accept="image/*">
+                    <label for="image-upload" class="upload-btn">
+                        <span class="material-icons">photo_camera</span>
+                        <span>Upload Photos</span>
+                    </label>
+                </div>
+
+                <div class="image-preview-grid" *ngIf="uploadedImages.length > 0">
+                    <div class="image-preview" *ngFor="let image of uploadedImages; let i = index">
+                        <img [src]="image" alt="Uploaded photo">
+                        <button type="button" class="remove-btn" (click)="removeImage(i)">×</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 6: Title & Description -->
+        <div class="form-step" *ngIf="currentStep === 6">
+            <h1 class="step-title">Now, let's give your place a title</h1>
+            <p class="step-subtitle">Make it short and catchy</p>
+
+            <div class="form-group">
+                <label for="title">Title</label>
+                <input type="text" id="title" formControlName="title" class="form-control"
+                    placeholder="e.g., 'Cozy apartment in downtown'">
+                <div *ngIf="propertyForm.get('title')?.invalid && propertyForm.get('title')?.touched"
+                    class="error-text">
+                    Title must be at least 10 characters
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="description">Description</label>
+                <textarea id="description" formControlName="description" class="form-control" rows="5"
+                    placeholder="Tell guests what makes your place special"></textarea>
+                <div *ngIf="propertyForm.get('description')?.invalid && propertyForm.get('description')?.touched"
+                    class="error-text">
+                    Description must be at least 50 characters
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 7: Price & Booking -->
+        <div class="form-step" *ngIf="currentStep === 7">
+            <h1 class="step-title">Finally, set your price</h1>
+            <p class="step-subtitle">You can change this anytime</p>
+
+            <div class="form-group">
+                <label for="pricePerNight">Price per night ($)</label>
+                <input type="number" id="pricePerNight" formControlName="pricePerNight" class="form-control" min="1">
+            </div>
+
+            <div class="form-group">
+                <label for="cleaningFee">Cleaning fee (optional)</label>
+                <input type="number" id="cleaningFee" formControlName="cleaningFee" class="form-control" min="0">
+            </div>
+
+            <div class="form-group">
+                <label for="serviceFee">Service fee (optional)</label>
+                <input type="number" id="serviceFee" formControlName="serviceFee" class="form-control" min="0">
+            </div>
+
+            <div class="form-group">
+                <label for="minNights">Minimum nights</label>
+                <input type="number" id="minNights" formControlName="minNights" class="form-control" min="1">
+            </div>
+
+            <div class="form-group">
+                <label for="instantBook">
+                    <input type="checkbox" id="instantBook" formControlName="instantBook">
+                    Enable instant booking
+                </label>
+            </div>
+
+            <div class="form-group">
+                <label for="cancellationPolicyId">Cancellation policy</label>
+                <select id="cancellationPolicyId" formControlName="cancellationPolicyId" class="form-control">
+                    <option value="1">Flexible</option>
+                    <option value="2">Moderate</option>
+                    <option value="3">Strict</option>
+                </select>
+            </div>
+        </div>
+
+        <footer class="footer">
+            <div class="footer-container">
+                <div class="left">
+                    <button type="button" class="previous-button" (click)="prevStep()" [disabled]="isLoading">
+                        <span>Back</span>
+                    </button>
+                </div>
+                <div class="right">
+                    <button type="button" class="next-button" (click)="nextStep()" *ngIf="currentStep < 7"
+                        [disabled]="isLoading">
+                        <span>Next</span>
+                    </button>
+                    <button type="submit" class="submit-button" *ngIf="currentStep === 7" [disabled]="isLoading">
+                        <span *ngIf="!isLoading">Create Listing</span>
+                        <span *ngIf="isLoading">Creating...</span>
+                    </button>
+                </div>
+            </div>
+        </footer>
+    </form>
+</main>

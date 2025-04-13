@@ -1,0 +1,413 @@
+:host {
+    display: block;
+    min-height: 100vh;
+    background-color: #f7f7f7;
+}
+
+.header {
+    background-color: white;
+    padding: 1rem 2rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.header-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.header-logo {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    font-weight: bold;
+    color: #ff5a5f;
+    font-size: 1.5rem;
+}
+
+.airbnb-icon {
+    width: 30px;
+    height: 30px;
+    margin-right: 8px;
+}
+
+.progress-bar {
+    height: 4px;
+    background-color: #e4e4e4;
+    width: 100%;
+    margin-top: 1rem;
+}
+
+.progress {
+    height: 100%;
+    background-color: #ff5a5f;
+    transition: width 0.3s ease;
+}
+
+.right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.question-button, .exit-button {
+    padding: 0.75rem 1.25rem;
+    font-size: 1rem;
+    cursor: pointer;
+    border-radius: 25px;
+    transition: all 0.2s;
+}
+
+.question-button {
+    background-color: white;
+    border: 1px solid #dddddd;
+    color: #333;
+}
+
+.exit-button {
+    background-color: white;
+    border: 1px solid #dddddd;
+    color: #333;
+}
+
+.question-button:hover, .exit-button:hover {
+    background-color: #f7f7f7;
+}
+
+.main-content {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 0 2rem;
+}
+
+.form-step {
+    background-color: white;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    margin-bottom: 2rem;
+}
+
+.step-title {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    color: #333;
+}
+
+.step-subtitle {
+    font-size: 1rem;
+    color: #767676;
+    margin-bottom: 2rem;
+}
+
+.property-type-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.property-type-option {
+    border: 1px solid #dddddd;
+    border-radius: 8px;
+    padding: 1.5rem;
+    text-align: center;
+    background-color: white;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.property-type-option:hover {
+    border-color: #767676;
+}
+
+.property-type-option.selected {
+    border-color: #ff5a5f;
+    background-color: #fff8f8;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+
+.form-control {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #dddddd;
+    border-radius: 8px;
+    font-size: 1rem;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #ff5a5f;
+}
+
+.basics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1.5rem;
+}
+
+.counter {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.counter-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1px solid #dddddd;
+    background-color: white;
+    font-size: 1rem;
+    cursor: pointer;
+}
+
+.counter-btn:hover {
+    border-color: #767676;
+}
+
+.amenities-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1rem;
+}
+
+.amenity-option {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.image-upload-container {
+    margin-top: 2rem;
+}
+
+.upload-area {
+    border: 2px dashed #dddddd;
+    border-radius: 8px;
+    padding: 3rem;
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.upload-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background-color: #ff5a5f;
+    color: white;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.upload-btn:hover {
+    background-color: #e04a50;
+}
+
+.image-preview-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.image-preview {
+    position: relative;
+    border-radius: 8px;
+    overflow: hidden;
+    height: 150px;
+}
+
+.image-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.remove-btn {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.footer {
+    background-color: white;
+    padding: 1.5rem 2rem;
+    box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.05);
+    position: sticky;
+    bottom: 0;
+}
+
+.footer-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.previous-button, .next-button, .submit-button {
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.previous-button {
+    background-color: white;
+    border: 1px solid #dddddd;
+    color: #333;
+}
+
+.next-button, .submit-button {
+    background-color: #ff5a5f;
+    border: 1px solid #ff5a5f;
+    color: white;
+}
+
+.previous-button:hover {
+    background-color: #f7f7f7;
+}
+
+.next-button:hover, .submit-button:hover {
+    background-color: #e04a50;
+    border-color: #e04a50;
+}.content-section {
+    background-color: white;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    margin: 2rem auto;
+    max-width: 800px;
+}
+
+.hero-container {
+    text-align: center;
+    padding: 2rem;
+}
+
+.old-host h1 {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+}
+
+.unfinished-listing {
+    margin: 2rem 0;
+    padding: 1rem;
+    border: 1px dashed #ddd;
+    border-radius: 8px;
+}
+
+.new-listing {
+    text-align: center;
+    padding: 2rem;
+}
+
+.new-listing-btn {
+    display: block;
+    width: 100%;
+    max-width: 500px;
+    margin: 2rem auto;
+    padding: 1rem;
+    background-color: white;
+    border: 1px solid #5d5656;
+    border-radius: 10px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.new-listing-btn:hover {
+    border-color: #ff5a5f;
+    color: #ff5a5f;
+}
+
+.instruction {
+    text-align: center;
+    padding: 2rem;
+}
+
+.instruction-list {
+    list-style: none;
+    padding: 0;
+    margin: 2rem 0;
+    text-align: left;
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.instruction-list li {
+    padding: 0.5rem 0;
+    font-size: 1.1rem;
+}
+
+.start-button {
+    display: block;
+    width: 100%;
+    max-width: 500px;
+    margin: 2rem auto;
+    padding: 1rem;
+    background-color: #ff5a5f;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.start-button:hover {
+    background-color: #e04a50;
+}
+
+.section-footer {
+    text-align: center;
+    margin-top: 2rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .header-container, .footer-container {
+        padding: 0 1rem;
+    }
+    
+    .main-content {
+        padding: 0 1rem;
+    }
+    
+    .property-type-grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    }
+    
+    .step-title {
+        font-size: 1.5rem;
+    }
+}
+
+
