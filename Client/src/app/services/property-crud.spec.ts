@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 
-import { CreatePropertyService } from './create-property.service';
+import { CreatePropertyService } from './property-crud.service';
 
 describe('CreatePropertyService', () => {
   let service: CreatePropertyService;

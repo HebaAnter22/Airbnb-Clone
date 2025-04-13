@@ -34,9 +34,6 @@ namespace API.DTOs
         [StringLength(100)]
         public string City { get; set; }
 
-        [Required]
-        [StringLength(100)]
-        public string State { get; set; }
 
         [Required]
         [StringLength(20)]
@@ -76,7 +73,7 @@ namespace API.DTOs
 
         [Required]
         [StringLength(3)]
-        public string Currency { get; set; }
+        public string? Currency { get; set; }
 
         public bool? InstantBook { get; set; }
 

@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace API.Migrations
 {
     /// <inheritdoc />
-    public partial class intiialcreation : Migration
+    public partial class intialcreation : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -18,7 +18,7 @@ namespace API.Migrations
                     id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    category = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    category = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     icon_url = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false)
                 },
                 constraints: table =>
@@ -426,7 +426,8 @@ namespace API.Migrations
                     rating = table.Column<int>(type: "int", nullable: false),
                     comment = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
                     created_at = table.Column<DateTime>(type: "datetime", nullable: false, defaultValueSql: "SYSDATETIME()"),
-                    updated_at = table.Column<DateTime>(type: "datetime", nullable: false)
+                    updated_at = table.Column<DateTime>(type: "datetime", nullable: false),
+                    PropertyId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -437,6 +438,11 @@ namespace API.Migrations
                         principalTable: "Bookings",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Reviews_Properties_PropertyId",
+                        column: x => x.PropertyId,
+                        principalTable: "Properties",
+                        principalColumn: "id");
                     table.ForeignKey(
                         name: "FK_Reviews_Users_reviewer_id",
                         column: x => x.reviewer_id,
@@ -596,6 +602,11 @@ namespace API.Migrations
                 table: "Reviews",
                 column: "booking_id",
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Reviews_PropertyId",
+                table: "Reviews",
+                column: "PropertyId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Reviews_reviewer_id",

@@ -82,8 +82,10 @@ namespace API
             });
             
 
-            builder.Services.AddScoped<IAuthService, AuthService>();
+            //builder.Services.AddScoped<IAuthService, AuthService>();
+            //builder.Services.AddScoped<IAmenityService, AmenityService>();
             builder.Services.AddScoped<IPropertyService, PropertyService>();
+            //builder.Services.AddScoped<IPropertyCategoryService, PropertyCategoryService>();
 
 
             builder.Services.AddAutoMapper(typeof(Program));

@@ -79,7 +79,7 @@ namespace API.Services
         {
             var property = await _context.Properties
                 .Include(p => p.PropertyImages)
-                .Include(p => p.Amenities)
+                //.Include(p => p.Amenities)
                 .FirstOrDefaultAsync(p => p.Id == propertyId);
 
             return property == null ? null : _mapper.Map<PropertyDto>(property);
@@ -100,6 +100,11 @@ namespace API.Services
             var properties = await _context.Properties
                 .Where(p => p.Status == "Active")
                 .Include(p => p.PropertyImages)
+                .Include(p => p.Amenities)
+                .Include(p => p.Host)
+                    .ThenInclude(h => h.User)
+                .Include(p => p.Bookings)
+                    .ThenInclude(b => b.Review)
                 .ToListAsync();
 
             return _mapper.Map<List<PropertyDto>>(properties);

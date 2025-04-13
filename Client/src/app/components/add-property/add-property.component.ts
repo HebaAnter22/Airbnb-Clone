@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
@@ -6,33 +6,73 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { CreatePropertyService } from '../../services/create-property.service';
+import { CreatePropertyService } from '../../services/property-crud.service';
+import { AuthService } from '../auth/auth.service';
+import { PropertyCategory, Amenity } from '../../models/property';
+import { LocationMapComponent } from '../map/location-map.component';
+
+interface InvalidField {
+  field: string;
+  value: any;
+  errors: any;
+}
 
 @Component({
   selector: 'app-add-property',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, MatIconModule, MatButtonModule, MatInputModule],
+  imports: [
+    CommonModule, 
+    ReactiveFormsModule, 
+    MatIconModule, 
+    MatButtonModule, 
+    MatInputModule,
+    LocationMapComponent
+  ],
   templateUrl: './add-property.component.html',
   styleUrls: ['./add-property.component.css']
 })
-export class AddPropertyComponent {
+export class AddPropertyComponent implements OnInit {
   currentSection = 1;
   currentStep = 1;
-  totalSteps = 7;
+  totalSteps = 8;
+  steps = [
+    'Category',
+    'Space Type',
+    'Location',
+    'Basics',
+    'Amenities',
+    'Photos',
+    'Description',
+    'Price'
+  ];
   propertyForm!: FormGroup;
   uploadedImages: string[] = [];
   isLoading = false;
   errorMessage: string | null = null;
   showForm = false;
   showHero = true;
+  user: any;
+  userProfile: any;
+  categories: PropertyCategory[] = [];
+  amenities: Amenity[] = [];
+  selectedAmenities: number[] = [];
+  savedFormData: any;
 
   constructor(
+    private authService: AuthService,
     private fb: FormBuilder,
     private router: Router,
     private propertyService: CreatePropertyService,
     private snackBar: MatSnackBar
   ) {
     this.initializeForm();
+    this.user = this.authService.currentUserValue;
+    this.getUserProfile();
+  }
+
+  ngOnInit() {
+    this.loadCategories();
+    this.loadAmenities();
   }
 
   private initializeForm() {
@@ -41,13 +81,13 @@ export class AddPropertyComponent {
       title: ['', [Validators.required, Validators.minLength(10)]],
       description: ['', [Validators.required, Validators.minLength(50)]],
       propertyType: ['', Validators.required],
-      country: ['US', Validators.required],
+      sharingType: ['entire_place', Validators.required],
+      country: ['', Validators.required],
       address: ['', Validators.required],
       city: ['', Validators.required],
-      state: ['', Validators.required],
       postalCode: ['', Validators.required],
-      latitude: [null],
-      longitude: [null],
+      latitude: ['', Validators.required],
+      longitude: ['', Validators.required],
       pricePerNight: [0, [Validators.required, Validators.min(1)]],
       cleaningFee: [0, [Validators.min(0)]],
       serviceFee: [0, [Validators.min(0)]],
@@ -59,20 +99,77 @@ export class AddPropertyComponent {
       currency: ['USD', Validators.required],
       instantBook: [false],
       cancellationPolicyId: [1, Validators.required],
-      images: [[]]
+      images: [[]],
+      amenities: [[]]
     });
+
+    // Store the initial form values
+    this.savedFormData = this.propertyForm.value;
+  }
+
+  private getUserProfile() {
+    this.authService.getUserProfile().subscribe({
+      next: (profile) => {
+        this.userProfile = profile;
+      },
+      error: (error) => {
+        console.error('Error fetching user profile:', error);
+      }
+    });
+  }
+
+  getFullName(): string {
+    if (this.userProfile) {
+      return `${this.userProfile.firstName} ${this.userProfile.lastName}`;
+    }
+    return '';
   }
 
   // Navigation methods
   nextStep() {
     if (this.currentStep < this.totalSteps) {
-      this.currentStep++;
-      this.errorMessage = null;
+      // Validate current step before proceeding
+      if (this.validateCurrentStep()) {
+        this.savedFormData = { ...this.savedFormData, ...this.propertyForm.value };
+        this.currentStep++;
+        this.errorMessage = null;
+      }
     }
+  }
+
+  private validateCurrentStep(): boolean {
+    const stepValidations = {
+      1: () => this.propertyForm.get('categoryId')?.valid && this.propertyForm.get('propertyType')?.valid,
+      2: () => this.propertyForm.get('sharingType')?.valid,
+      3: () => {
+        const locationControls = ['address', 'city', 'country', 'latitude', 'longitude'];
+        return locationControls.every(control => this.propertyForm.get(control)?.valid);
+      },
+      4: () => {
+        const basicControls = ['bedrooms', 'bathrooms', 'maxGuests'];
+        return basicControls.every(control => this.propertyForm.get(control)?.valid);
+      },
+      5: () => true, // Amenities are optional
+      6: () => this.uploadedImages.length >= 1,
+      7: () => this.propertyForm.get('title')?.valid && this.propertyForm.get('description')?.valid,
+      8: () => this.propertyForm.get('pricePerNight')?.valid && this.propertyForm.get('minNights')?.valid
+    };
+
+    const isValid = stepValidations[this.currentStep as keyof typeof stepValidations]?.() ?? false;
+    
+    if (!isValid) {
+      this.markFormGroupTouched(this.propertyForm);
+      this.errorMessage = `Please complete all required fields in ${this.steps[this.currentStep - 1]}`;
+      return false;
+    }
+
+    return true;
   }
 
   prevStep() {
     if (this.currentStep > 1) {
+      // Save current form data
+      this.savedFormData = { ...this.savedFormData, ...this.propertyForm.value };
       this.currentStep--;
       this.errorMessage = null;
     }
@@ -115,8 +212,7 @@ export class AddPropertyComponent {
       return;
     }
 
-    for (let i = 0; i < input.files.length; i++) {
-      const file = input.files[i];
+    Array.from(input.files).forEach(file => {
       if (!file.type.match('image.*')) {
         this.errorMessage = 'Only image files are allowed';
         return;
@@ -125,9 +221,17 @@ export class AddPropertyComponent {
       const reader = new FileReader();
       reader.onload = (e: ProgressEvent<FileReader>) => {
         if (e.target?.result) {
-          this.uploadedImages.push(e.target.result as string);
+          const imageData = e.target.result as string;
+          this.uploadedImages.push(imageData);
+          
+          // Update form control
+          const currentImages = this.propertyForm.get('images')?.value || [];
           this.propertyForm.patchValue({
-            images: [...this.propertyForm.value.images, e.target.result]
+            images: [...currentImages, {
+              imageUrl: imageData,
+              isPrimary: currentImages.length === 0,
+              category: 'property'
+            }]
           });
         }
       };
@@ -135,7 +239,7 @@ export class AddPropertyComponent {
         this.errorMessage = 'Error reading file';
       };
       reader.readAsDataURL(file);
-    }
+    });
   }
 
   removeImage(index: number) {
@@ -151,14 +255,68 @@ export class AddPropertyComponent {
     
     if (this.propertyForm.invalid) {
       this.markFormGroupTouched(this.propertyForm);
-      this.errorMessage = 'Please fill all required fields correctly';
-      this.snackBar.open(this.errorMessage || 'An error occurred', 'Close', { duration: 5000 });
+      
+      // Get all invalid fields
+      const invalidFields: InvalidField[] = [];
+      Object.keys(this.propertyForm.controls).forEach(key => {
+        const control = this.propertyForm.get(key);
+        if (control?.invalid) {
+          invalidFields.push({
+            field: key,
+            value: control.value,
+            errors: control.errors
+          });
+        }
+      });
+
+      console.log('Invalid fields:', invalidFields);
+
+      // Create a user-friendly error message
+      const missingFields = invalidFields.map(field => {
+        let fieldName = field.field.replace(/([A-Z])/g, ' $1').toLowerCase();
+        fieldName = fieldName.charAt(0).toUpperCase() + fieldName.slice(1);
+        
+        if (!field.value) {
+          return `${fieldName} is required`;
+        } else if (field.errors?.['min']) {
+          return `${fieldName} must be at least ${field.errors['min'].min}`;
+        } else if (field.errors?.['minlength']) {
+          return `${fieldName} must be at least ${field.errors['minlength'].requiredLength} characters`;
+        }
+        return `${fieldName} is invalid`;
+      });
+
+      this.errorMessage = 'Please fix the following issues:\n' + missingFields.join('\n');
+      this.snackBar.open(this.errorMessage, 'Close', { 
+        duration: 10000,
+        verticalPosition: 'top'
+      });
+
+      // Navigate to the first step with an invalid field
+      const steps = {
+        1: ['categoryId', 'propertyType'],
+        2: ['address', 'city', 'country', 'postalCode', 'latitude', 'longitude'],
+        3: ['bedrooms', 'bathrooms', 'maxGuests'],
+        4: ['amenities'],
+        5: ['images'],
+        6: ['title', 'description'],
+        7: ['pricePerNight', 'minNights', 'maxNights', 'cancellationPolicyId']
+      };
+
+      for (const [step, fields] of Object.entries(steps)) {
+        if (fields.some(field => this.propertyForm.get(field)?.invalid)) {
+          this.currentStep = Number(step);
+          break;
+        }
+      }
+
       return;
     }
 
     if (this.uploadedImages.length < 1) {
       this.errorMessage = 'Please upload at least one image';
-      this.snackBar.open(this.errorMessage || 'An error occurred', 'Close', { duration: 5000 });
+      this.currentStep = 5; // Navigate to photos step
+      this.snackBar.open(this.errorMessage, 'Close', { duration: 5000 });
       return;
     }
 
@@ -167,23 +325,35 @@ export class AddPropertyComponent {
     // Prepare the API request body
     const formValue = this.propertyForm.value;
     const requestBody = {
-      ...formValue,
-      // Convert numeric fields
+      categoryId: Number(formValue.categoryId),
+      title: formValue.title,
+      description: formValue.description,
+      propertyType: formValue.propertyType,
+      country: formValue.country,
+      address: formValue.address,
+      city: formValue.city,
+      postalCode: formValue.postalCode,
       latitude: Number(formValue.latitude) || 0,
       longitude: Number(formValue.longitude) || 0,
       pricePerNight: Number(formValue.pricePerNight),
-      cleaningFee: Number(formValue.cleaningFee),
-      serviceFee: Number(formValue.serviceFee),
+      cleaningFee: Number(formValue.cleaningFee) || 0,
+      serviceFee: Number(formValue.serviceFee) || 0,
       minNights: Number(formValue.minNights),
       maxNights: Number(formValue.maxNights),
       bedrooms: Number(formValue.bedrooms),
       bathrooms: Number(formValue.bathrooms),
       maxGuests: Number(formValue.maxGuests),
-      // Convert boolean
+      currency: formValue.currency,
       instantBook: Boolean(formValue.instantBook),
-      // Include images
-      images: this.uploadedImages
+      cancellationPolicyId: Number(formValue.cancellationPolicyId),
+      images: this.uploadedImages.map((imageData, index) => ({
+        imageUrl: imageData,
+        isPrimary: index === 0,
+        category: 'property'
+      }))
     };
+
+    console.log('Submitting form with data:', requestBody);
 
     this.propertyService.addProperty(requestBody).subscribe({
       next: (response) => {
@@ -210,7 +380,7 @@ export class AddPropertyComponent {
     });
   }
 
-  getStepProgress() {
+  getStepProgress(): number {
     return (this.currentStep / this.totalSteps) * 100;
   }
 
@@ -250,6 +420,80 @@ export class AddPropertyComponent {
       this.propertyForm.patchValue({
         amenities: currentAmenities.filter((a: string) => a !== amenityValue)
       });
+    }
+  }
+
+  private loadCategories() {
+    this.propertyService.getCategories().subscribe({
+      next: (categories) => {
+        this.categories = categories;
+      },
+      error: (error) => {
+        console.error('Error loading categories:', error);
+        this.snackBar.open('Error loading property categories', 'Close', { duration: 5000 });
+      }
+    });
+  }
+
+  private loadAmenities() {
+    this.propertyService.getAmenities().subscribe({
+      next: (amenities) => {
+        this.amenities = amenities;
+      },
+      error: (error) => {
+        console.error('Error loading amenities:', error);
+        this.snackBar.open('Error loading amenities', 'Close', { duration: 5000 });
+      }
+    });
+  }
+
+  toggleAmenity(amenityId: number) {
+    const currentAmenities = this.propertyForm.get('amenities')?.value || [];
+    const index = currentAmenities.indexOf(amenityId);
+    
+    if (index === -1) {
+      currentAmenities.push(amenityId);
+    } else {
+      currentAmenities.splice(index, 1);
+    }
+    
+    this.propertyForm.patchValue({
+      amenities: currentAmenities
+    });
+  }
+
+  isAmenitySelected(amenityId: number): boolean {
+    return this.propertyForm.get('amenities')?.value?.includes(amenityId) || false;
+  }
+
+  onLocationSelected(location: any) {
+    if (!location) return;
+
+    // Update form with location data
+    this.propertyForm.patchValue({
+      address: location.address,
+      city: location.city,
+      country: location.country,
+      postalCode: location.postalCode || '',
+      latitude: location.latitude.toFixed(6),
+      longitude: location.longitude.toFixed(6)
+    });
+
+    // Save the location data
+    this.savedFormData = { 
+      ...this.savedFormData, 
+      address: location.address,
+      city: location.city,
+      country: location.country,
+      postalCode: location.postalCode || '',
+      latitude: location.latitude.toFixed(6),
+      longitude: location.longitude.toFixed(6)
+    };
+
+    // Validate location fields
+    if (!location.city || !location.country) {
+      this.snackBar.open('Please select a more specific location', 'Close', { duration: 5000 });
+      return;
     }
   }
 }

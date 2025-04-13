@@ -20,7 +20,7 @@
         public string PostalCode { get; set; }
         public decimal Latitude { get; set; }
         public decimal Longitude { get; set; }
-        public string currency { get; set; } = "USD";
+        public string Currency { get; set; } = "USD";
         public decimal PricePerNight { get; set; }
         public decimal CleaningFee { get; set; }
         public decimal ServiceFee { get; set; }
@@ -46,7 +46,7 @@
         public virtual ICollection<Booking> Bookings { get; set; } = new List<Booking>();
         public virtual ICollection<Favourite> Favourites { get; set; } = new List<Favourite>();
         public virtual ICollection<PropertyAvailability> Availabilities { get; set; } = new List<PropertyAvailability>();
-
+        public virtual ICollection<Review> Reviews { get; set; } = new List<Review>();
         public virtual ICollection<Conversation> Conversations { get; set; } = new List<Conversation>();
 
 

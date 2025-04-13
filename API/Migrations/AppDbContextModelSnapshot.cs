@@ -33,8 +33,7 @@ namespace API.Migrations
 
                     b.Property<string>("Category")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)")
+                        .HasColumnType("nvarchar(max)")
                         .HasColumnName("category");
 
                     b.Property<string>("IconUrl")
@@ -580,6 +579,12 @@ namespace API.Migrations
                         .HasColumnName("created_at")
                         .HasDefaultValueSql("GETDATE()");
 
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)")
+                        .HasColumnName("currency");
+
                     b.Property<string>("Description")
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)")
@@ -656,12 +661,6 @@ namespace API.Migrations
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime")
                         .HasColumnName("updated_at");
-
-                    b.Property<string>("currency")
-                        .IsRequired()
-                        .HasMaxLength(10)
-                        .HasColumnType("nvarchar(10)")
-                        .HasColumnName("currency");
 
                     b.HasKey("Id");
 
@@ -827,6 +826,9 @@ namespace API.Migrations
                         .HasColumnName("created_at")
                         .HasDefaultValueSql("SYSDATETIME()");
 
+                    b.Property<int?>("PropertyId")
+                        .HasColumnType("int");
+
                     b.Property<int>("Rating")
                         .HasColumnType("int")
                         .HasColumnName("rating");
@@ -843,6 +845,8 @@ namespace API.Migrations
 
                     b.HasIndex("BookingId")
                         .IsUnique();
+
+                    b.HasIndex("PropertyId");
 
                     b.HasIndex("ReviewerId");
 
@@ -992,6 +996,114 @@ namespace API.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("UserUsedPromotions");
+                });
+
+            modelBuilder.Entity("API.Models.VwActivePromotions", b =>
+                {
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Code")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("DiscountType")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("EndDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("MaxUses")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PromotionId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("RemainingUses")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("UsedCount")
+                        .HasColumnType("int");
+
+                    b.ToTable((string)null);
+
+                    b.ToView("vw_active_promotions", (string)null);
+                });
+
+            modelBuilder.Entity("API.Models.VwHostPerformance", b =>
+                {
+                    b.Property<decimal?>("AverageRating")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("HostId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("HostName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("TotalBookings")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TotalProperties")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TotalReviews")
+                        .HasColumnType("int");
+
+                    b.ToTable((string)null);
+
+                    b.ToView("vw_host_performance", (string)null);
+                });
+
+            modelBuilder.Entity("API.Models.VwPropertyDetails", b =>
+                {
+                    b.Property<decimal>("AverageRating")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("City")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("CleaningFee")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("HostId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("HostName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("HostPicture")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("PricePerNight")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("PropertyId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("PropertyType")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("ReviewCount")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("ServiceFee")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Status")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Title")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.ToTable((string)null);
+
+                    b.ToView("vw_property_details", (string)null);
                 });
 
             modelBuilder.Entity("AmenityProperty", b =>
@@ -1181,6 +1293,10 @@ namespace API.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("API.Models.Property", null)
+                        .WithMany("Reviews")
+                        .HasForeignKey("PropertyId");
+
                     b.HasOne("API.Models.User", "Reviewer")
                         .WithMany("Reviews")
                         .HasForeignKey("ReviewerId")
@@ -1276,6 +1392,8 @@ namespace API.Migrations
                     b.Navigation("Favourites");
 
                     b.Navigation("PropertyImages");
+
+                    b.Navigation("Reviews");
                 });
 
             modelBuilder.Entity("API.Models.PropertyCategory", b =>

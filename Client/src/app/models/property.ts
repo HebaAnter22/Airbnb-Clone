@@ -5,6 +5,14 @@ export interface PropertyImageDto {
   category?: string;  // Added to match backend
 }
 
+export interface Amenity {
+  amenityId: number;
+  name: string;
+  description?: string;
+  iconUrl: string;
+  category: string;
+}
+
 export interface PropertyDto {
   id: number;
   hostId?: number;
@@ -14,7 +22,6 @@ export interface PropertyDto {
   address: string;
   city: string;
   country?: string;  // Made optional
-  postalCode?: string;
   latitude?: number;
   longitude?: number;
   pricePerNight?: number;
@@ -30,6 +37,7 @@ export interface PropertyDto {
   updatedAt?: Date;
   isAvailable?: boolean;
   images: PropertyImageDto[];
+  amenities?: Amenity[];  // Added amenities array
   
   // Rating and favorite fields
   averageRating?: number;
@@ -40,4 +48,11 @@ export interface PropertyDto {
   // UI-only fields
   viewCount?: number;
   dates?: string;
+}
+
+export interface PropertyCategory {
+  categoryId: number;
+  name: string;
+  description?: string;
+  iconUrl: string;
 }
