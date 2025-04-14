@@ -17,5 +17,6 @@ namespace API.Services
         Task<List<PropertyDto>> SearchPropertiesAsync(string city = null, decimal? minPrice = null, decimal? maxPrice = null, int? maxGuests = null);
         Task<List<string>> UploadImagesAsync(List<IFormFile> files);
         Task<bool> AddImagesToPropertyAsync(int propertyId, List<string> imageUrls, int hostId);
+        Task<bool> UpdatePropertyAmenitiesAsync(int propertyId, List<int> amenityIds, int hostId);
     }
 }

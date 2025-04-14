@@ -1,10 +1,11 @@
+using API.DTOs;
 using API.Models;
 
 namespace API.Services
 {
     public interface IAmenityService
     {
-        Task<IEnumerable<Amenity>> GetAllAmenitiesAsync();
+        Task<IEnumerable<AmenityDto>> GetAllAmenitiesAsync();
         Task<IEnumerable<Amenity>> GetAmenitiesByCategoryAsync(string category);
         Task<Amenity> GetAmenityByIdAsync(int id);
         Task<Amenity> AddAmenityAsync(Amenity amenity);

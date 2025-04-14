@@ -311,14 +311,113 @@ namespace API.Services
 
         public async Task<PropertyDto> EditPropertyAsync(int propertyId, PropertyUpdateDto updatedPropertyDto, int hostId)
         {
-            var property = await _context.Properties.FirstOrDefaultAsync(p => p.Id == propertyId && p.HostId == hostId);
+            // Get the property with all related data
+            var property = await _context.Properties
+                .Include(p => p.PropertyImages)
+                .Include(p => p.Amenities)
+                .Include(p => p.Host)
+                    .ThenInclude(h => h.User)
+                .FirstOrDefaultAsync(p => p.Id == propertyId && p.HostId == hostId);
+            
             if (property == null) return null;
 
+            // Update basic property information
             _mapper.Map(updatedPropertyDto, property);
             property.UpdatedAt = DateTime.UtcNow;
 
+            // Handle amenities
+            if (updatedPropertyDto.AmenityIds != null && updatedPropertyDto.AmenityIds.Any())
+            {
+                // Clear existing amenities
+                property.Amenities.Clear();
+                
+                // Add new amenities
+                foreach (var amenityId in updatedPropertyDto.AmenityIds)
+                {
+                    var amenity = await _context.Amenities.FindAsync(amenityId);
+                    if (amenity != null)
+                    {
+                        property.Amenities.Add(amenity);
+                    }
+                }
+            }
+
+            // Handle images
+            if (updatedPropertyDto.Images != null && updatedPropertyDto.Images.Any())
+            {
+                // Process existing images (update or delete)
+                var existingImageIds = updatedPropertyDto.Images
+                    .Where(img => img.Id.HasValue)
+                    .Select(img => img.Id.Value)
+                    .ToList();
+                
+                // Remove images that are not in the updated list
+                var imagesToRemove = property.PropertyImages
+                    .Where(img => !existingImageIds.Contains(img.Id))
+                    .ToList();
+                
+                foreach (var image in imagesToRemove)
+                {
+                    property.PropertyImages.Remove(image);
+                }
+                
+                // Update existing images
+                foreach (var imageDto in updatedPropertyDto.Images.Where(img => img.Id.HasValue))
+                {
+                    var existingImage = property.PropertyImages.FirstOrDefault(img => img.Id == imageDto.Id);
+                    if (existingImage != null)
+                    {
+                        existingImage.ImageUrl = imageDto.ImageUrl;
+                        existingImage.Description = imageDto.Description;
+                        existingImage.IsPrimary = imageDto.IsPrimary;
+                        existingImage.Category = imageDto.Category;
+                    }
+                }
+                
+                // Add new images
+                foreach (var imageDto in updatedPropertyDto.Images.Where(img => !img.Id.HasValue))
+                {
+                    var newImage = new PropertyImage
+                    {
+                        PropertyId = property.Id,
+                        ImageUrl = imageDto.ImageUrl,
+                        Description = imageDto.Description,
+                        IsPrimary = imageDto.IsPrimary,
+                        Category = imageDto.Category,
+                        CreatedAt = DateTime.UtcNow
+                    };
+                    
+                    property.PropertyImages.Add(newImage);
+                }
+                
+                // Ensure only one primary image
+                var primaryImages = property.PropertyImages.Where(img => img.IsPrimary).ToList();
+                if (primaryImages.Count > 1)
+                {
+                    // Keep only the first one as primary
+                    for (int i = 1; i < primaryImages.Count; i++)
+                    {
+                        primaryImages[i].IsPrimary = false;
+                    }
+                }
+                else if (primaryImages.Count == 0 && property.PropertyImages.Any())
+                {
+                    // If no primary image, set the first one as primary
+                    property.PropertyImages.First().IsPrimary = true;
+                }
+            }
+
             await _context.SaveChangesAsync();
-            return _mapper.Map<PropertyDto>(property);
+            
+            // Reload the property with all related data after update
+            var updatedProperty = await _context.Properties
+                .Include(p => p.PropertyImages)
+                .Include(p => p.Amenities)
+                .Include(p => p.Host)
+                    .ThenInclude(h => h.User)
+                .FirstOrDefaultAsync(p => p.Id == propertyId);
+            
+            return _mapper.Map<PropertyDto>(updatedProperty);
         }
 
         public async Task<bool> DeletePropertyAsync(int propertyId, int hostId)
@@ -334,18 +433,31 @@ namespace API.Services
         public async Task<PropertyDto> GetPropertyByIdAsync(int propertyId)
         {
             var property = await _context.Properties
+                .Where(p => p.Id == propertyId && p.Status == "Active")
                 .Include(p => p.PropertyImages)
-                //.Include(p => p.Amenities)
-                .FirstOrDefaultAsync(p => p.Id == propertyId);
+                .Include(p => p.Amenities)
+                .Include(p => p.Host)
+                    .ThenInclude(h => h.User)
+                .Include(p => p.Bookings)
+                    .ThenInclude(b => b.Review)
+                .FirstOrDefaultAsync();
 
-            return property == null ? null : _mapper.Map<PropertyDto>(property);
+            if (property == null)
+                return null;
+
+            return _mapper.Map<PropertyDto>(property);
         }
 
         public async Task<List<PropertyDto>> GetHostPropertiesAsync(int hostId)
         {
             var properties = await _context.Properties
-                .Where(p => p.HostId == hostId)
+                .Where(p => p.Status == "Active" && p.HostId == hostId)
                 .Include(p => p.PropertyImages)
+                .Include(p => p.Amenities)
+                .Include(p => p.Host)
+                    .ThenInclude(h => h.User)
+                .Include(p => p.Bookings)
+                    .ThenInclude(b => b.Review)
                 .ToListAsync();
 
             return _mapper.Map<List<PropertyDto>>(properties);
@@ -459,6 +571,32 @@ namespace API.Services
                     };
 
                     _context.PropertyImages.Add(propertyImage);
+                }
+            }
+
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<bool> UpdatePropertyAmenitiesAsync(int propertyId, List<int> amenityIds, int hostId)
+        {
+            var property = await _context.Properties
+                .Include(p => p.Amenities)
+                .FirstOrDefaultAsync(p => p.Id == propertyId && p.HostId == hostId);
+
+            if (property == null)
+                return false;
+
+            // Clear existing amenities
+            property.Amenities.Clear();
+
+            // Add new amenities
+            foreach (var amenityId in amenityIds)
+            {
+                var amenity = await _context.Amenities.FindAsync(amenityId);
+                if (amenity != null)
+                {
+                    property.Amenities.Add(amenity);
                 }
             }
 
