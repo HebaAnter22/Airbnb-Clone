@@ -1,63 +1,117 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { PropertyCategory, Amenity } from '../models/property';
+import { Observable, map, catchError, throwError } from 'rxjs';
+import { PropertyDto, PropertyCategory, Amenity } from '../models/property';
+import { environment } from '../../environments/environment';
+import { AuthService } from './auth.service';
 
 export interface PropertyCreateDto {
   categoryId: number;
   title: string;
   description: string;
   propertyType: string;
-  country: string;
   address: string;
   city: string;
+  country: string;
   postalCode: string;
   latitude: number;
   longitude: number;
   pricePerNight: number;
-  cleaningFee?: number;
-  serviceFee?: number;
-  minNights?: number;
-  maxNights?: number;
-  bedrooms?: number;
-  bathrooms?: number;
-  maxGuests?: number;
+  cleaningFee: number;
+  serviceFee: number;
+  minNights: number;
+  maxNights: number;
+  bedrooms: number;
+  bathrooms: number;
+  maxGuests: number;
   currency: string;
-  instantBook?: boolean;
-  cancellationPolicyId?: number;
+  instantBook: boolean;
+  cancellationPolicyId: number;
+  images: {
+    imageUrl: string;
+    isPrimary: boolean;
+  }[];
 }
 
 @Injectable({
   providedIn: 'root'
 })
 export class CreatePropertyService {
-  private baseUrl = 'https://localhost:7228/api/Properties';
+  private readonly API_URL = 'https://localhost:7228/api';
+  private readonly BASE_URL = 'https://localhost:7228';
 
-  constructor(private http: HttpClient) { }
+  constructor(
+    private http: HttpClient,
+    private authService: AuthService
+  ) {}
+
+  getCurrentUserId(): Promise<number> {
+    return Promise.resolve(this.authService.getCurrentUserId());
+  }
+
+  addProperty(property: PropertyCreateDto): Observable<PropertyDto> {
+    console.log('Sending property data to server:', JSON.stringify(property, null, 2));
+    return this.http.post<PropertyDto>(`${this.API_URL}/Properties`, property)
+      .pipe(
+        catchError(error => {
+          console.error('Error from server:', error);
+          if (error.error && typeof error.error === 'string') {
+            return throwError(() => new Error(error.error));
+          }
+          return throwError(() => new Error('Failed to create property. Please try again.'));
+        })
+      );
+  }
+
+  uploadPropertyImages(files: File[]): Observable<string[]> {
+    console.log('Starting image upload...');
+    console.log('Files to upload:', files.map(f => ({
+      name: f.name,
+      type: f.type,
+      size: f.size
+    })));
+    
+    const formData = new FormData();
+    files.forEach((file, index) => {
+        console.log(`Adding file ${index} to form data:`, {
+            name: file.name,
+            type: file.type,
+            size: file.size
+        });
+        formData.append('files', file);
+    });
+
+    // The API now returns full URLs, so we don't need to modify them
+    return this.http.post<string[]>(`${this.API_URL}/Properties/images/upload`, formData);
+  }
+
+  addImagesToProperty(propertyId: number, imageUrls: string[]): Observable<any> {
+    console.log('Adding images to property:', {
+      propertyId,
+      imageUrls
+    });
+    
+    // The API now expects full URLs, so we don't need to process them
+    return this.http.post(`${this.API_URL}/Properties/${propertyId}/images`, { imageUrls: imageUrls });
+  }
+
+  deleteProperty(propertyId: number): Observable<void> {
+    return this.http.delete<void>(`${this.API_URL}/Properties/${propertyId}`);
+  }
 
   getCategories(): Observable<PropertyCategory[]> {
-    return this.http.get<PropertyCategory[]>(`https://localhost:7228/api/PropertyCategories`);
+    return this.http.get<PropertyCategory[]>(`${this.API_URL}/PropertyCategories`);
   }
 
   getAmenities(): Observable<Amenity[]> {
-    return this.http.get<Amenity[]>(`https://localhost:7228/api/Amenities`);
-  }
-
-  addProperty(propertyData: PropertyCreateDto): Observable<any> {
-    // Ensure required fields are present
-    const data = {
-      ...propertyData,
-      currency: propertyData.currency || 'USD',
-      postalCode: propertyData.postalCode || '00000'
-    };
-    return this.http.post(`${this.baseUrl}`, data);
+    return this.http.get<Amenity[]>(`${this.API_URL}/Amenities`);
   }
 
   getPropertyById(propertyId: number): Observable<any> {
-    return this.http.get(`${this.baseUrl}/${propertyId}`);
+    return this.http.get(`${this.API_URL}/Properties/${propertyId}`);
   }
 
   // getPropertyiesbyUserId(userId: number): Observable<any[]> {
-  //   return this.http.get<any[]>(`${this.apiUrl}/Properties/user/${userId}`);
+  //   return this.http.get<any[]>(`${this.API_URL}/Properties/user/${userId}`);
   // }
 }

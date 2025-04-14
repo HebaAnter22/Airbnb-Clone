@@ -2,6 +2,7 @@
 using API.Models;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 
 namespace API.Services
 {
@@ -14,5 +15,7 @@ namespace API.Services
         Task<List<PropertyDto>> GetHostPropertiesAsync(int hostId);
         Task<List<PropertyDto>> GetAllPropertiesAsync();
         Task<List<PropertyDto>> SearchPropertiesAsync(string city = null, decimal? minPrice = null, decimal? maxPrice = null, int? maxGuests = null);
+        Task<List<string>> UploadImagesAsync(List<IFormFile> files);
+        Task<bool> AddImagesToPropertyAsync(int propertyId, List<string> imageUrls, int hostId);
     }
 }

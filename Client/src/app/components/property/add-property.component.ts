@@ -51,19 +51,19 @@ export class AddPropertyComponent implements OnInit {
       address: ['', Validators.required],
       city: ['', Validators.required],
       country: ['', Validators.required],
-      latitude: [null, Validators.required],
-      longitude: [null, Validators.required],
-      pricePerNight: [null, [Validators.required, Validators.min(1)]],
-      cleaningFee: [null, [Validators.required, Validators.min(0)]],
-      serviceFee: [null, [Validators.required, Validators.min(0)]],
+      latitude: [0, Validators.required],
+      longitude: [0, Validators.required],
+      pricePerNight: [0, [Validators.required, Validators.min(1)]],
+      cleaningFee: [0, [Validators.required, Validators.min(0)]],
+      serviceFee: [0, [Validators.required, Validators.min(0)]],
       minNights: [1, [Validators.required, Validators.min(1)]],
       maxNights: [30, [Validators.required, Validators.min(1)]],
-      bedrooms: [null, [Validators.required, Validators.min(1)]],
-      bathrooms: [null, [Validators.required, Validators.min(1)]],
-      maxGuests: [null, [Validators.required, Validators.min(1)]],
+      bedrooms: [1, [Validators.required, Validators.min(1)]],
+      bathrooms: [1, [Validators.required, Validators.min(1)]],
+      maxGuests: [1, [Validators.required, Validators.min(1)]],
       amenities: [[], Validators.required],
       images: [[], Validators.required],
-      categoryId: [null, Validators.required]
+      categoryId: [0, Validators.required]
     });
   }
 
@@ -175,7 +175,11 @@ export class AddPropertyComponent implements OnInit {
       maxGuests: formData.maxGuests,
       currency: 'USD',
       instantBook: true,
-      cancellationPolicyId: 1
+      cancellationPolicyId: 1,
+      images: this.uploadedImages.map((file: File) => ({
+        imageUrl: file.name,
+        isPrimary: false
+      }))
     };
     
     this.propertyService.addProperty(propertyDto).subscribe({

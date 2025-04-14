@@ -19,7 +19,18 @@ public class PropertyProfile : Profile
                 : 0.0))
             .ForMember(dest => dest.ReviewCount, opt => opt.MapFrom(src => src.Bookings.Select(b => b.Review).Count(r => r != null)));
 
-        CreateMap<PropertyCreateDto, Property>();
+        CreateMap<PropertyCreateDto, Property>()
+            .ForMember(dest => dest.CleaningFee, opt => opt.MapFrom(src => src.CleaningFee ?? 0m))
+            .ForMember(dest => dest.ServiceFee, opt => opt.MapFrom(src => src.ServiceFee ?? 0m))
+            .ForMember(dest => dest.MinNights, opt => opt.MapFrom(src => src.MinNights ?? 1))
+            .ForMember(dest => dest.MaxNights, opt => opt.MapFrom(src => src.MaxNights ?? 30))
+            .ForMember(dest => dest.Bedrooms, opt => opt.MapFrom(src => src.Bedrooms ?? 1))
+            .ForMember(dest => dest.Bathrooms, opt => opt.MapFrom(src => src.Bathrooms ?? 1))
+            .ForMember(dest => dest.MaxGuests, opt => opt.MapFrom(src => src.MaxGuests ?? 1))
+            .ForMember(dest => dest.Currency, opt => opt.MapFrom(src => src.Currency ?? "USD"))
+            .ForMember(dest => dest.InstantBook, opt => opt.MapFrom(src => src.InstantBook ?? false))
+            .ForMember(dest => dest.CancellationPolicyId, opt => opt.MapFrom(src => src.CancellationPolicyId ?? 1));
+            
         CreateMap<PropertyUpdateDto, Property>()
             .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
 

@@ -80,5 +80,14 @@ namespace API.DTOs
 
         public int? CancellationPolicyId { get; set; }
 
+        public List<PropertyImageCreateDto> Images { get; set; } = new List<PropertyImageCreateDto>();
+    }
+
+    public class PropertyImageCreateDto
+    {
+        [Required]
+        public string ImageUrl { get; set; }
+        
+        public bool IsPrimary { get; set; }
     }
 }
