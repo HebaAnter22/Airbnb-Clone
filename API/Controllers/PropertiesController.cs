@@ -250,5 +250,70 @@ namespace API.Controllers
                 return BadRequest($"Error adding images to property: {ex.Message}");
             }
         }
+
+        [HttpPost("{id}/upload-images")]
+        [Authorize]
+        public async Task<IActionResult> UploadImagesForProperty(int id, [FromForm] List<IFormFile> files)
+        {
+            try
+            {
+                var hostId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+                
+                if (files == null || !files.Any())
+                {
+                    return BadRequest("No files were uploaded.");
+                }
+
+                Console.WriteLine($"Received {files.Count} files for upload to property {id}");
+
+                // First upload the files to get URLs using the existing method
+                var imageUrls = await _propertyService.UploadImagesAsync(files);
+                Console.WriteLine($"Successfully uploaded files. Generated URLs: {string.Join(", ", imageUrls)}");
+
+                // Then add these URLs to the property using the existing method
+                var success = await _propertyService.AddImagesToPropertyAsync(id, imageUrls, hostId);
+                if (!success)
+                {
+                    return BadRequest("Failed to add images to property. Property not found or you don't have permission.");
+                }
+                
+                Console.WriteLine("Successfully added images to property");
+
+                return Ok(new { message = "Images uploaded and added to property successfully", imageUrls });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error uploading images for property: {ex.Message}");
+                return BadRequest($"Error uploading images for property: {ex.Message}");
+            }
+        }
+
+        [HttpDelete("{propertyId}/images/{imageId}")]
+        [Authorize]
+        public async Task<IActionResult> DeletePropertyImage(int propertyId, int imageId)
+        {
+            try
+            {
+                var hostId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+                
+                Console.WriteLine($"Attempting to delete image {imageId} from property {propertyId} for host {hostId}");
+                
+                var success = await _propertyService.DeletePropertyImageAsync(propertyId, imageId, hostId);
+                
+                if (!success)
+                {
+                    return NotFound("Property image not found or you don't have permission to delete it.");
+                }
+                
+                Console.WriteLine($"Successfully deleted image {imageId} from property {propertyId}");
+                
+                return Ok(new { message = "Property image deleted successfully" });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error deleting property image: {ex.Message}");
+                return BadRequest($"Error deleting property image: {ex.Message}");
+            }
+        }
     }
 }

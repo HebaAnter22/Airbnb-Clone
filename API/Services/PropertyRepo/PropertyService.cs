@@ -351,6 +351,10 @@ namespace API.Services
 
         public async Task<PropertyDto> EditPropertyAsync(int propertyId, PropertyUpdateDto updatedPropertyDto, int hostId)
         {
+            try
+            {
+                Console.WriteLine($"Starting EditPropertyAsync for property ID: {propertyId}, host ID: {hostId}");
+                
             // Get the property with all related data
             var property = await _context.Properties
                 .Include(p => p.PropertyImages)
@@ -359,14 +363,111 @@ namespace API.Services
                     .ThenInclude(h => h.User)
                 .FirstOrDefaultAsync(p => p.Id == propertyId && p.HostId == hostId);
 
-            if (property == null) return null;
+                if (property == null)
+                {
+                    Console.WriteLine($"Property with ID {propertyId} and host ID {hostId} not found");
+                    return null;
+                }
+                
+                Console.WriteLine($"Found property: {property.Title}, CategoryId: {property.CategoryId}, CancellationPolicyId: {property.CancellationPolicyId}");
 
-            // Update basic property information
-            _mapper.Map(updatedPropertyDto, property);
+                // Store the original values
+                var originalCancellationPolicyId = property.CancellationPolicyId;
+                var originalCategoryId = property.CategoryId;
+                var originalAmenities = new List<Amenity>(property.Amenities);
+
+                // Check if cancellation policy exists if it's being updated
+                if (updatedPropertyDto.CancellationPolicyId.HasValue && updatedPropertyDto.CancellationPolicyId.Value > 0)
+                {
+                    Console.WriteLine($"Looking for cancellation policy with ID: {updatedPropertyDto.CancellationPolicyId}");
+                    var policyExists = await _context.CancellationPolicies.AnyAsync(c => c.Id == updatedPropertyDto.CancellationPolicyId);
+                    if (!policyExists)
+                    {
+                        Console.WriteLine($"Cancellation policy with ID {updatedPropertyDto.CancellationPolicyId} does not exist");
+                        // Keep the existing policy ID instead of changing it
+                        updatedPropertyDto.CancellationPolicyId = originalCancellationPolicyId;
+                    }
+                }
+                else
+                {
+                    // If no cancellation policy ID is provided, keep the original one
+                    updatedPropertyDto.CancellationPolicyId = originalCancellationPolicyId;
+                }
+
+                // Check if category exists if it's being updated
+                if (updatedPropertyDto.CategoryId.HasValue && updatedPropertyDto.CategoryId.Value > 0)
+                {
+                    Console.WriteLine($"Looking for category with ID: {updatedPropertyDto.CategoryId}");
+                    var categoryExists = await _context.PropertyCategories.AnyAsync(c => c.CategoryId == updatedPropertyDto.CategoryId);
+                    if (!categoryExists)
+                    {
+                        Console.WriteLine($"Category with ID {updatedPropertyDto.CategoryId} does not exist");
+                        // Keep the existing category ID instead of changing it
+                        updatedPropertyDto.CategoryId = originalCategoryId;
+                    }
+                }
+                else
+                {
+                    // If no category ID is provided, keep the original one
+                    updatedPropertyDto.CategoryId = originalCategoryId;
+                }
+
+                // Update only the fields that are provided in the DTO
+                if (updatedPropertyDto.Title != null)
+                    property.Title = updatedPropertyDto.Title;
+                
+                if (updatedPropertyDto.Description != null)
+                    property.Description = updatedPropertyDto.Description;
+                
+                if (updatedPropertyDto.PropertyType != null)
+                    property.PropertyType = updatedPropertyDto.PropertyType;
+                
+                if (updatedPropertyDto.Country != null)
+                    property.Country = updatedPropertyDto.Country;
+                
+                if (updatedPropertyDto.Address != null)
+                    property.Address = updatedPropertyDto.Address;
+                
+                if (updatedPropertyDto.City != null)
+                    property.City = updatedPropertyDto.City;
+                
+                if (updatedPropertyDto.Currency != null)
+                    property.Currency = updatedPropertyDto.Currency;
+                
+                if (updatedPropertyDto.PricePerNight.HasValue)
+                    property.PricePerNight = updatedPropertyDto.PricePerNight.Value;
+                
+                if (updatedPropertyDto.CleaningFee.HasValue)
+                    property.CleaningFee = updatedPropertyDto.CleaningFee.Value;
+                
+                if (updatedPropertyDto.ServiceFee.HasValue)
+                    property.ServiceFee = updatedPropertyDto.ServiceFee.Value;
+                
+                if (updatedPropertyDto.MinNights.HasValue)
+                    property.MinNights = updatedPropertyDto.MinNights.Value;
+                
+                if (updatedPropertyDto.MaxNights.HasValue)
+                    property.MaxNights = updatedPropertyDto.MaxNights.Value;
+                
+                if (updatedPropertyDto.MaxGuests.HasValue)
+                    property.MaxGuests = updatedPropertyDto.MaxGuests.Value;
+                
+                if (updatedPropertyDto.Bedrooms.HasValue)
+                    property.Bedrooms = updatedPropertyDto.Bedrooms.Value;
+                
+                if (updatedPropertyDto.Bathrooms.HasValue)
+                    property.Bathrooms = updatedPropertyDto.Bathrooms.Value;
+                
+                if (updatedPropertyDto.CancellationPolicyId.HasValue)
+                    property.CancellationPolicyId = updatedPropertyDto.CancellationPolicyId.Value;
+                
+                if (updatedPropertyDto.CategoryId.HasValue)
+                    property.CategoryId = updatedPropertyDto.CategoryId.Value;
+                
             property.UpdatedAt = DateTime.UtcNow;
 
-            // Handle amenities
-            if (updatedPropertyDto.AmenityIds != null && updatedPropertyDto.AmenityIds.Any())
+                // Handle amenities only if AmenityIds is provided
+                if (updatedPropertyDto.AmenityIds != null)
             {
                 // Clear existing amenities
                 property.Amenities.Clear();
@@ -382,73 +483,9 @@ namespace API.Services
                 }
             }
 
-            //Handle images
-            if (updatedPropertyDto.Images != null && updatedPropertyDto.Images.Any())
-            {
-                // Process existing images (update or delete)
-                var existingImageIds = updatedPropertyDto.Images
-                    .Where(img => img.Id.HasValue)
-                    .Select(img => img.Id.Value)
-                    .ToList();
-
-                // Remove images that are not in the updated list
-                var imagesToRemove = property.PropertyImages
-                    .Where(img => !existingImageIds.Contains(img.Id))
-                    .ToList();
-
-                foreach (var image in imagesToRemove)
+                // Only update availabilities if MaxNights has changed
+                if (updatedPropertyDto.MaxNights.HasValue && updatedPropertyDto.MaxNights.Value != property.MaxNights)
                 {
-                    property.PropertyImages.Remove(image);
-                }
-
-                // Update existing images
-                foreach (var imageDto in updatedPropertyDto.Images.Where(img => img.Id.HasValue))
-                {
-                    var existingImage = property.PropertyImages.FirstOrDefault(img => img.Id == imageDto.Id);
-                    if (existingImage != null)
-                    {
-                        existingImage.ImageUrl = imageDto.ImageUrl;
-                        existingImage.Description = imageDto.Description;
-                        existingImage.IsPrimary = imageDto.IsPrimary;
-                        existingImage.Category = imageDto.Category;
-                    }
-                }
-
-                // Add new images
-                foreach (var imageDto in updatedPropertyDto.Images.Where(img => !img.Id.HasValue))
-                {
-                    var newImage = new PropertyImage
-                    {
-                        PropertyId = property.Id,
-                        ImageUrl = imageDto.ImageUrl,
-                        Description = imageDto.Description,
-                        IsPrimary = imageDto.IsPrimary,
-                        Category = imageDto.Category,
-                        CreatedAt = DateTime.UtcNow
-                    };
-
-                    property.PropertyImages.Add(newImage);
-                }
-
-                // Ensure only one primary image
-                var primaryImages = property.PropertyImages.Where(img => img.IsPrimary).ToList();
-                if (primaryImages.Count > 1)
-                {
-                    // Keep only the first one as primary
-                    for (int i = 1; i < primaryImages.Count; i++)
-                    {
-                        primaryImages[i].IsPrimary = false;
-                    }
-                }
-                else if (primaryImages.Count == 0 && property.PropertyImages.Any())
-                {
-                    // If no primary image, set the first one as primary
-                    property.PropertyImages.First().IsPrimary = true;
-                }
-            }
-
-
-
             var startDate = DateTime.UtcNow.Date; 
             var endDate = startDate.AddDays(property.MaxNights); 
 
@@ -485,9 +522,10 @@ namespace API.Services
                     });
                 }
             }
-
+                }
 
             await _context.SaveChangesAsync();
+                Console.WriteLine($"Successfully saved property updates for ID: {propertyId}");
 
             // Reload the property with all related data after update
             var updatedProperty = await _context.Properties
@@ -498,6 +536,16 @@ namespace API.Services
                 .FirstOrDefaultAsync(p => p.Id == propertyId);
 
             return _mapper.Map<PropertyDto>(updatedProperty);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating property: {ex.Message}");
+                if (ex.InnerException != null)
+                {
+                    Console.WriteLine($"Inner exception: {ex.InnerException.Message}");
+                }
+                throw;
+            }
         }
 
         public async Task<bool> DeletePropertyAsync(int propertyId, int hostId)
@@ -612,50 +660,142 @@ namespace API.Services
 
         public async Task<bool> AddImagesToPropertyAsync(int propertyId, List<string> imageUrls, int hostId)
         {
+            try
+            {
+                Console.WriteLine($"Starting AddImagesToPropertyAsync for property ID: {propertyId}, host ID: {hostId}");
+                
+                // Verify the property exists and belongs to the host
             var property = await _context.Properties
                 .Include(p => p.PropertyImages)
                 .FirstOrDefaultAsync(p => p.Id == propertyId && p.HostId == hostId);
 
             if (property == null)
             {
-                throw new UnauthorizedAccessException("Property not found or you don't have permission to add images.");
+                    Console.WriteLine($"Property with ID {propertyId} and host ID {hostId} not found");
+                    return false;
             }
 
-            // Create the property-specific upload directory
+                Console.WriteLine($"Found property: {property.Title}, current image count: {property.PropertyImages.Count}");
+                
+                // Create property-specific directory if it doesn't exist
             var propertyUploadPath = Path.Combine(_environment.WebRootPath, "uploads", "properties", propertyId.ToString());
             Directory.CreateDirectory(propertyUploadPath);
+                
+                var baseUrl = "https://localhost:7228"; // This should come from configuration in a real app
 
             foreach (var imageUrl in imageUrls)
             {
-                // Extract the filename from the URL
+                    try
+                    {
+                        // Extract the filename from the URL or path
                 var fileName = Path.GetFileName(imageUrl);
                 var sourcePath = Path.Combine(_environment.WebRootPath, "uploads", "properties", fileName);
+                        
+                        Console.WriteLine($"Processing image: {fileName}");
+                        Console.WriteLine($"Source path: {sourcePath}");
 
                 if (File.Exists(sourcePath))
                 {
                     var newPath = Path.Combine(propertyUploadPath, fileName);
-
-                    // Move file from general properties directory to property-specific directory
-                    File.Move(sourcePath, newPath);
+                            Console.WriteLine($"Moving file to: {newPath}");
+                            
+                            // If the destination file already exists, delete it
+                            if (File.Exists(newPath))
+                            {
+                                File.Delete(newPath);
+                                Console.WriteLine("Deleted existing file at destination");
+                            }
+                            
+                            // Copy instead of move to handle potential file locks
+                            File.Copy(sourcePath, newPath);
+                            Console.WriteLine("File copied successfully");
+                            
+                            try
+                            {
+                                // Try to delete the source file, but don't fail if we can't
+                                File.Delete(sourcePath);
+                                Console.WriteLine("Original file deleted");
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine($"Could not delete original file: {ex.Message}");
+                            }
 
                     // Create relative URL for the new location
-                    var newImageUrl = $"/uploads/properties/{propertyId}/{fileName}";
+                            var relativePath = $"/uploads/properties/{propertyId}/{fileName}";
+                            var fullImageUrl = $"{baseUrl}{relativePath}";
 
                     // Save image info to database
                     var propertyImage = new PropertyImage
                     {
                         PropertyId = propertyId,
-                        ImageUrl = newImageUrl,
+                                ImageUrl = fullImageUrl,
+                                IsPrimary = !property.PropertyImages.Any(), // Set as primary if it's the first image
+                                CreatedAt = DateTime.UtcNow,
+                                Category = "Additional"  // Default category
+                            };
+                            
+                            _context.PropertyImages.Add(propertyImage);
+                            Console.WriteLine($"Added image record with URL: {fullImageUrl}");
+                        }
+                        else
+                        {
+                            Console.WriteLine($"Warning: Source image not found at {sourcePath}");
+                            Console.WriteLine("Checking if URL is already in property-specific directory...");
+                            
+                            // Check if the file exists in the property-specific directory
+                            var propertySpecificPath = Path.Combine(propertyUploadPath, fileName);
+                            if (File.Exists(propertySpecificPath))
+                            {
+                                Console.WriteLine("File already exists in property directory");
+                                var relativePath = $"/uploads/properties/{propertyId}/{fileName}";
+                                var fullImageUrl = $"{baseUrl}{relativePath}";
+                                
+                                var propertyImage = new PropertyImage
+                                {
+                                    PropertyId = propertyId,
+                                    ImageUrl = fullImageUrl,
                         IsPrimary = !property.PropertyImages.Any(),
-                        CreatedAt = DateTime.UtcNow
+                                    CreatedAt = DateTime.UtcNow,
+                                    Category = "Additional"
                     };
 
                     _context.PropertyImages.Add(propertyImage);
+                                Console.WriteLine($"Added image record for existing file: {fullImageUrl}");
+                            }
+                            else
+                            {
+                                Console.WriteLine("File not found in any expected location");
+                                // If we can't find the file, log it but continue processing other images
+                                continue;
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Error processing image {imageUrl}: {ex.Message}");
+                        if (ex.InnerException != null)
+                        {
+                            Console.WriteLine($"Inner exception: {ex.InnerException.Message}");
+                        }
+                        // Continue with other images even if one fails
                 }
             }
 
             await _context.SaveChangesAsync();
+                Console.WriteLine($"Successfully added {imageUrls.Count} images to property {propertyId}");
+                
             return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error adding images to property: {ex.Message}");
+                if (ex.InnerException != null)
+                {
+                    Console.WriteLine($"Inner exception: {ex.InnerException.Message}");
+                }
+                throw;
+            }
         }
 
         public async Task<bool> UpdatePropertyAmenitiesAsync(int propertyId, List<int> amenityIds, int hostId)
@@ -682,6 +822,76 @@ namespace API.Services
 
             await _context.SaveChangesAsync();
             return true;
+        }
+
+        public async Task<bool> DeletePropertyImageAsync(int propertyId, int imageId, int hostId)
+        {
+            try
+            {
+                Console.WriteLine($"Starting DeletePropertyImageAsync for property ID: {propertyId}, image ID: {imageId}, host ID: {hostId}");
+
+                // Verify the property exists and belongs to the host
+                var property = await _context.Properties
+                    .Include(p => p.PropertyImages)
+                    .FirstOrDefaultAsync(p => p.Id == propertyId && p.HostId == hostId);
+
+                if (property == null)
+                {
+                    Console.WriteLine($"Property with ID {propertyId} and host ID {hostId} not found");
+                    return false;
+                }
+
+                // Find the image to delete
+                var imageToDelete = property.PropertyImages.FirstOrDefault(img => img.Id == imageId);
+                if (imageToDelete == null)
+                {
+                    Console.WriteLine($"Image with ID {imageId} not found for property {propertyId}");
+                    return false;
+                }
+
+                // Extract the filename from the image URL
+                var imageUrl = imageToDelete.ImageUrl;
+                var fileName = Path.GetFileName(imageUrl);
+
+                // Construct the file path
+                var propertyUploadPath = Path.Combine(_environment.WebRootPath, "uploads", "properties", propertyId.ToString());
+                var filePath = Path.Combine(propertyUploadPath, fileName);
+
+                // Remove the image from the database
+                _context.PropertyImages.Remove(imageToDelete);
+                await _context.SaveChangesAsync();
+                Console.WriteLine($"Successfully removed image {imageId} from database");
+
+                // Try to delete the physical file
+                if (File.Exists(filePath))
+                {
+                    try
+                    {
+                        File.Delete(filePath);
+                        Console.WriteLine($"Successfully deleted physical file at {filePath}");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Warning: Could not delete physical file: {ex.Message}");
+                        // Continue even if we can't delete the physical file
+                    }
+                }
+                else
+                {
+                    Console.WriteLine($"Warning: Physical file not found at {filePath}");
+                }
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error deleting property image: {ex.Message}");
+                if (ex.InnerException != null)
+                {
+                    Console.WriteLine($"Inner exception: {ex.InnerException.Message}");
+                }
+                throw;
+            }
         }
     }
 }

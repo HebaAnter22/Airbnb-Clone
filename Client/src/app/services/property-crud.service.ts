@@ -95,6 +95,20 @@ export class CreatePropertyService {
     return this.http.post(`${this.API_URL}/Properties/${propertyId}/images`, { imageUrls: imageUrls });
   }
 
+  uploadImagesForProperty(propertyId: number, files: File[]): Observable<any> {
+    console.log('Uploading images for property:', {
+      propertyId,
+      fileCount: files.length
+    });
+    
+    const formData = new FormData();
+    files.forEach((file, index) => {
+        formData.append('files', file);
+    });
+
+    return this.http.post(`${this.API_URL}/Properties/${propertyId}/upload-images`, formData);
+  }
+
   deleteProperty(propertyId: number): Observable<void> {
     return this.http.delete<void>(`${this.API_URL}/Properties/${propertyId}`);
   }
@@ -111,7 +125,17 @@ export class CreatePropertyService {
     return this.http.get(`${this.API_URL}/Properties/${propertyId}`);
   }
 
-  // getPropertyiesbyUserId(userId: number): Observable<any[]> {
-  //   return this.http.get<any[]>(`${this.API_URL}/Properties/user/${userId}`);
-  // }
+  getMyProperties(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.API_URL}/Properties/my-properties`);
+  }
+
+  editPropertyAsync(propertyId: number, property: any): Observable<any> {
+    return this.http.put(`${this.API_URL}/Properties/${propertyId}`, property);
+  }
+
+  deletePropertyImage(propertyId: number, imageId: number): Observable<any> {
+    console.log(`Deleting image ${imageId} from property ${propertyId}`);
+    return this.http.delete(`${this.API_URL}/Properties/${propertyId}/images/${imageId}`);
+  }
+
 }

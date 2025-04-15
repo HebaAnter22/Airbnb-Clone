@@ -12,6 +12,8 @@ import { SearchBarComponent } from './components/home/search-bar/search-bar.comp
 import { PropertyListingsComponent } from './components/home/property-listing/property-listing.component';
 import { HeaderComponent } from './components/home/header/header.component';
 import { AddPropertyComponent } from './components/add-property/add-property.component';
+import { HostPropertiesComponent } from './components/host-proprties/host-properties.component';
+import { EditPropertyComponent } from './components/edit-property/edit-property.component';
 export const routes: Routes = [
   {path: 'home', component: PropertyListingsComponent},
   {path: '', redirectTo: 'home', pathMatch: 'full'},
@@ -29,6 +31,17 @@ export const routes: Routes = [
   { 
       path: 'host', 
       component: HostComponent,
+      canActivate: [authGuard, roleGuard],
+      data: { role: 'Host' }
+    },
+    {
+      path: 'host/properties',
+      component: HostPropertiesComponent,
+      canActivate: [authGuard, roleGuard],
+      data: { role: 'Host' }
+    },
+    {path: 'host/properties/edit/:id',
+      component: EditPropertyComponent,
       canActivate: [authGuard, roleGuard],
       data: { role: 'Host' }
     },

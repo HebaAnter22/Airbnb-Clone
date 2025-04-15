@@ -17,5 +17,6 @@ namespace API.Services
         Task<List<string>> UploadImagesAsync(List<IFormFile> files);
         Task<bool> AddImagesToPropertyAsync(int propertyId, List<string> imageUrls, int hostId);
         Task<bool> UpdatePropertyAmenitiesAsync(int propertyId, List<int> amenityIds, int hostId);
+        Task<bool> DeletePropertyImageAsync(int propertyId, int imageId, int hostId);
     }
 }
