@@ -1,6 +1,7 @@
-using API.DTOs;
+using API.DTOs.PropertyCategoryDTOs;
 using API.Models;
-using API.Services;
+using API.Services.PropertyCategoryRepo;
+
 using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers
@@ -29,7 +30,7 @@ namespace API.Controllers
             try
             {
                 var category = await _categoryService.GetCategoryByIdAsync(id);
-                var categoryDto = new PropertyCategoryDto
+                var categoryDto = new PropertyCategory
                 {
                     CategoryId = category.CategoryId,
                     Name = category.Name,
@@ -57,7 +58,7 @@ namespace API.Controllers
                 };
 
                 var createdCategory = await _categoryService.AddCategoryAsync(category);
-                var responseDto = new PropertyCategoryDto
+                var responseDto = new PropertyCategory
                 {
                     CategoryId = createdCategory.CategoryId,
                     Name = createdCategory.Name,
@@ -87,7 +88,7 @@ namespace API.Controllers
                 };
 
                 var updatedCategory = await _categoryService.UpdateCategoryAsync(category);
-                var responseDto = new PropertyCategoryDto
+                var responseDto = new PropertyCategory
                 {
                     CategoryId = updatedCategory.CategoryId,
                     Name = updatedCategory.Name,

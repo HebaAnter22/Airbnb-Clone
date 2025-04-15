@@ -39,9 +39,11 @@ namespace API.DTOs
         [Range(0, double.MaxValue)]
         public decimal ServiceFee { get; set; }
 
+        [Required]
         [Range(1, int.MaxValue)]
         public int MinNights { get; set; }
 
+        [Required]
         [Range(1, int.MaxValue)]
         public int MaxNights { get; set; }
 
@@ -68,6 +70,7 @@ namespace API.DTOs
 
         // Amenities to add or update
         public List<int> AmenityIds { get; set; } = new List<int>();
+
 
         // Images to add or update
         public List<PropertyImageUpdateDto> Images { get; set; } = new List<PropertyImageUpdateDto>();

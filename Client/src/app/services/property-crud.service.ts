@@ -100,11 +100,11 @@ export class CreatePropertyService {
   }
 
   getCategories(): Observable<PropertyCategory[]> {
-    return this.http.get<PropertyCategory[]>(`${this.API_URL}/PropertyCategories`);
+    return this.http.get<PropertyCategory[]>(`${this.API_URL}/PropertyCategory`);
   }
 
   getAmenities(): Observable<Amenity[]> {
-    return this.http.get<Amenity[]>(`${this.API_URL}/Amenities`);
+    return this.http.get<Amenity[]>(`${this.API_URL}/Amenity`);
   }
 
   getPropertyById(propertyId: number): Observable<any> {

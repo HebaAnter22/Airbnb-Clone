@@ -15,6 +15,8 @@ namespace API.Services
         Task<User?> GetUserByEmail(string email);
         Task<User> CreateUser(User user);
 
+        Task<User?> GetOrCreateGoogleUser(string email, string firstName, string lastName);
+
 
 
     }

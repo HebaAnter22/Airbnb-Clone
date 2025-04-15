@@ -2,6 +2,8 @@ using System.Text;
 using API.Data;
 using API.Middleware;
 using API.Services;
+using API.Services.AmenityRepo;
+using API.Services.PropertyCategoryRepo;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
