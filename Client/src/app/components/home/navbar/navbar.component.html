@@ -1,14 +1,14 @@
-<nav class="navbar">
+<nav class="navbar" [class.scrolled]="isHeaderScrolled">
   <!-- Left side: Globe icon -->
-  <div class="navbar-left">
-    <span class="globe-icon">🌐</span>
-  </div>
+  <!-- <div class="navbar-left"> -->
+    <!-- <span class="globe-icon" style="color: #484848;">🌐</span> -->
+  <!-- </div> -->
 
   <!-- Right side: Menu and Profile -->
   <div class="navbar-right">
     <div class="menu-profile" (click)="toggleDropdown($event)">
-      <span class="menu-icon">☰</span>
-      <span class="profile-icon">👤</span>
+      <span class="menu-icon" style="color: #484848;">☰</span>
+      <span class="profile-icon" style="color: #484848;">👤</span>
     </div>
 
     <!-- Dropdown Menu -->
@@ -16,10 +16,10 @@
       <ul>
         <li><a href="/login">Log in</a></li>
         <li><a href="/register">Sign up</a></li>
-        <li><a href="#">Gift cards</a></li>
+        <!-- <li><a href="#">Gift cards</a></li> -->
         <li><a href="/login">Airbnb your home</a></li>
-        <li><a href="#">Host an experience</a></li>
-        <li><a href="#">Help Center</a></li>
+        <li><a href="/login">Host your home</a></li>
+        <!-- <li><a href="#">Help Center</a></li> -->
       </ul>
     </div>
   </div>

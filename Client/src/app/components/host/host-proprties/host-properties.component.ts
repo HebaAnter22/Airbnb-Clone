@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
-import { CreatePropertyService } from '../../services/property-crud.service';
-import { PropertyDto } from '../../models/property';
+import { CreatePropertyService } from '../../../services/property-crud.service';
+import { PropertyDto } from '../../../models/property';
 import { CommonModule } from '@angular/common';
 
 @Component({

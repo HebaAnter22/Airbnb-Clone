@@ -1,5 +1,5 @@
 // header.component.ts
-import { Component, HostListener } from '@angular/core';
+import { Component, HostListener, Output, EventEmitter } from '@angular/core';
 import { SearchBarComponent } from '../search-bar/search-bar.component';
 import { NavbarComponent } from '../navbar/navbar.component';
 import { Route } from '@angular/router';
@@ -13,14 +13,24 @@ import { Route } from '@angular/router';
 export class HeaderComponent {
   isSearchModalOpen: boolean = false;
   modalMode: string | null = null;
+  isScrolled: boolean = false;
+
+  @Output() scrollStateChanged = new EventEmitter<boolean>();
 
   @HostListener('window:scroll', ['$event'])
   onScroll() {
-    const header = document.querySelector('.header');
-    if (window.scrollY > 50) {
-      header?.classList.add('scrolled');
-    } else {
-      header?.classList.remove('scrolled');
+    const scrolled = window.scrollY > 50;
+    
+    if (scrolled !== this.isScrolled) {
+      this.isScrolled = scrolled;
+      this.scrollStateChanged.emit(this.isScrolled);
+      
+      const header = document.querySelector('.header');
+      if (scrolled) {
+        header?.classList.add('scrolled');
+      } else {
+        header?.classList.remove('scrolled');
+      }
     }
   }
 

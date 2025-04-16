@@ -8,16 +8,18 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { HeaderComponent } from '../header/header.component';
 import { HttpClientModule } from '@angular/common/http';
-import { ImageUploadComponent } from '../../image-upload/image-upload.component';
+import { ImageUploadComponent } from '../../host/image-upload/image-upload.component';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatCardModule } from '@angular/material/card';
 import { finalize } from 'rxjs/operators';
+import { StickyNavComponent } from '../sticky-nav/sticky-nav.component';
 
 @Component({
   selector: 'app-property-listings',
   standalone: true,
   imports: [
+    StickyNavComponent,
     HeaderComponent,
     DecimalPipe,
     CommonModule,

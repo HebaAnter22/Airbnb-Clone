@@ -8,22 +8,40 @@
     font-family: Arial, sans-serif;
     padding: 12px 20px;
     box-sizing: border-box;
-  }
+    transition: padding 0.3s ease, font-size 0.3s ease;
+}
   
-  .search-input-common:focus {
+.search-input-common:focus {
     outline: none;
-  }
+}
   
-  /* Mobile Styles */
-  .search-filter-container {
+/* Search bar container */
+.search-bar-container {
+    transition: all 0.3s ease;
+
+    
+}
+
+.search-bar-container.scrolled {
+    transform: scale(0.9);
+}
+  
+/* Mobile Styles */
+.search-filter-container {
     padding: 1rem;
     width: 100%;
     max-width: 1200px;
     margin: 0 auto;
     background-color: #fff;
-  }
+    top: 0px;
+    transition: all 0.3s ease;
+}
+
+.search-filter-container.scrolled {
+    padding: 0.5rem;
+}
   
-  .mobile-search-button {
+.mobile-search-button {
     display: none;
     background-color: #fff;
     border-radius: 32px;
@@ -40,31 +58,48 @@
     align-items: center;
     gap: 0.5rem;
     margin: 0 auto;
-  }
+    top: 0px;
+    transition: all 0.3s ease;
+
   
-  .mobile-search-button mat-icon {
+}
+
+.scrolled .mobile-search-button {
+    padding: 0.75rem 1.25rem;
+    font-size: 0.9rem;
+    width: 250px;
+}
+  
+.mobile-search-button mat-icon {
     font-size: 1.2rem;
     width: 1.2rem;
     height: 1.2rem;
     color: #484848;
-  }
+}
   
-  @media (max-width: 768px) {
+@media (max-width: 768px) {
+    .search-bar-container{
+        position: relative;
+        left: 0;
+    }
     .search-model {
       display: flex;
       flex-direction: column;
-      width: 400px;
-      max-width: 600px;
+      width: 500px;
+      max-width: 760px;
       height: 95vh;
       max-height: 95vh;
       background: #fff;
       border-radius: 16px;
       box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.05);
-      top: 200px;
+      top: 0px;
       position: relative;
       z-index: 1000;
     }
-  
+    .dropdown{
+      background-color: #fff;
+    }
+
     .search-model .search-model-header {
       display: flex;
       align-items: center;
@@ -286,6 +321,7 @@
   
     .search-model .search-actions .search-button {
       background: #ff385c;
+      width: 30%;
       color: #fff;
       border: none;
       padding: 12px 24px;
@@ -309,15 +345,33 @@
     overflow: hidden;
     width: 100%;
     max-width: 600px;
+    transition: all 0.3s ease;
+    height: 50px;
+  }
+  
+  .search-bar.compact {
+    transform: scale(0.9);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .search-bar.compact .search-input-common {
+    padding: 8px 16px;
+    font-size: 13px;
   }
   
   .search-field {
+    width: 130px;
+
     flex: 1;
-    padding: 12px 20px;
+    padding: 12px 15px;
     border-right: 1px solid #ddd;
     cursor: pointer;
     position: relative;
-    transition: background-color 0.2s;
+    transition: background-color 0.2s, padding 0.3s ease;
+  }
+  
+  .search-bar.compact .search-field {
+    padding: 8px 10px;
   }
   
   .search-field:hover {
@@ -332,8 +386,8 @@
     background-color: #ff385c;
     border: none;
     border-radius: 50%;
-    width: 48px;
-    height: 48px;
+    width: 30px;
+    height: 30px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -348,7 +402,7 @@
   
   .search-button mat-icon {
     color: white;
-    font-size: 24px;
+    font-size: 20px;
   }
   
   @media (min-width: 768px) {
@@ -419,19 +473,13 @@
   
     .date-picker-container {
       display: flex;
-      align-items: center;
-      position: relative;
-    }
-  
-    .date-picker-wrapper {
-      display: flex;
-      gap: 20px;
+      flex-direction: row;
+      justify-content: space-between;
+      width: 100%;
     }
   
     .date-picker {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+      width: 48%; /* Allow space between the calendars */
     }
   
     .date-picker-header {
@@ -574,4 +622,165 @@
       text-decoration: underline;
       font-size: 14px;
     }
+  
+    /* Hide search model container in desktop view */
+    .search-model-container {
+      /* Remove the display: none to allow the container to show */
+    }
+
+    /* Target the overlay pane in desktop view */
+    .search-model-container .cdk-overlay-pane {
+      width: 300px !important;
+      max-width: 300px !important;
+      min-width: 300px !important;
+    }
+
+    /* Hide destination section content in desktop view */
+    .search-model-container .search-section[ng-reflect-ng-if="true"] .section-content h3,
+    .search-model-container .search-section[ng-reflect-ng-if="true"] .section-content input {
+      display: none;
+    }
+
+    /* Remove the duplicate month-year header for the second calendar */
+    .date-picker .date-picker-header:nth-of-type(2) {
+      display: none;
+    }
   }
+
+  /* Hide elements with tohide class when search modal is open */
+  .search-bar-container:has(.search-model-container) .tohide,
+  .search-filter-container:has(.mobile-search-modal) .tohide {
+    display: none;
+  }
+
+  /* Add a new rule to hide the search filter container when the search model is open */
+  .search-bar-container:has(.search-model) .search-filter-container {
+    display: none;
+  }
+
+  /* Style for the autocomplete dropdown */
+  .dropdown.mat-mdc-autocomplete-panel {
+    background-color: white !important;
+  }
+
+  .mat-mdc-option {
+    background-color: white !important;
+  }
+
+  .mat-mdc-option:hover {
+    background-color: #f5f5f5 !important;
+  }
+
+  .mat-mdc-option.mdc-list-item--selected {
+    background-color: #f0f0f0 !important;
+  }
+
+  /* Style for the autocomplete dropdown */
+  .mat-mdc-autocomplete-panel.mat-mdc-autocomplete-visible {
+    width: 300px !important;
+    min-width: 300px !important;
+    max-width: 300px !important;
+    box-sizing: border-box !important;
+  }
+
+
+/* Increase specificity by combining selectors */
+div.cdk-overlay-pane[id^="cdk-overlay"] .mat-mdc-autocomplete-panel {
+  width: 300px !important;
+  min-width: 300px !important;
+  max-width: 300px !important;
+}
+
+/* Override the cdk-overlay-pane inline style */
+div.cdk-overlay-pane[id^="cdk-overlay"] {
+  width: 300px !important;
+  min-width: 300px !important;
+  max-width: 300px !important;
+}
+
+/* Fix for the autocomplete overlay width */
+#cdk-overlay-1 {
+  width: 300px !important;
+  min-width: 300px !important;
+  max-width: 300px !important;
+}
+
+/* Target all cdk-overlay-pane elements with ID that starts with cdk-overlay */
+div[id^="cdk-overlay"].cdk-overlay-pane {
+  width: 300px !important;
+  min-width: 300px !important;
+  max-width: 300px !important;
+}
+
+/* Target the autocomplete panel inside any overlay */
+div[id^="cdk-overlay"] .mat-mdc-autocomplete-panel {
+  width: 300px !important;
+  min-width: 300px !important;
+  max-width: 300px !important;
+}
+
+/* Ultra-aggressive styling for autocomplete overlay */
+body div.cdk-overlay-pane,
+html body div.cdk-overlay-pane,
+div.cdk-overlay-container div.cdk-overlay-pane,
+div.cdk-overlay-connected-position-bounding-box div.cdk-overlay-pane,
+*[id^="cdk-overlay"] {
+  width: 300px !important;
+  min-width: 300px !important;
+  max-width: 300px !important;
+  box-sizing: border-box !important;
+}
+
+body .mat-mdc-autocomplete-panel,
+html body .mat-mdc-autocomplete-panel,
+.cdk-overlay-pane .mat-mdc-autocomplete-panel,
+.mdc-menu-surface.mat-mdc-autocomplete-panel,
+.mat-mdc-autocomplete-panel.mat-mdc-autocomplete-visible {
+  width: 300px !important;
+  min-width: 300px !important;
+  max-width: 300px !important;
+  box-sizing: border-box !important;
+}
+
+/* Apply styles globally to all potential overlays */
+:root {
+  --overlay-width: 300px !important;
+}
+
+.cdk-overlay-pane {
+  width: var(--overlay-width) !important;
+  min-width: var(--overlay-width) !important;
+  max-width: var(--overlay-width) !important;
+}
+
+/* Last resort */
+@-moz-document url-prefix() {
+  div.cdk-overlay-pane {
+    width: 300px !important;
+    min-width: 300px !important;
+    max-width: 300px !important;
+  }
+}
+
+/* Hide mobile search button when search modal is open */
+.search-bar-container:has(.search-model) .search-filter-container,
+.search-bar-container:has(.search-model) .mobile-search-button {
+  display: none !important;
+}
+
+/* Alternative selector if :has is not supported in all browsers */
+@media (max-width: 768px) {
+  .search-model-open .search-filter-container,
+  .search-model-open .mobile-search-button {
+    display: none !important;
+  }
+}
+
+/* Hide mobile search button when modal is open - direct approach */
+.search-bar-container:has(.search-model) .mobile-search-button,
+.search-model-open .mobile-search-button {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}

@@ -7,10 +7,10 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { CreatePropertyService, PropertyCreateDto } from '../../services/property-crud.service';
-import { AuthService } from '../auth/auth.service';
-import { PropertyCategory, Amenity } from '../../models/property';
-import { LocationMapComponent } from '../map/location-map.component';
+import { CreatePropertyService, PropertyCreateDto } from '../../../services/property-crud.service';
+import { AuthService } from '../../auth/auth.service';
+import { PropertyCategory, Amenity } from '../../../models/property';
+import { LocationMapComponent } from '../../map/location-map.component';
 import { ImageUploadComponent } from '../image-upload/image-upload.component';
 
 interface InvalidField {
@@ -47,7 +47,7 @@ interface LocationData {
 export class AddPropertyComponent implements OnInit {
   propertyForm!: FormGroup;
   currentStep = 1;
-  totalSteps = 8;
+  totalSteps = 10;
   steps = [
     'Property Type',
     'Sharing Type',
@@ -292,6 +292,10 @@ export class AddPropertyComponent implements OnInit {
       // Format the property data according to API expectations
       const formValues = this.propertyForm.value;
       
+      // Ensure amenities is an array of IDs, not null values
+      const amenities = formValues.amenities || [];
+      const validAmenities = amenities.filter((id: number | null | undefined) => id !== null && id !== undefined);
+      
       // According to your comment, the API uses propertyType for what we collect as sharingType
       // So we'll map the sharingType value to propertyType in the API request
       
@@ -318,6 +322,7 @@ export class AddPropertyComponent implements OnInit {
         currency: 'USD', // Default currency
         instantBook: formValues.instantBook || false,
         cancellationPolicyId: formValues.cancellationPolicyId || 1,
+        amenities: validAmenities, // Ensure we're sending valid amenity IDs
         images: this.uploadedImageUrls.map((url, index) => ({
           imageUrl: url,
           isPrimary: index === 0
@@ -409,7 +414,32 @@ export class AddPropertyComponent implements OnInit {
   private async loadAmenities() {
     try {
       const amenities = await this.propertyService.getAmenities().toPromise();
-      this.amenities = amenities || [];
+      
+      // Map the amenities to ensure they have the correct property names
+      this.amenities = (amenities || []).map(amenity => {
+        // Log the original amenity object
+        console.log('Original amenity:', amenity);
+        
+        // Check if the amenity has an 'id' property instead of 'amenityId'
+        const amenityAny = amenity as any;
+        if (amenityAny.id !== undefined && amenityAny.amenityId === undefined) {
+          console.log('Mapping amenity.id to amenity.amenityId');
+          return {
+            ...amenity,
+            amenityId: amenityAny.id
+          };
+        }
+        
+        return amenity;
+      });
+      
+      // Debug the amenities
+      console.log('Mapped amenities:', this.amenities);
+      if (this.amenities.length > 0) {
+        console.log('First amenity:', this.amenities[0]);
+        console.log('First amenity ID:', this.amenities[0].amenityId);
+        console.log('First amenity keys:', Object.keys(this.amenities[0]));
+      }
       
       // Initialize the form with empty amenities array
       this.propertyForm.patchValue({
@@ -422,16 +452,33 @@ export class AddPropertyComponent implements OnInit {
   }
 
   toggleAmenity(amenityId: number) {
-    const amenities = new Set(this.propertyForm.get('amenities')?.value || []);
+    console.log('Toggling amenity:', amenityId);
     
-    if (amenities.has(amenityId)) {
-      amenities.delete(amenityId);
-    } else {
-      amenities.add(amenityId);
+    // Check if amenityId is valid
+    if (amenityId === undefined || amenityId === null) {
+      console.error('Invalid amenity ID:', amenityId);
+      return;
     }
     
+    // Get the current amenities array
+    const currentAmenities = this.propertyForm.get('amenities')?.value || [];
+    console.log('Current amenities:', currentAmenities);
+    
+    // Create a new array based on whether the amenity is already selected
+    let newAmenities: number[];
+    if (currentAmenities.includes(amenityId)) {
+      // Remove the amenity if it's already selected
+      newAmenities = currentAmenities.filter((id: number) => id !== amenityId);
+      console.log('Removing amenity, new array:', newAmenities);
+    } else {
+      // Add the amenity if it's not selected
+      newAmenities = [...currentAmenities, amenityId];
+      console.log('Adding amenity, new array:', newAmenities);
+    }
+    
+    // Update the form with the new amenities array
     this.propertyForm.patchValue({
-      amenities: Array.from(amenities)
+      amenities: newAmenities
     });
     
     // Mark as touched to trigger validation
@@ -439,6 +486,12 @@ export class AddPropertyComponent implements OnInit {
   }
 
   isAmenitySelected(amenityId: number): boolean {
+    // Check if amenityId is valid
+    if (amenityId === undefined || amenityId === null) {
+      console.error('Invalid amenity ID in isAmenitySelected:', amenityId);
+      return false;
+    }
+    
     const amenities = this.propertyForm.get('amenities')?.value || [];
     return amenities.includes(amenityId);
   }

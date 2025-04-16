@@ -1,10 +1,12 @@
-import { Component, OnInit, ViewChild, ElementRef, AfterViewInit, HostListener, EventEmitter, Output } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, AfterViewInit, HostListener, EventEmitter, Output, Renderer2, Inject, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
+import { DOCUMENT } from '@angular/common';
 
 @Component({
   selector: 'app-search-bar',
@@ -21,6 +23,7 @@ import { MatIconModule } from '@angular/material/icon';
   styleUrls: ['./search-bar.component.css'],
 })
 export class SearchBarComponent implements OnInit, AfterViewInit {
+  @Input() isHeaderScrolled: boolean = false;
   isSearchModalOpen = false;
   modalMode: 'destination' | 'date' | 'guests' | null = null;
   destination: string = '';
@@ -50,15 +53,45 @@ export class SearchBarComponent implements OnInit, AfterViewInit {
 
   @Output() searchPerformed = new EventEmitter<any>();
   @ViewChild('container', { static: false }) containerRef!: ElementRef<HTMLDivElement>;
+  @ViewChild(MatAutocompleteTrigger) autocompleteTrigger!: MatAutocompleteTrigger;
+
+  constructor(
+    private renderer: Renderer2,
+    @Inject(DOCUMENT) private document: Document
+  ) {}
+
+  ngAfterViewInit() {
+    setTimeout(() => {
+      if (this.autocompleteTrigger && this.autocompleteTrigger.autocomplete) {
+        this.autocompleteTrigger.autocomplete.panel.nativeElement.style.width = '300px';
+        this.autocompleteTrigger.autocomplete.panel.nativeElement.style.minWidth = '300px';
+        this.autocompleteTrigger.autocomplete.panel.nativeElement.style.maxWidth = '300px';
+      }
+      
+      // Create a style element and add it to the document head
+      const styleElement = this.renderer.createElement('style');
+      const cssText = `
+        .cdk-overlay-pane {
+          width: 300px !important;
+          min-width: 300px !important;
+          max-width: 300px !important;
+        }
+        .mat-mdc-autocomplete-panel {
+          width: 300px !important;
+          min-width: 300px !important;
+          max-width: 300px !important;
+        }
+      `;
+      
+      this.renderer.appendChild(styleElement, this.renderer.createText(cssText));
+      this.renderer.appendChild(this.document.head, styleElement);
+    });
+  }
 
   ngOnInit(): void {
     this.checkScreenSize();
     window.addEventListener('resize', this.checkScreenSize.bind(this));
     this.updateCalendar();
-  }
-
-  ngAfterViewInit(): void {
-    console.log('Container ref:', this.containerRef);
   }
 
   checkScreenSize(): void {
@@ -68,16 +101,28 @@ export class SearchBarComponent implements OnInit, AfterViewInit {
   openSearchModal(): void {
     this.isSearchModalOpen = true;
     this.modalMode = 'destination'; // Start with destination section
+    document.querySelector('.search-bar-container')?.classList.add('search-model-open');
   }
 
   closeSearchModal(): void {
     this.isSearchModalOpen = false;
     this.modalMode = null;
+    document.querySelector('.search-bar-container')?.classList.remove('search-model-open');
   }
 
-  toggleSection(section: 'destination' | 'date' | 'guests'): void {
-    this.modalMode = this.modalMode === section ? null : section;
-    if (this.isMobile && !this.modalMode) {
+  toggleSection(section: 'destination' | 'date' | 'guests', event?: Event): void {
+    // If event is provided, stop propagation
+    if (event) {
+      event.stopPropagation();
+    }
+    
+    // Only toggle the section if it's not already active
+    if (this.modalMode !== section) {
+      this.modalMode = section;
+    }
+    
+    // Only close the modal if explicitly requested (not when toggling sections)
+    if (this.isMobile && !this.modalMode && section === null) {
       this.closeSearchModal();
     }
   }
@@ -102,35 +147,41 @@ export class SearchBarComponent implements OnInit, AfterViewInit {
     this.selectedEndDay = null;
   }
 
-  selectDestination(destination: string): void {
+  selectDestination(destination: string, event?: any): void {
     this.destination = destination;
     this.modalMode = this.isMobile ? 'date' : null; // Move to next section on mobile
+    
+    // We don't need to stop propagation for MatOptionSelectionChange
   }
 
   getCheckInDisplay(): string {
     return this.checkIn
       ? this.checkIn.toLocaleString('default', { month: 'short', day: 'numeric' })
-      : 'Add dates';
+      : 'From';
   }
 
   getCheckOutDisplay(): string {
     return this.checkOut
       ? this.checkOut.toLocaleString('default', { month: 'short', day: 'numeric' })
-      : 'Add dates';
+      : 'To';
   }
 
   getGuestSummary(): string {
-    const total = this.guests.adults + this.guests.children + this.guests.infants;
-    const pets = this.guests.pets > 0 ? `, ${this.guests.pets} pet${this.guests.pets > 1 ? 's' : ''}` : '';
-    return total > 0 ? `${total} guest${total > 1 ? 's' : ''}${pets}` : 'Add guests';
+    const total = this.guests.adults ;
+    return total > 0 ? `${total} guest${total > 1 ? 's' : ''}` : 'Guests';
   }
 
-  updateGuests(type: 'adults' | 'children' | 'infants' | 'pets', increment: boolean): void {
+  updateGuests(type: 'adults', increment: boolean, event?: Event): void {
     const currentValue = this.guests[type];
     if (increment) {
       this.guests[type] = currentValue + 1;
     } else if (currentValue > 0) {
       this.guests[type] = currentValue - 1;
+    }
+    
+    // Prevent the modal from closing when updating guests
+    if (event) {
+      event.stopPropagation();
     }
   }
 

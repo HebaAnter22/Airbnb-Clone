@@ -27,6 +27,7 @@ export interface PropertyCreateDto {
   currency: string;
   instantBook: boolean;
   cancellationPolicyId: number;
+  amenities: number[];
   images: {
     imageUrl: string;
     isPrimary: boolean;
@@ -118,7 +119,16 @@ export class CreatePropertyService {
   }
 
   getAmenities(): Observable<Amenity[]> {
-    return this.http.get<Amenity[]>(`${this.API_URL}/Amenity`);
+    return this.http.get<Amenity[]>(`${this.API_URL}/Amenity`).pipe(
+      map(amenities => {
+        console.log('API Amenities response:', amenities);
+        if (amenities && amenities.length > 0) {
+          console.log('First amenity from API:', amenities[0]);
+          console.log('First amenity keys from API:', Object.keys(amenities[0]));
+        }
+        return amenities;
+      })
+    );
   }
 
   getPropertyById(propertyId: number): Observable<any> {

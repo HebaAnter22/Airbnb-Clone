@@ -11,9 +11,9 @@ import { ProfileComponent } from './components/profile/profile.component';
 import { SearchBarComponent } from './components/home/search-bar/search-bar.component';
 import { PropertyListingsComponent } from './components/home/property-listing/property-listing.component';
 import { HeaderComponent } from './components/home/header/header.component';
-import { AddPropertyComponent } from './components/add-property/add-property.component';
-import { HostPropertiesComponent } from './components/host-proprties/host-properties.component';
-import { EditPropertyComponent } from './components/edit-property/edit-property.component';
+import { AddPropertyComponent } from './components/host/add-property/add-property.component';
+import { HostPropertiesComponent } from './components/host/host-proprties/host-properties.component';
+import { EditPropertyComponent } from './components/host/edit-property/edit-property.component';
 export const routes: Routes = [
   {path: 'home', component: PropertyListingsComponent},
   {path: '', redirectTo: 'home', pathMatch: 'full'},

@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Output, ChangeDetectorRef, OnDestroy, Input } from '@angular/core';
-import { CreatePropertyService } from '../../services/property-crud.service';
+import { CreatePropertyService } from '../../../services/property-crud.service';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';

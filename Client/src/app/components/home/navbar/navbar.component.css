@@ -6,17 +6,25 @@
   background-color: #fff;
   width: 150px;
   max-width: 1200px;
-  
+  transition: all 0.3s ease;
 }
 
 .navbar-left, .navbar-right {
   display: flex;
   align-items: center;
+  transition: transform 0.3s ease;
 }
 
 .globe-icon {
   font-size: 24px;
   cursor: pointer;
+  color: #484848;
+  transition: font-size 0.3s ease, color 0.3s ease;
+}
+
+:host-context(.header.scrolled) .globe-icon {
+  font-size: 20px;
+  color: #484848;
 }
 
 .menu-profile {
@@ -28,10 +36,24 @@
   border-radius: 20px;
   cursor: pointer;
   background-color: #f7f7f7;
+  transition: all 0.3s ease;
+}
+
+:host-context(.header.scrolled) .menu-profile {
+  padding: 4px 8px;
+  gap: 8px;
 }
 
 .menu-icon, .profile-icon {
   font-size: 20px;
+  color: #484848;
+  transition: font-size 0.3s ease, color 0.3s ease;
+}
+
+:host-context(.header.scrolled) .menu-icon,
+:host-context(.header.scrolled) .profile-icon {
+  font-size: 18px;
+  color: #484848;
 }
 
 .dropdown {
@@ -71,13 +93,7 @@
   color: #ff385c;
 }
 
-.menu-profile {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 5px 10px;
-  border: 1px solid #e0e0e0;
-  border-radius: 20px;
-  cursor: pointer;
-  background-color: #f7f7f7;
+.navbar.scrolled {
+  transform: scale(0.9);
+  padding: 8px 8px;
 }
