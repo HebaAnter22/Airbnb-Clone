@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
-import { AuthService } from './components/auth/auth.service';
+import { AuthService } from './services/auth.service';
 import { NavbarComponent } from './components/navbar/navbar.component';
 
 @Component({

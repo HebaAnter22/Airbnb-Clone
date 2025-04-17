@@ -9,7 +9,7 @@
         public string PropertyType { get; set; }
         public string Address { get; set; }
         public string City { get; set; }
-        public string State { get; set; }
+        public string Country { get; set; }
         public string PostalCode { get; set; }
         public decimal? Latitude { get; set; }
         public decimal? Longitude { get; set; }
@@ -24,8 +24,32 @@
         public string Status { get; set; }
         public DateTime? CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
-        public List<PropertyImageDto> Images { get; set; } = new List<PropertyImageDto>();
-    }
 
-  
+        // Host information
+        public string HostName { get; set; }
+        public string HostProfileImage { get; set; }
+
+        // Images
+        public List<PropertyImageDto> Images { get; set; } = new List<PropertyImageDto>();
+
+        // Amenities
+        public List<AmenityDto> Amenities { get; set; } = new List<AmenityDto>();
+
+        // Availability
+        //public List<PropertyAvailabilityDto> Availabilities { get; set; } = new List<PropertyAvailabilityDto>();
+
+        // Reviews
+        public List<ReviewDto> Reviews { get; set; } = new List<ReviewDto>();
+
+        // Ratings and Reviews Summary
+        public double AverageRating { get; set; }
+        public int ReviewCount { get; set; }
+        public int FavoriteCount { get; set; }
+        public bool IsGuestFavorite { get; set; }
+
+        // Additional UI properties
+        public bool IsAvailable { get; set; }
+        public string Currency { get; set; } = "USD";
+        public bool InstantBook { get; set; }
+    }
 }

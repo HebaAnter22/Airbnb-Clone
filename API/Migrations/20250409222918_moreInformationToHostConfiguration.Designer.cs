@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace API.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250408214746_addviews")]
-    partial class addviews
+    [Migration("20250409222918_moreInformationToHostConfiguration")]
+    partial class moreInformationToHostConfiguration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -328,10 +328,20 @@ namespace API.Migrations
                         .HasColumnType("nvarchar(500)")
                         .HasColumnName("about_me");
 
+                    b.Property<string>("DreamDestination")
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("dream_destination");
+
                     b.Property<string>("Education")
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)")
                         .HasColumnName("education");
+
+                    b.Property<string>("FunFact")
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)")
+                        .HasColumnName("fun_fact");
 
                     b.Property<bool>("IsVerified")
                         .ValueGeneratedOnAdd()
@@ -344,11 +354,31 @@ namespace API.Migrations
                         .HasColumnType("nvarchar(100)")
                         .HasColumnName("languages");
 
+                    b.Property<string>("LivesIn")
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("lives_in");
+
+                    b.Property<string>("ObsessedWith")
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("obsessed_with");
+
+                    b.Property<string>("Pets")
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("pets");
+
                     b.Property<decimal>("Rating")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("decimal(3,2)")
                         .HasDefaultValue(0m)
                         .HasColumnName("rating");
+
+                    b.Property<string>("SpecialAbout")
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("special_about");
 
                     b.Property<DateTime>("StartDate")
                         .ValueGeneratedOnAdd()

@@ -1,0 +1,132 @@
+<!-- host-verification.component.html -->
+<div class="verification-container">
+    <h1 class="heading">Key details to take care of</h1>
+  
+    <!-- ID Verification Section -->
+    <section class="verification-section" [ngClass]="{'completed': idVerificationStep === 3}">
+      <div class="section-header" (click)="idVerificationStep = 1">
+        <h2>Verify your identity</h2>
+        <span class="arrow">›</span>
+      </div>
+  
+      <div class="section-content" *ngIf="idVerificationStep === 1">
+        <p>Upload a clear photo of your ID or passport page. Make sure all text is visible and it shows your face.</p>
+        
+        <div class="upload-container">
+          <input type="file" id="id-photo" accept="image/*" (change)="onFileSelected($event)" class="file-input">
+          <label for="id-photo" class="upload-btn">Upload ID photo</label>
+        </div>
+  
+        <div class="preview-container" *ngIf="previewUrl">
+          <img [src]="previewUrl" alt="ID Preview" class="preview-image">
+          <button class="primary-btn" (click)="verifyIdentity()">Submit for verification</button>
+          <button class="secondary-btn" (click)="retakePhoto()">Retake photo</button>
+        </div>
+      </div>
+  
+      <div class="section-content" *ngIf="idVerificationStep === 2">
+        <div class="error-message">
+          <i class="error-icon">!</i>
+          <p>There was an issue with your ID</p>
+        </div>
+        
+        <div class="retry-content">
+          <h3>Let's try again</h3>
+          <p>Looks like we can't read your photo. Make sure that all the text on your ID or passport page is visible, and that it shows the picture of your face. This will help us match your ID to your other info.</p>
+          
+          <div class="illustration">
+            <img src="assets/img/id-verification-illustration.svg" alt="ID verification illustration">
+          </div>
+          
+          <div class="privacy-info">
+            <h4>Your privacy</h4>
+            <p>We aim to keep the data you share during this process private, safe, and secure. Learn more in our <a href="#">Privacy Policy</a>.</p>
+            <a href="#">How identity verification works</a>
+          </div>
+          
+          <div class="action-buttons">
+            <button class="text-btn" (click)="idVerificationStep = 1">← Back</button>
+            <button class="primary-btn" (click)="retakePhoto()">Retake photo</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  
+    <!-- Phone Verification Section -->
+    <section class="verification-section" [ngClass]="{'completed': phoneVerificationStep === 3}">
+      <div class="section-header" (click)="phoneVerificationStep === 3 ? phoneVerificationStep = 3 : phoneVerificationStep = 1">
+        <h2>Confirm your phone number</h2>
+        <span class="arrow">›</span>
+        <span class="status" *ngIf="phoneVerificationStep === 3">✓ Verified</span>
+      </div>
+      
+      <div class="section-content" *ngIf="phoneVerificationStep === 1">
+        <p>We'll call or text to confirm your number. Standard messaging rates apply.</p>
+        <p class="required-label">Required</p>
+        
+        <form [formGroup]="verificationForm">
+          <div class="phone-input-container">
+            <div class="country-code">
+              <select id="country-code" disabled>
+                <option value="+20">Egypt (+20)</option>
+              </select>
+            </div>
+            
+            <div class="phone-number">
+              <input 
+                type="tel" 
+                formControlName="phoneNumber" 
+                placeholder="Phone number" 
+                autocomplete="tel">
+            </div>
+          </div>
+          
+          <p class="form-info">We'll call or text you to confirm your number. Standard message and data rates apply.</p>
+          
+          <button 
+            class="primary-btn" 
+            [disabled]="!verificationForm.get('phoneNumber')?.valid" 
+            (click)="submitPhoneNumber()">
+            Continue
+          </button>
+        </form>
+      </div>
+      
+      <div class="section-content" *ngIf="phoneVerificationStep === 2">
+        <form [formGroup]="verificationForm">
+          <p>Enter the 4-digit code sent to +20 {{verificationForm.get('phoneNumber')?.value}}:</p>
+          
+          <div class="verification-code-container">
+            <input 
+              type="text" 
+              formControlName="verificationCode" 
+              maxlength="4" 
+              placeholder="- - - -"
+              class="verification-code-input">
+          </div>
+          
+          
+          
+          <button 
+            class="primary-btn" 
+            [disabled]="!verificationForm.get('verificationCode')?.valid" 
+            (click)="verifyPhoneNumber()">
+            Verify Code
+          </button>
+          
+          <div class="code-options">
+            <p>Didn't get a text? <a href="javascript:void(0)" (click)="resendCode()">Send again</a></p>
+            <a href="javascript:void(0)" (click)="requestCall()">Call me instead</a>
+          </div>
+        </form>
+      </div>
+      
+      <div class="section-content" *ngIf="phoneVerificationStep === 3">
+        <div class="success-message">
+          <i class="success-icon">✓</i>
+          <p>Phone number verified successfully!</p>
+        </div>
+        <p>Your phone number +20 {{verificationForm.get('phoneNumber')?.value}} has been verified.</p>
+      </div>
+    </section>
+  </div>

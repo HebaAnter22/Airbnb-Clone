@@ -1,0 +1,21 @@
+<div class="gallery-container">
+    <header class="gallery-header">
+      <button class="back-button" (click)="goBack()">
+        <i class="fa fa-arrow-left"></i> Back to property
+      </button>
+    </header>
+    
+    <div *ngIf="loading" class="loading">
+      Loading images...
+    </div>
+    
+    <div *ngIf="error" class="error">
+      {{ error }}
+    </div>
+    
+    <div *ngIf="!loading && !error" class="image-grid">
+      <div *ngFor="let img of images" class="image-item">
+        <img [src]="img" alt="Property image" />
+      </div>
+    </div>
+  </div>

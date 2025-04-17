@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, Subject, catchError, map, of, throwError } from 'rxjs';
 import { Router } from '@angular/router';
-import { User, TokenResponse } from '../../models/user.model';
+import { User, TokenResponse } from '../models/user.model';
 import { SocialAuthService, SocialUser } from "@abacritt/angularx-social-login";
 import { GoogleLoginProvider } from "@abacritt/angularx-social-login";
 
@@ -68,6 +68,10 @@ private handleGoogleLogin(googleUser: SocialUser): void {
 }
 
 
+public get userId(): string | null {
+  const user = this.currentUserSubject.value;
+  return user ? this.getUserIdFromToken(user.accessToken) : null;
+}
   
   public get currentUserValue(): User | null {
     return this.currentUserSubject.value;
@@ -79,7 +83,8 @@ private handleGoogleLogin(googleUser: SocialUser): void {
         const decoded = this.decodeToken(response.accessToken);
         const user: User = {
           email: decoded.unique_name,
-          role: decoded.role || decoded['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'],          accessToken: response.accessToken,
+          role: decoded.role || decoded['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'],     
+               accessToken: response.accessToken,
           refreshToken: response.refreshToken
         };
         localStorage.setItem('currentUser', JSON.stringify(user));
@@ -156,7 +161,12 @@ private handleGoogleLogin(googleUser: SocialUser): void {
       })
     );
   }
-  
+  getCurrentUserId(): number {
+    if (!this.currentUser) {
+      throw new Error('No user is currently logged in');
+    }
+    return Number(this.userId) || 0;
+  }
 
   public decodeToken(token: string): any {
     const decoded = JSON.parse(atob(token.split('.')[1]));

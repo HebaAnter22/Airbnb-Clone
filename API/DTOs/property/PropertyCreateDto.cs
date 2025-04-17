@@ -34,9 +34,6 @@ namespace API.DTOs
         [StringLength(100)]
         public string City { get; set; }
 
-        [Required]
-        [StringLength(100)]
-        public string State { get; set; }
 
         [Required]
         [StringLength(20)]
@@ -76,12 +73,21 @@ namespace API.DTOs
 
         [Required]
         [StringLength(3)]
-        public string Currency { get; set; }
+        public string? Currency { get; set; }
 
         public bool? InstantBook { get; set; }
 
 
         public int? CancellationPolicyId { get; set; }
 
+        public List<PropertyImageCreateDto> Images { get; set; } = new List<PropertyImageCreateDto>();
+    }
+
+    public class PropertyImageCreateDto
+    {
+        [Required]
+        public string ImageUrl { get; set; }
+        
+        public bool IsPrimary { get; set; }
     }
 }

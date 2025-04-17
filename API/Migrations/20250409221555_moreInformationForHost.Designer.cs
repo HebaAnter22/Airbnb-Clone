@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace API.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250408214330_intialcreation")]
-    partial class intialcreation
+    [Migration("20250409221555_moreInformationForHost")]
+    partial class moreInformationForHost
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -328,10 +328,16 @@ namespace API.Migrations
                         .HasColumnType("nvarchar(500)")
                         .HasColumnName("about_me");
 
+                    b.Property<string>("DreamDestination")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Education")
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)")
                         .HasColumnName("education");
+
+                    b.Property<string>("FunFact")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsVerified")
                         .ValueGeneratedOnAdd()
@@ -344,11 +350,23 @@ namespace API.Migrations
                         .HasColumnType("nvarchar(100)")
                         .HasColumnName("languages");
 
+                    b.Property<string>("LivesIn")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ObsessedWith")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Pets")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<decimal>("Rating")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("decimal(3,2)")
                         .HasDefaultValue(0m)
                         .HasColumnName("rating");
+
+                    b.Property<string>("SpecialAbout")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("StartDate")
                         .ValueGeneratedOnAdd()

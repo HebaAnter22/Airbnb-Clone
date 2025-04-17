@@ -1,0 +1,191 @@
+/* wishlist.component.css */
+.container {
+    padding-bottom: 30px;
+  }
+  
+  h1 {
+    font-weight: 700;
+    margin-bottom: 30px;
+    color: #2d3748;
+    position: relative;
+  }
+  
+  h1::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 0;
+    width: 50px;
+    height: 3px;
+    background-color: #ff385c;
+  }
+  
+  .property-card {
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    overflow: hidden;
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.08);
+  }
+  
+  .property-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1), 0 5px 15px rgba(0, 0, 0, 0.07);
+  }
+  
+  .property-image {
+    height: 220px;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+  }
+  
+  .property-card:hover .property-image {
+    transform: scale(1.05);
+  }
+  
+  .heart-btn {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    transition: all 0.2s ease;
+    background-color: white;
+  }
+  
+  .heart-btn:hover {
+    background-color: #ffebee;
+    transform: scale(1.1);
+  }
+  
+  .heart-btn i {
+    font-size: 18px;
+  }
+  
+  .card-body {
+    padding: 20px;
+  }
+  
+  .card-title {
+    font-weight: 600;
+    margin-bottom: 12px;
+    font-size: 1.1rem;
+    color: #1a202c;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  .card-text {
+    color: #4a5568;
+    margin-bottom: 10px;
+    font-size: 0.9rem;
+  }
+  
+  .card-text i {
+    color: #718096;
+  }
+  
+  .badge {
+    font-weight: 500;
+    padding: 6px 10px;
+    border-radius: 30px;
+    font-size: 0.75rem;
+  }
+  
+  .bg-light {
+    background-color: #f7fafc !important;
+    color: #4a5568 !important;
+    border: 1px solid #e2e8f0;
+  }
+  
+  .badge.bg-primary {
+    background-color: #ff385c !important;
+    border: none;
+    padding: 6px 10px;
+  }
+  
+  .fw-bold {
+    font-size: 1.1rem;
+    color: #1a202c;
+  }
+  
+  .text-muted {
+    color: #718096 !important;
+    font-size: 0.85rem;
+  }
+  
+  .card-footer {
+    background-color: #fff;
+    border-top: 1px solid #f7fafc;
+    padding: 12px 20px;
+    border-bottom-left-radius: 12px;
+    border-bottom-right-radius: 12px;
+  }
+  
+  .card-footer small {
+    color: #718096;
+    font-size: 0.75rem;
+  }
+  
+  .btn-primary {
+    background-color: #ff385c;
+    border-color: #ff385c;
+    font-weight: 500;
+    padding: 8px 20px;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+  }
+  
+  .btn-primary:hover {
+    background-color: #e5103a;
+    border-color: #e5103a;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(255, 56, 92, 0.2);
+  }
+  
+  .spinner-border {
+    color: #ff385c;
+    width: 3rem;
+    height: 3rem;
+  }
+  
+  .alert-danger {
+    border-radius: 12px;
+    border-left: 5px solid #f56565;
+  }
+  
+  @media (max-width: 768px) {
+    .property-image {
+      height: 180px;
+    }
+    
+    .card-body {
+      padding: 15px;
+    }
+    
+    .card-footer {
+      padding: 10px 15px;
+    }
+  }
+  
+  /* Add this animation for when new items are added to the wishlist */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .col {
+    animation: fadeIn 0.5s ease-out forwards;
+  }

@@ -51,7 +51,7 @@ namespace API
 
             builder.Services.AddDALService(builder.Configuration);
 
-         
+       
 
             builder.Services.AddCors(options => {
                 options.AddPolicy("AllowAll", policy => {
@@ -106,7 +106,9 @@ namespace API
 
             builder.Services.AddScoped<IAuthService, AuthService>();
             builder.Services.AddScoped<IPropertyService, PropertyService>();
-
+            builder.Services.AddScoped<IProfileService, ProfileService>();
+            builder.Services.AddScoped<IAmenityService, AmenityService>();
+            builder.Services.AddScoped<IPropertyCategoryService, PropertyCategoryService>();
 
             builder.Services.AddAutoMapper(typeof(Program));
 
@@ -127,6 +129,7 @@ namespace API
             app.UseHttpsRedirection();
 
             app.UseAuthentication();
+            app.UseStaticFiles();
 
             app.UseAuthorization();
             app.MapControllers();

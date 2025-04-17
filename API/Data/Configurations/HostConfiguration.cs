@@ -19,6 +19,19 @@ namespace API.Data.Configurations
             builder.Property(h => h.Languages).HasMaxLength(100).HasColumnName("languages");
             builder.Property(h => h.IsVerified).HasDefaultValue(false).HasColumnName("is_verified");
 
+            builder.Property(h => h.LivesIn).HasMaxLength(100).HasColumnName("lives_in").HasColumnType("varchar(100)").IsRequired(false);
+
+            builder.Property(h => h.DreamDestination).HasMaxLength(100).HasColumnName("dream_destination").HasColumnType("varchar(100)").IsRequired(false);
+
+
+            builder.Property(h => h.FunFact).HasMaxLength(200).HasColumnName("fun_fact").HasColumnType("varchar(200)").IsRequired(false);
+
+            builder.Property(h => h.Pets).HasMaxLength(100).HasColumnName("pets").HasColumnType("varchar(100)").IsRequired(false);
+
+            builder.Property(h => h.ObsessedWith).HasMaxLength(100).HasColumnName("obsessed_with").HasColumnType("varchar(100)").IsRequired(false);
+
+            builder.Property(h => h.SpecialAbout).HasMaxLength(200).HasColumnName("special_about").HasColumnType("varchar(100)").IsRequired(false);
+
             builder.HasOne(h => h.User)
                 .WithOne(u => u.Host)
                 .HasForeignKey<Models.Host>(h => h.HostId)

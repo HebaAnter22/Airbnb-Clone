@@ -8,6 +8,11 @@ import { roleGuard } from './guards/role.guard';
 import { NotFoundComponent } from './components/not-found/not-found.component';
 import { ForbiddenComponent } from './components/forbidden/forbidden.component';
 import { ProfileComponent } from './components/profile/profile.component';
+import { EditProfileComponent } from './components/edit-profile/edit-profile.component';
+import { PropertyDetailsComponent } from './components/property-details/property-details.component';
+import { PropertyGalleryComponent } from './components/property-gallary/property-gallery.component';
+import { WishlistComponent } from './components/wishlist/wishlist.component';
+import { HostVerificationComponent } from './components/host-verification/host-verification.component';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -24,7 +29,23 @@ export const routes: Routes = [
       data: { role: 'Host' }
     },
 
-    { path: 'profile', component: ProfileComponent, canActivate: [authGuard] },
+    { path: 'property/:id', component: PropertyDetailsComponent },
+    { path: 'profile/:id', component: ProfileComponent, canActivate: [authGuard] },
+    {
+      path: 'property/:id/gallery',
+      component: PropertyGalleryComponent
+    },
+    {
+      path: 'wishlist',
+      component: WishlistComponent,
+      canActivate: [authGuard] // If you have an auth guard
+    },
+    {
+      path: 'verification', 
+      component: HostVerificationComponent, // Assuming HostComponent handles the verification process
+    },
+    { path: 'editProfile/:id', component: EditProfileComponent, canActivate: [authGuard] },
+
     { path: 'forbidden', component: ForbiddenComponent },
     
   { path: '', redirectTo: '/login', pathMatch: 'full' },
