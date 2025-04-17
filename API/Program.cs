@@ -4,6 +4,8 @@ using API.Data;
 using API.Middleware;
 using API.Services;
 using Microsoft.AspNetCore.Authentication;
+using API.Services.AmenityRepo;
+using API.Services.PropertyCategoryRepo;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -11,6 +13,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Microsoft.Extensions.FileProviders;
 
 namespace API
 {
@@ -105,7 +108,9 @@ namespace API
 
 
             builder.Services.AddScoped<IAuthService, AuthService>();
+            builder.Services.AddScoped<IAmenityService, AmenityService>();
             builder.Services.AddScoped<IPropertyService, PropertyService>();
+            builder.Services.AddScoped<IPropertyCategoryService, PropertyCategoryService>();
 
 
             builder.Services.AddAutoMapper(typeof(Program));
@@ -125,6 +130,16 @@ namespace API
             app.UseSwaggerUI();
             app.UseCors("AllowAll");
             app.UseHttpsRedirection();
+
+            // Ensure the uploads directory exists
+            var uploadsPath = Path.Combine(app.Environment.WebRootPath, "uploads");
+            Directory.CreateDirectory(uploadsPath);
+
+            // Configure static files
+            app.UseStaticFiles(); // Serve files from wwwroot
+
+            // No need for additional static files provider since files are in wwwroot
+            // The default provider will handle all files under wwwroot
 
             app.UseAuthentication();
 

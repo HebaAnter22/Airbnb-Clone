@@ -11,7 +11,6 @@ namespace API.Data.Configurations
             builder.HasKey(a => a.Id);
             builder.Property(a => a.Id).ValueGeneratedOnAdd().HasColumnName("id");
             builder.Property(a => a.Name).IsRequired().HasMaxLength(100).HasColumnName("name");
-            builder.Property(a => a.Category).IsRequired().HasMaxLength(50).HasColumnName("category");
             builder.Property(a => a.IconUrl).IsRequired().HasMaxLength(255).HasColumnName("icon_url");
 
             builder.HasMany(a => a.Properties)

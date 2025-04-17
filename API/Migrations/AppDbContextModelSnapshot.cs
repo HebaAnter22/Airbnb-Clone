@@ -33,8 +33,7 @@ namespace API.Migrations
 
                     b.Property<string>("Category")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)")
+                        .HasColumnType("nvarchar(max)")
                         .HasColumnName("category");
 
                     b.Property<string>("IconUrl")
@@ -580,6 +579,12 @@ namespace API.Migrations
                         .HasColumnName("created_at")
                         .HasDefaultValueSql("GETDATE()");
 
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)")
+                        .HasColumnName("currency");
+
                     b.Property<string>("Description")
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)")
@@ -656,12 +661,6 @@ namespace API.Migrations
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime")
                         .HasColumnName("updated_at");
-
-                    b.Property<string>("currency")
-                        .IsRequired()
-                        .HasMaxLength(10)
-                        .HasColumnType("nvarchar(10)")
-                        .HasColumnName("currency");
 
                     b.HasKey("Id");
 
@@ -827,6 +826,9 @@ namespace API.Migrations
                         .HasColumnName("created_at")
                         .HasDefaultValueSql("SYSDATETIME()");
 
+                    b.Property<int?>("PropertyId")
+                        .HasColumnType("int");
+
                     b.Property<int>("Rating")
                         .HasColumnType("int")
                         .HasColumnName("rating");
@@ -843,6 +845,8 @@ namespace API.Migrations
 
                     b.HasIndex("BookingId")
                         .IsUnique();
+
+                    b.HasIndex("PropertyId");
 
                     b.HasIndex("ReviewerId");
 
@@ -1283,6 +1287,10 @@ namespace API.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("API.Models.Property", null)
+                        .WithMany("Reviews")
+                        .HasForeignKey("PropertyId");
+
                     b.HasOne("API.Models.User", "Reviewer")
                         .WithMany("Reviews")
                         .HasForeignKey("ReviewerId")
@@ -1378,6 +1386,8 @@ namespace API.Migrations
                     b.Navigation("Favourites");
 
                     b.Navigation("PropertyImages");
+
+                    b.Navigation("Reviews");
                 });
 
             modelBuilder.Entity("API.Models.PropertyCategory", b =>
