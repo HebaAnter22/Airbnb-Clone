@@ -11,7 +11,7 @@ import { NavbarComponent } from './components/home/navbar/navbar.component';
   styleUrls: ['./app.component.css']
 })
 export class AppComponent{
-  title = 'airbnb-auth';
+  title = 'AirBnb';
  
   constructor(public authService: AuthService) {}
 }

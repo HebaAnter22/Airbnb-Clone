@@ -1,26 +1,74 @@
 // src/app/components/auth/auth.service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable, catchError, map, of, throwError } from 'rxjs';
+import { BehaviorSubject, Observable, Subject, catchError, map, of, throwError } from 'rxjs';
 import { Router } from '@angular/router';
 import { User, TokenResponse } from '../../models/user.model';
+import { SocialAuthService, SocialUser } from "@abacritt/angularx-social-login";
+import { GoogleLoginProvider } from "@abacritt/angularx-social-login";
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
-  private baseUrl = 'https://localhost:7228/api/auth/';
+  private baseUrl = 'https://localhost:7228/api/Auth/';
   private currentUserSubject: BehaviorSubject<User | null>;
   public currentUser: Observable<User | null>;
 
-  constructor(private http: HttpClient, private router: Router) {
+
+
+
+  constructor(private http: HttpClient, private router: Router,
+    private socialAuthService: SocialAuthService
+
+  ) {
     const storedUser = localStorage.getItem('currentUser');
     this.currentUserSubject = new BehaviorSubject<User | null>(
       storedUser ? JSON.parse(storedUser) : null
     );
     this.currentUser = this.currentUserSubject.asObservable();
+    this.socialAuthService.authState.subscribe((user: SocialUser) => {
+      if (user) {
+        this.handleGoogleLogin(user);
+      }
+    });
   }
+  signInWithGoogle(): void {
+    this.socialAuthService.signIn(GoogleLoginProvider.PROVIDER_ID);
+}
 
+private handleGoogleLogin(googleUser: SocialUser): void {
+    this.http.post(`${this.baseUrl}google-auth`, {
+        email: googleUser.email,
+        firstName: googleUser.firstName,
+        lastName: googleUser.lastName,
+        idToken: googleUser.idToken
+    }).subscribe({
+        next: (response: any) => {
+            const decoded = this.decodeToken(response.accessToken);
+            const user: User = {
+                email: decoded.unique_name,
+                role: decoded.role,
+                accessToken: response.accessToken,
+                refreshToken: response.refreshToken,
+                firstName: googleUser.firstName,
+                lastName: googleUser.lastName,
+                imageUrl: googleUser.photoUrl
+            };
+            
+            localStorage.setItem('currentUser', JSON.stringify(user));
+            this.currentUserSubject.next(user);
+            this.router.navigate(['/dashboard']);
+        },
+        error: (err) => {
+            console.error('Google login error:', err);
+            this.logout();
+        }
+    });
+}
+
+
+  
   public get currentUserValue(): User | null {
     return this.currentUserSubject.value;
   }
@@ -46,13 +94,13 @@ export class AuthService {
 
 
   register(
-    email: string, firstName: string, lastName: string,  password: string
+    email: string, firstName: string, lastName: string,  password: string,role: string
   ) {
     return this.http.post(`${this.baseUrl}register`, {  
       email,
       firstName,
       lastName,
-      password });
+      password,role });
   }
   logout() {
     // First get the token to ensure it's available for the interceptor
