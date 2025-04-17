@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, map, catchError, throwError } from 'rxjs';
 import { PropertyDto, PropertyCategory, Amenity } from '../models/property';
 import { environment } from '../../environments/environment';
-import { AuthService } from './auth.service';
+import { AuthService } from './../components/auth/auth.service';
 
 export interface PropertyCreateDto {
   categoryId: number;
@@ -46,8 +46,13 @@ export class CreatePropertyService {
     private authService: AuthService
   ) {}
 
-  getCurrentUserId(): Promise<number> {
-    return Promise.resolve(this.authService.getCurrentUserId());
+  currentUserValue(): Promise<number> {
+    const user = this.authService.currentUserValue;
+    if (!user?.accessToken) {
+      return Promise.reject(new Error('No user is currently logged in'));
+    }
+    const decoded = this.authService.decodeToken(user.accessToken);
+    return Promise.resolve(parseInt(decoded.nameid));
   }
 
   addProperty(property: PropertyCreateDto): Observable<PropertyDto> {

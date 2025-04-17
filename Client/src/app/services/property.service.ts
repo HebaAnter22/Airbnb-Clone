@@ -26,12 +26,4 @@ export class PropertyService {
     );
   }
 
-  uploadPropertyImages(propertyId: number, files: File[]): Observable<string[]> {
-    const formData = new FormData();
-    files.forEach((file, index) => {
-      formData.append('files', file);
-    });
-
-    return this.http.post<string[]>(`${this.API_URL}/${propertyId}/images/upload`, formData);
-  }
 }

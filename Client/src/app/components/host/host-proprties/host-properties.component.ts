@@ -27,7 +27,7 @@ export class HostPropertiesComponent implements OnInit {
 
   async loadProperties() {
     try {
-      const userId = await this.propertyService.getCurrentUserId();
+      const userId = await this.propertyService.currentUserValue();
       const result = await this.propertyService.getMyProperties().toPromise();
       this.properties = result || [];
       this.loading = false;
