@@ -1,5 +1,5 @@
 ﻿using System.Security.Claims;
-using API.DTOs;
+using API.DTOs.Profile;
 using API.Models;
 using API.Services;
 using Microsoft.AspNetCore.Authorization;

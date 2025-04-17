@@ -1,0 +1,786 @@
+/* Common input styles */
+.search-input-common {
+    border: none;
+    background: transparent;
+    width: 100%;
+    font-size: 14px;
+    color: #333;
+    font-family: Arial, sans-serif;
+    padding: 12px 20px;
+    box-sizing: border-box;
+    transition: padding 0.3s ease, font-size 0.3s ease;
+}
+  
+.search-input-common:focus {
+    outline: none;
+}
+  
+/* Search bar container */
+.search-bar-container {
+    transition: all 0.3s ease;
+
+    
+}
+
+.search-bar-container.scrolled {
+    transform: scale(0.9);
+}
+  
+/* Mobile Styles */
+.search-filter-container {
+    padding: 1rem;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    background-color: #fff;
+    top: 0px;
+    transition: all 0.3s ease;
+}
+
+.search-filter-container.scrolled {
+    padding: 0.5rem;
+}
+  
+.mobile-search-button {
+    display: none;
+    background-color: #fff;
+    border-radius: 32px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.05);
+    padding: 1rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #484848;
+    cursor: pointer;
+    width: 300px;
+    max-width: 300px;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0 auto;
+    top: 0px;
+    transition: all 0.3s ease;
+
+  
+}
+
+.scrolled .mobile-search-button {
+    padding: 0.75rem 1.25rem;
+    font-size: 0.9rem;
+    width: 250px;
+}
+  
+.mobile-search-button mat-icon {
+    font-size: 1.2rem;
+    width: 1.2rem;
+    height: 1.2rem;
+    color: #484848;
+}
+  
+@media (max-width: 768px) {
+    .search-bar-container{
+        position: relative;
+        left: 0;
+    }
+    .search-model {
+      display: flex;
+      flex-direction: column;
+      width: 500px;
+      max-width: 760px;
+      height: 95vh;
+      max-height: 95vh;
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.05);
+      top: 0px;
+      position: relative;
+      z-index: 1000;
+    }
+    .dropdown{
+      background-color: #fff;
+    }
+
+    .search-model .search-model-header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1px;
+      border-bottom: 1px solid #ddd;
+    }
+  
+    .search-model .search-model-header .close-button {
+      background: none;
+      border: none;
+      cursor: pointer;
+      margin-right: 16px;
+    }
+  
+    .search-model .search-model-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px 16px;
+      background: #fff;
+    }
+  
+    .search-model .search-model-content .search-section {
+      margin-bottom: 10px;
+      cursor: pointer;
+      border: #666 solid 1px;
+      border-radius: 16px;
+      padding: 5px;
+    }
+  
+    .search-model .search-model-content .search-section .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+    }
+  
+    .search-model .search-model-content .search-section .section-header h2 {
+      font-size: 16px;
+      font-weight: 700;
+      margin: 0;
+    }
+  
+    .search-model .search-model-content .search-section .section-header .section-value {
+      font-size: 14px;
+      color: #666;
+    }
+  
+    .search-model .search-model-content .search-section .section-content {
+      padding: 16px 0;
+      border-top: 1px solid #ddd;
+    }
+  
+    .search-model .search-model-content .search-section .section-content.hidden {
+      display: none;
+    }
+  
+    .search-model .search-model-content .search-section .section-content .search-input {
+      width: 100%;
+    }
+  
+    .search-model .search-model-content .search-section .section-content .suggestions .suggestion-item {
+      display: flex;
+      align-items: center;
+      padding: 10px 0;
+      gap: 12px;
+    }
+  
+    .search-model .search-model-content .search-section .section-content .suggestions .suggestion-item mat-icon {
+      color: #666;
+    }
+  
+    .search-model .search-model-content .search-section .section-content .suggestions .suggestion-item div strong {
+      font-size: 14px;
+      font-weight: 500;
+    }
+  
+    .search-model .search-model-content .search-section .section-content .suggestions .suggestion-item div p {
+      margin: 0;
+      font-size: 14px;
+      color: #666;
+    }
+  
+    .search-model .search-model-content .search-section .section-content .date-tabs {
+      display: flex;
+      gap: 5px;
+      margin-bottom: 10px;
+    }
+  
+    .search-model .search-model-content .search-section .section-content .date-tabs button {
+      background: #f5f5f5;
+      border: none;
+      padding: 8px 10px;
+      border-radius: 20px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+  
+    .search-model .search-model-content .search-section .section-content .date-tabs button.active {
+      background: #000;
+      color: #fff;
+    }
+  
+    .search-model .search-model-content .search-section .section-content .date-picker .date-picker-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+  
+    .search-model .search-model-content .search-section .section-content .date-picker .date-picker-header .nav-button {
+      background: none;
+      border: none;
+      cursor: pointer;
+    }
+  
+    .search-model .search-model-content .search-section .section-content .date-picker .date-picker-header .month-year {
+      font-size: 16px;
+      font-weight: 500;
+    }
+  
+    .search-model .search-model-content .search-section .section-content .date-picker .date-picker-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 2px;
+      text-align: center;
+    }
+  
+    .search-model .search-model-content .search-section .section-content .date-picker .date-picker-grid .day-header {
+      font-size: 14px;
+      font-weight: 500;
+      color: #666;
+    }
+  
+    .search-model .search-model-content .search-section .section-content .date-picker .date-picker-grid .day {
+      font-size: 14px;
+    }
+  
+    .search-model .search-model-content .search-section .section-content .date-picker .date-picker-grid .day.empty {
+      visibility: hidden;
+    }
+  
+    .search-model .search-model-content .search-section .section-content .date-picker .date-picker-grid .day span {
+      display: block;
+      padding: 5px;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      cursor: pointer;
+    }
+  
+    .search-model .search-model-content .search-section .section-content .date-picker .date-picker-grid .day span.selected {
+      background: #000;
+      color: #fff;
+    }
+  
+    .search-model .search-model-content .search-section .section-content .date-picker .date-picker-grid .day span.in-range {
+      background: #f5f5f5;
+    }
+  
+    .search-model .search-model-content .search-section .section-content .guest-type {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 4px 0;
+    }
+  
+    .search-model .search-model-content .search-section .section-content .guest-type span {
+      font-size: 16px;
+      font-weight: 500;
+    }
+  
+    .search-model .search-model-content .search-section .section-content .guest-type .counter {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+  
+    .search-model .search-model-content .search-section .section-content .guest-type .counter button {
+      background: none;
+      border: 1px solid #ddd;
+      border-radius: 50%;
+      height: 48px;
+      width: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+  
+    .search-model .search-model-content .search-section .section-content .guest-type .counter span {
+      font-size: 16px;
+      width: 24px;
+      text-align: center;
+    }
+  
+    .search-model .search-model-content .search-section .section-content .service-animal-link {
+      display: block;
+      margin-top: 16px;
+      font-size: 14px;
+      color: #000;
+      text-decoration: underline;
+    }
+  
+    .search-model .search-actions {
+      position: sticky;
+      display: flex;
+      justify-content: space-between;
+      padding: 16px;
+      border-top: 1px solid #ddd;
+    }
+  
+    .search-model .search-actions .clear-button {
+      background: none;
+      border: none;
+      font-size: 14px;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+  
+    .search-model .search-actions .search-button {
+      background: #ff385c;
+      width: 30%;
+      color: #fff;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+  }
+  
+  /* Desktop Styles */
+  .search-bar {
+    display: flex;
+    align-items: center;
+    background-color: #f7f7f7;
+    border-radius: 50px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    width: 100%;
+    max-width: 600px;
+    transition: all 0.3s ease;
+    height: 50px;
+  }
+  
+  .search-bar.compact {
+    transform: scale(0.9);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .search-bar.compact .search-input-common {
+    padding: 8px 16px;
+    font-size: 13px;
+  }
+  
+  .search-field {
+    width: 130px;
+
+    flex: 1;
+    padding: 12px 15px;
+    border-right: 1px solid #ddd;
+    cursor: pointer;
+    position: relative;
+    transition: background-color 0.2s, padding 0.3s ease;
+  }
+  
+  .search-bar.compact .search-field {
+    padding: 8px 10px;
+  }
+  
+  .search-field:hover {
+    background-color: #e0e0e0;
+  }
+  
+  .search-field:last-child {
+    border-right: none;
+  }
+  
+  .search-button {
+    background-color: #ff385c;
+    border: none;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    margin: 8px;
+    transition: background-color 0.2s;
+  }
+  
+  .search-button:hover {
+    background-color: #e31c5f;
+  }
+  
+  .search-button mat-icon {
+    color: white;
+    font-size: 20px;
+  }
+  
+  @media (min-width: 768px) {
+    .search-filter-container {
+      display: none; /* Hide the search filter container on mobile */
+    }
+    .desktop-view {
+      display: none; /* Hide the mobile search button on larger screens */
+    }
+  
+    .search-model-container {
+      display: flex;
+      flex-direction: column;
+      position: absolute;
+      top: 120px;
+      background-color: white;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      padding: 20px;
+      z-index: 10;
+      /* width: 100%; */
+      /* max-width: 600px; */
+    }
+  
+    .section-value {
+      font-size: 0px;
+      color: #666;
+    }
+  
+    .section-content {
+      padding: 16px 0;
+      gap: 4px;
+      background: #ffffff;
+    }
+  
+    .search-input {
+      width: 90%;
+    }
+  
+    .suggestions {
+      width: 400px;
+      max-width: 400px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      width: 500px;
+    }
+  
+    .suggestion-item {
+      display: flex;
+      width: 500px;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 0;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+  
+    .suggestion-item:hover {
+      background-color: #f7f7f7;
+    }
+  
+    .date-picker-section {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+  
+    .date-picker-container {
+      display: flex;
+      flex-direction: row;
+      justify-content: space-between;
+      width: 100%;
+    }
+  
+    .date-picker {
+      width: 48%; /* Allow space between the calendars */
+    }
+  
+    .date-picker-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+      margin-bottom: 20px;
+    }
+  
+    .month-year-container {
+      display: flex;
+      gap: 40px; /* Space between the two month-year labels */
+    }
+  
+    .month-year {
+      font-size: 16px;
+      font-weight: bold;
+    }
+  
+    .nav-button {
+      background: none;
+      border: none;
+      cursor: pointer;
+    }
+  
+    .nav-button.left {
+      margin-left: 0;
+    }
+  
+    .nav-button.right {
+      margin-right: 0;
+    }
+  
+    .date-picker-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 5px;
+      text-align: center;
+    }
+  
+    .day-header {
+      font-size: 12px;
+      color: #666;
+    }
+  
+    .day {
+      padding: 8px;
+      border-radius: 50%;
+      cursor: pointer;
+    }
+  
+    .day.empty {
+      visibility: hidden;
+    }
+  
+    .day span {
+      display: inline-block;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      line-height: 24px;
+    }
+  
+    .day span:hover {
+      background-color: #f7f7f7;
+    }
+  
+    .day span.selected {
+      background-color: #000;
+      color: white;
+    }
+  
+    .day span.in-range {
+      background-color: #e0e0e0;
+    }
+  
+    .guest-type {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 0; /* Increased padding for better spacing */
+    }
+  
+    .guest-label span {
+      font-size: 16px;
+      font-weight: 600; /* Bolder to match reference */
+      color: #222;
+    }
+  
+    .guest-label p {
+      margin: 0;
+      font-size: 14px; /* Slightly larger than before */
+      color: #666;
+    }
+  
+    .counter {
+      display: flex;
+      align-items: center;
+      gap: 12px; /* Slightly larger gap for better spacing */
+    }
+  
+    .counter-button {
+      width: 32px;
+      height: 32px;
+      border: 1px solid #ddd;
+      border-radius: 50%;
+      background: none;
+      font-size: 16px;
+      font-weight: 500;
+      color: #222;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+  
+    .counter-button:disabled {
+      color: #ccc;
+      border-color: #eee;
+      cursor: not-allowed;
+    }
+  
+    .counter-number {
+      font-size: 16px;
+      font-weight: 600; /* Bolder to match reference */
+      width: 24px;
+      text-align: center;
+      color: #222;
+    }
+  
+    .divider {
+      border: none;
+      border-top: 1px solid #ddd;
+      margin: 0;
+    }
+  
+    .service-animal-link {
+      color: #0066cc; /* Blue for links */
+      text-decoration: underline;
+      font-size: 14px;
+    }
+  
+    /* Hide search model container in desktop view */
+    .search-model-container {
+      /* Remove the display: none to allow the container to show */
+    }
+
+    /* Target the overlay pane in desktop view */
+    .search-model-container .cdk-overlay-pane {
+      width: 300px !important;
+      max-width: 300px !important;
+      min-width: 300px !important;
+    }
+
+    /* Hide destination section content in desktop view */
+    .search-model-container .search-section[ng-reflect-ng-if="true"] .section-content h3,
+    .search-model-container .search-section[ng-reflect-ng-if="true"] .section-content input {
+      display: none;
+    }
+
+    /* Remove the duplicate month-year header for the second calendar */
+    .date-picker .date-picker-header:nth-of-type(2) {
+      display: none;
+    }
+  }
+
+  /* Hide elements with tohide class when search modal is open */
+  .search-bar-container:has(.search-model-container) .tohide,
+  .search-filter-container:has(.mobile-search-modal) .tohide {
+    display: none;
+  }
+
+  /* Add a new rule to hide the search filter container when the search model is open */
+  .search-bar-container:has(.search-model) .search-filter-container {
+    display: none;
+  }
+
+  /* Style for the autocomplete dropdown */
+  .dropdown.mat-mdc-autocomplete-panel {
+    background-color: white !important;
+  }
+
+  .mat-mdc-option {
+    background-color: white !important;
+  }
+
+  .mat-mdc-option:hover {
+    background-color: #f5f5f5 !important;
+  }
+
+  .mat-mdc-option.mdc-list-item--selected {
+    background-color: #f0f0f0 !important;
+  }
+
+  /* Style for the autocomplete dropdown */
+  .mat-mdc-autocomplete-panel.mat-mdc-autocomplete-visible {
+    width: 300px !important;
+    min-width: 300px !important;
+    max-width: 300px !important;
+    box-sizing: border-box !important;
+  }
+
+
+/* Increase specificity by combining selectors */
+div.cdk-overlay-pane[id^="cdk-overlay"] .mat-mdc-autocomplete-panel {
+  width: 300px !important;
+  min-width: 300px !important;
+  max-width: 300px !important;
+}
+
+/* Override the cdk-overlay-pane inline style */
+div.cdk-overlay-pane[id^="cdk-overlay"] {
+  width: 300px !important;
+  min-width: 300px !important;
+  max-width: 300px !important;
+}
+
+/* Fix for the autocomplete overlay width */
+#cdk-overlay-1 {
+  width: 300px !important;
+  min-width: 300px !important;
+  max-width: 300px !important;
+}
+
+/* Target all cdk-overlay-pane elements with ID that starts with cdk-overlay */
+div[id^="cdk-overlay"].cdk-overlay-pane {
+  width: 300px !important;
+  min-width: 300px !important;
+  max-width: 300px !important;
+}
+
+/* Target the autocomplete panel inside any overlay */
+div[id^="cdk-overlay"] .mat-mdc-autocomplete-panel {
+  width: 300px !important;
+  min-width: 300px !important;
+  max-width: 300px !important;
+}
+
+/* Ultra-aggressive styling for autocomplete overlay */
+body div.cdk-overlay-pane,
+html body div.cdk-overlay-pane,
+div.cdk-overlay-container div.cdk-overlay-pane,
+div.cdk-overlay-connected-position-bounding-box div.cdk-overlay-pane,
+*[id^="cdk-overlay"] {
+  width: 300px !important;
+  min-width: 300px !important;
+  max-width: 300px !important;
+  box-sizing: border-box !important;
+}
+
+body .mat-mdc-autocomplete-panel,
+html body .mat-mdc-autocomplete-panel,
+.cdk-overlay-pane .mat-mdc-autocomplete-panel,
+.mdc-menu-surface.mat-mdc-autocomplete-panel,
+.mat-mdc-autocomplete-panel.mat-mdc-autocomplete-visible {
+  width: 300px !important;
+  min-width: 300px !important;
+  max-width: 300px !important;
+  box-sizing: border-box !important;
+}
+
+/* Apply styles globally to all potential overlays */
+:root {
+  --overlay-width: 300px !important;
+}
+
+.cdk-overlay-pane {
+  width: var(--overlay-width) !important;
+  min-width: var(--overlay-width) !important;
+  max-width: var(--overlay-width) !important;
+}
+
+/* Last resort */
+@-moz-document url-prefix() {
+  div.cdk-overlay-pane {
+    width: 300px !important;
+    min-width: 300px !important;
+    max-width: 300px !important;
+  }
+}
+
+/* Hide mobile search button when search modal is open */
+.search-bar-container:has(.search-model) .search-filter-container,
+.search-bar-container:has(.search-model) .mobile-search-button {
+  display: none !important;
+}
+
+/* Alternative selector if :has is not supported in all browsers */
+@media (max-width: 768px) {
+  .search-model-open .search-filter-container,
+  .search-model-open .mobile-search-button {
+    display: none !important;
+  }
+}
+
+/* Hide mobile search button when modal is open - direct approach */
+.search-bar-container:has(.search-model) .mobile-search-button,
+.search-model-open .mobile-search-button {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}

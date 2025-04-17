@@ -1,6 +1,10 @@
 ﻿using API.DTOs;
+using API.DTOs.Amenity;
+using API.DTOs.Review;
 using API.Models;
 using AutoMapper;
+using API.DTOs.Amenity;
+using API.DTOs.Review;
 
 public class PropertyProfile : Profile
 {
@@ -27,21 +31,25 @@ public class PropertyProfile : Profile
             .ForMember(dest => dest.Bedrooms, opt => opt.MapFrom(src => src.Bedrooms ?? 1))
             .ForMember(dest => dest.Bathrooms, opt => opt.MapFrom(src => src.Bathrooms ?? 1))
             .ForMember(dest => dest.MaxGuests, opt => opt.MapFrom(src => src.MaxGuests ?? 1))
-            .ForMember(dest => dest.currency, opt => opt.MapFrom(src => src.Currency ?? "USD"))
+            .ForMember(dest => dest.Currency, opt => opt.MapFrom(src => src.Currency ?? "USD"))
             .ForMember(dest => dest.InstantBook, opt => opt.MapFrom(src => src.InstantBook ?? false))
             .ForMember(dest => dest.CancellationPolicyId, opt => opt.MapFrom(src => src.CancellationPolicyId ?? 1));
-            
+
         CreateMap<PropertyUpdateDto, Property>()
+            .ForMember(dest => dest.CheckInTime, opt => opt.MapFrom(src =>
+                !string.IsNullOrEmpty(src.CheckInTime) ? TimeSpan.Parse(src.CheckInTime) : (TimeSpan?)null))
+            .ForMember(dest => dest.CheckOutTime, opt => opt.MapFrom(src =>
+                !string.IsNullOrEmpty(src.CheckOutTime) ? TimeSpan.Parse(src.CheckOutTime) : (TimeSpan?)null))
             .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
 
         CreateMap<PropertyImage, PropertyImageDto>();
         CreateMap<Amenity, AmenityDto>();
         CreateMap<Review, ReviewDto>()
-        .ForMember(dest => dest.Booking_Id, opt => opt.MapFrom(src => src.BookingId))
-        .ForMember(dest => dest.ReviewerId, opt => opt.MapFrom(src => src.ReviewerId))
-        .ForMember(dest => dest.ReviewerName, opt => opt.MapFrom(src =>
+            .ForMember(dest => dest.Booking_Id, opt => opt.MapFrom(src => src.BookingId))
+            .ForMember(dest => dest.ReviewerId, opt => opt.MapFrom(src => src.ReviewerId))
+            .ForMember(dest => dest.ReviewerName, opt => opt.MapFrom(src =>
             src.Reviewer != null ? $"{src.Reviewer.FirstName} {src.Reviewer.LastName}" : null))
-        .ForMember(dest => dest.ReviewerImage, opt => opt.MapFrom(src =>
+            .ForMember(dest => dest.ReviewerImage, opt => opt.MapFrom(src =>
             src.Reviewer != null ? src.Reviewer.ProfilePictureUrl : null));
     }
 }

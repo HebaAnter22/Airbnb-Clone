@@ -27,6 +27,7 @@ export interface PropertyCreateDto {
   currency: string;
   instantBook: boolean;
   cancellationPolicyId: number;
+  amenities: number[];
   images: {
     imageUrl: string;
     isPrimary: boolean;
@@ -45,8 +46,13 @@ export class CreatePropertyService {
     private authService: AuthService
   ) {}
 
-  getCurrentUserId(): Promise<number> {
-    return Promise.resolve(this.authService.getCurrentUserId());
+  currentUserValue(): Promise<number> {
+    const user = this.authService.currentUserValue;
+    if (!user?.accessToken) {
+      return Promise.reject(new Error('No user is currently logged in'));
+    }
+    const decoded = this.authService.decodeToken(user.accessToken);
+    return Promise.resolve(parseInt(decoded.nameid));
   }
 
   addProperty(property: PropertyCreateDto): Observable<PropertyDto> {
@@ -95,23 +101,56 @@ export class CreatePropertyService {
     return this.http.post(`${this.API_URL}/Properties/${propertyId}/images`, { imageUrls: imageUrls });
   }
 
+  uploadImagesForProperty(propertyId: number, files: File[]): Observable<any> {
+    console.log('Uploading images for property:', {
+      propertyId,
+      fileCount: files.length
+    });
+    
+    const formData = new FormData();
+    files.forEach((file, index) => {
+        formData.append('files', file);
+    });
+
+    return this.http.post(`${this.API_URL}/Properties/${propertyId}/upload-images`, formData);
+  }
+
   deleteProperty(propertyId: number): Observable<void> {
     return this.http.delete<void>(`${this.API_URL}/Properties/${propertyId}`);
   }
 
   getCategories(): Observable<PropertyCategory[]> {
-    return this.http.get<PropertyCategory[]>(`${this.API_URL}/PropertyCategories`);
+    return this.http.get<PropertyCategory[]>(`${this.API_URL}/PropertyCategory`);
   }
 
   getAmenities(): Observable<Amenity[]> {
-    return this.http.get<Amenity[]>(`${this.API_URL}/Amenities`);
+    return this.http.get<Amenity[]>(`${this.API_URL}/Amenity`).pipe(
+      map(amenities => {
+        console.log('API Amenities response:', amenities);
+        if (amenities && amenities.length > 0) {
+          console.log('First amenity from API:', amenities[0]);
+          console.log('First amenity keys from API:', Object.keys(amenities[0]));
+        }
+        return amenities;
+      })
+    );
   }
 
   getPropertyById(propertyId: number): Observable<any> {
     return this.http.get(`${this.API_URL}/Properties/${propertyId}`);
   }
 
-  // getPropertyiesbyUserId(userId: number): Observable<any[]> {
-  //   return this.http.get<any[]>(`${this.API_URL}/Properties/user/${userId}`);
-  // }
+  getMyProperties(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.API_URL}/Properties/my-properties`);
+  }
+
+  editPropertyAsync(propertyId: number, property: any): Observable<any> {
+    return this.http.put(`${this.API_URL}/Properties/${propertyId}`, property);
+  }
+
+  deletePropertyImage(propertyId: number, imageId: number): Observable<any> {
+    console.log(`Deleting image ${imageId} from property ${propertyId}`);
+    return this.http.delete(`${this.API_URL}/Properties/${propertyId}/images/${imageId}`);
+  }
+
 }

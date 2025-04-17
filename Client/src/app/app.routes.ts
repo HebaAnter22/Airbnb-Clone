@@ -8,13 +8,27 @@ import { roleGuard } from './guards/role.guard';
 import { NotFoundComponent } from './components/not-found/not-found.component';
 import { ForbiddenComponent } from './components/forbidden/forbidden.component';
 import { ProfileComponent } from './components/profile/profile.component';
+import { SearchBarComponent } from './components/home/search-bar/search-bar.component';
+import { PropertyListingsComponent } from './components/home/property-listing/property-listing.component';
+import { HeaderComponent } from './components/home/header/header.component';
+import { AddPropertyComponent } from './components/host/add-property/add-property.component';
+import { HostPropertiesComponent } from './components/host/host-proprties/host-properties.component';
+import { EditPropertyComponent } from './components/host/edit-property/edit-property.component';
 import { EditProfileComponent } from './components/edit-profile/edit-profile.component';
 import { PropertyDetailsComponent } from './components/property-details/property-details.component';
 import { PropertyGalleryComponent } from './components/property-gallary/property-gallery.component';
 import { WishlistComponent } from './components/wishlist/wishlist.component';
 import { HostVerificationComponent } from './components/host-verification/host-verification.component';
 
+
+
 export const routes: Routes = [
+  {path: 'home', component: PropertyListingsComponent},
+  {path: '', redirectTo: 'home', pathMatch: 'full'},
+  {path: 'become-a-host', component: AddPropertyComponent,
+  // canActivate: [authGuard], 
+  // data: { role: 'Host' }
+  },
   { path: 'login', component: LoginComponent },
   { path: 'register', component: RegisterComponent },
   { 
@@ -25,6 +39,17 @@ export const routes: Routes = [
   { 
       path: 'host', 
       component: HostComponent,
+      canActivate: [authGuard, roleGuard],
+      data: { role: 'Host' }
+    },
+    {
+      path: 'host/properties',
+      component: HostPropertiesComponent,
+      canActivate: [authGuard, roleGuard],
+      data: { role: 'Host' }
+    },
+    {path: 'host/properties/edit/:id',
+      component: EditPropertyComponent,
       canActivate: [authGuard, roleGuard],
       data: { role: 'Host' }
     },
@@ -48,6 +73,5 @@ export const routes: Routes = [
 
     { path: 'forbidden', component: ForbiddenComponent },
     
-  { path: '', redirectTo: '/login', pathMatch: 'full' },
   { path: '**',component:NotFoundComponent }
 ];

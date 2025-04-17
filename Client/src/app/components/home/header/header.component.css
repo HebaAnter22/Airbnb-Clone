@@ -1,0 +1,163 @@
+/* header.component.css */
+.header {
+    padding: 1rem 2rem;
+    box-shadow: 0 2px 2px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 1300px;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    background-color: white;
+    height: 120px;
+    transition: height 0.3s ease, padding 0.3s ease;
+}
+
+.header.scrolled {
+    height: 90px;
+    padding: 0.5rem 2rem;
+}
+  
+.header-container {
+   display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    max-width: 1200px;
+    margin: 3px auto;
+    transition: all 0.3s ease;
+}
+  
+.header-logo {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+  
+.airbnb-icon {
+    width: 30px;
+    height: 30px;
+    margin-right: 8px;
+    transition: all 0.3s ease;
+}
+
+.header.scrolled .airbnb-icon {
+    width: 24px;
+    height: 24px;
+    margin-right: 6px;
+}
+  
+.logo-text {
+    color: #FF5A5F;
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    transition: all 0.3s ease;
+}
+
+.header.scrolled .logo-text {
+    font-size: 1.2rem;
+}
+  
+.header-right {
+    display: flex;
+    align-items: center;
+    transition: all 0.3s ease;
+    position: relative;
+    left: 70px;
+}
+  
+.host-button {
+    background: none;
+    border: none;
+    padding: 0.75rem 1rem;
+    border-radius: 22px;
+    font-weight: 600;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    color: #484848;
+}
+
+.header.scrolled .host-button {
+    padding: 0.5rem 0.8rem;
+    font-size: 0.9rem;
+}
+  
+.host-button:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+  
+.host-button span {
+    color: #484848;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+}
+
+.header.scrolled .host-button span {
+    font-size: 0.8rem;
+}
+
+.header-center {
+    position: relative;
+    transition: all 0.3s ease;
+    left: 90px;
+}
+
+.header.scrolled .header-center {
+    transform: scale(0.9);
+}
+
+/* Add transitions for navbar components */
+app-navbar {
+    transition: all 0.3s ease;
+    margin-left: 10px;
+}
+
+.header.scrolled app-navbar {
+    transform: scale(0.9);
+}
+
+@media (max-width: 767px) {
+   .host-button{
+    display: none;
+   }
+   .header-right{
+    display: none;
+  }
+   .header-logo{
+    display: none;
+  }
+   .header-left{
+    display: none;
+  }
+  .header-container{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%
+  }
+  .header-container .search-bar-container{
+    position: relative;
+    left: 0;
+    
+  }
+  .header-center {
+    position: relative;
+    transition: all 0.3s ease;
+    left: 0;
+}
+  .search-bar-container{
+
+    position: relative;
+    left: 0;
+}
+
+.header .scrolled{
+    height: 80px;
+}
+
+}
+  
+  

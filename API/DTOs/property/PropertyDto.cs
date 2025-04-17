@@ -1,4 +1,7 @@
-﻿namespace API.DTOs
+﻿using API.DTOs.Amenity;
+using API.DTOs.Review;
+
+namespace API.DTOs
 {
     public class PropertyDto
     {

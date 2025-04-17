@@ -1,5 +1,6 @@
 ﻿using API.Data;
 using API.DTOs;
+using API.DTOs.Profile;
 using API.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
@@ -230,7 +231,7 @@ namespace API.Services
                         f.Property.Bathrooms,
                         f.Property.MaxGuests,
                         f.Property.PricePerNight,
-                        f.Property.currency,
+                        f.Property.Currency,
                         Category = f.Property.Category.Name,
                         Images = f.Property.PropertyImages
                             .Select(img => new

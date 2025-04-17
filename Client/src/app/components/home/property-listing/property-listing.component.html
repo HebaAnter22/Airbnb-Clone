@@ -1,0 +1,108 @@
+<app-header class="header" ></app-header>
+
+
+<div class="container">
+<!-- 
+  <div class="filters-bar">
+    <div class="filters-wrapper">
+      <div class="filter-buttons">
+        <button class="filter-button">
+          <span class="material-icons">apartment</span>
+          <span>All homes</span>
+        </button>
+        <button class="filter-button">
+          <span class="material-icons">villa</span>
+          <span>Amazing views</span>
+        </button>
+        <button class="filter-button">
+          <span class="material-icons">beach_access</span>
+          <span>Beach</span>
+        </button>
+        <button class="filter-button">
+          <span class="material-icons">cabin</span>
+          <span>Cabins</span>
+        </button>
+        <button class="filter-button">
+          <span class="material-icons">pool</span>
+          <span>Pools</span>
+        </button>
+      </div>
+    </div>
+  </div> -->
+
+  <div class="property-grid">
+    <div class="property-card" *ngFor="let property of properties" (click)="goToProperty(property.id)">
+      <!-- Image Carousel -->
+      <div class="image-container">
+        <img [src]="getPropertyImage(property)" (error)="handleImageError(property)" alt="{{ property.title }}"
+          class="property-image" />
+
+        <!-- Navigation Arrows -->
+        <button class="arrow left-arrow" (click)="prevImage(property.id, $event)"
+          *ngIf="(property.images?.length ?? 0) > 1">
+          <span class="material-icons">chevron_left</span>
+        </button>
+        <button class="arrow right-arrow" (click)="nextImage(property.id, $event)"
+          *ngIf="(property.images?.length ?? 0) > 1">
+          <span class="material-icons">chevron_right</span>
+        </button>
+
+        <!-- Guest Favorite Badge -->
+        <span class="badge" *ngIf="property.isGuestFavorite">New</span>
+
+        <!-- Favorite Heart Icon -->
+        <button class="favorite" (click)="toggleFavorite(property.id, $event)">
+          <span class="material-icons" [class.favorited]="isFavorite(property.id)">
+            {{ isFavorite(property.id) ? 'favorite' : 'favorite_border' }}
+          </span>
+        </button>
+
+        <!-- Image Dots -->
+        <div class="image-dots" *ngIf="(property.images?.length ?? 0) > 1">
+          <span *ngFor="let image of property.images; let i = index"
+            [class.active]="i === currentImageIndices[property.id]"></span>
+        </div>
+      </div>
+
+      <!-- Property Info -->
+      <div class="property-info">
+        <div class="property-location-container">
+          <h3 class="property-location">{{ property.city }}, {{ property.country }}</h3>
+          <div class="property-rating" *ngIf="property.averageRating">
+            <span class="material-icons">star</span>
+            <span>{{ property.averageRating | number:'1.1-1' }}</span>
+            <span *ngIf="property.isGuestFavorite" class="new-tag">New</span>
+          </div>
+        </div>
+        
+        <div class="property-distance">
+          <span>{{property.title}}</span>
+        </div>
+        
+        <!-- <div class="property-dates">
+          <span>{{ generateRandomMonth() }} {{ generateRandomDateRange() }}</span>
+        </div> -->
+        
+        <div class="property-price">
+          <span class="price">${{ property.pricePerNight | number }}</span>
+          <span class="per-night">night</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading Indicator -->
+  <div class="loading-container" *ngIf="isLoading">
+    <div class="spinner"></div>
+    <p>Loading properties...</p>
+  </div>
+
+  <!-- Empty State -->
+  <div class="empty-state" *ngIf="!isLoading && properties.length === 0">
+    <span class="material-icons">search_off</span>
+    <h3>No properties found</h3>
+    <p>Try adjusting your search or filters</p>
+  </div>
+</div>
+
+<app-sticky-nav class="sticky-nav"></app-sticky-nav>

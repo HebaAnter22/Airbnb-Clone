@@ -21,7 +21,7 @@ namespace API.Data.Configurations
             builder.Property(p => p.PostalCode).HasMaxLength(20).HasColumnName("postal_code");
             builder.Property(p => p.Latitude).HasColumnType("decimal(9,6)").HasColumnName("latitude");
             builder.Property(p => p.Longitude).HasColumnType("decimal(9,6)").HasColumnName("longitude");
-            builder.Property(p => p.currency).IsRequired().HasMaxLength(10).HasColumnName("currency");
+            builder.Property(p => p.Currency).IsRequired().HasMaxLength(10).HasColumnName("currency");
             builder.Property(p => p.PricePerNight).HasColumnType("decimal(18,2)").HasColumnName("price_per_night");
             builder.Property(p => p.CleaningFee).HasDefaultValue(0).HasColumnType("decimal(18,2)").HasColumnName("cleaning_fee");
             builder.Property(p => p.ServiceFee).HasDefaultValue(0).HasColumnType("decimal(18,2)").HasColumnName("service_fee");

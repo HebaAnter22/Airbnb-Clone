@@ -1,4 +1,4 @@
-﻿using API.DTOs;
+﻿using API.DTOs.Profile;
 using API.Models;
 
 namespace API.Services

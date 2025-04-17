@@ -4,6 +4,7 @@ using API.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using System.Linq;
@@ -47,14 +48,14 @@ namespace API.Controllers
                 Console.WriteLine($"Received property creation request from host: {hostId}");
                 Console.WriteLine($"Property data summary: Title='{propertyDto?.Title}', CategoryId={propertyDto?.CategoryId}, Type='{propertyDto?.PropertyType}'");
                 Console.WriteLine($"Images: {propertyDto?.Images?.Count ?? 0}");
-                
+
                 if (!ModelState.IsValid)
                 {
                     var errors = ModelState.Values
                         .SelectMany(v => v.Errors)
                         .Select(e => e.ErrorMessage)
                         .ToList();
-                    
+
                     Console.WriteLine($"Validation errors: {string.Join(", ", errors)}");
                     return BadRequest($"Validation errors: {string.Join(", ", errors)}");
                 }
@@ -64,17 +65,17 @@ namespace API.Controllers
                 {
                     return BadRequest("Property data is required.");
                 }
-                
+
                 if (string.IsNullOrWhiteSpace(propertyDto.Title))
                 {
                     return BadRequest("Property title is required.");
                 }
-                
+
                 if (propertyDto.CategoryId <= 0)
                 {
                     return BadRequest("Valid category ID is required.");
                 }
-                
+
                 if (string.IsNullOrWhiteSpace(propertyDto.PropertyType))
                 {
                     return BadRequest("Property type is required.");
@@ -82,7 +83,7 @@ namespace API.Controllers
 
                 Console.WriteLine($"Attempting to create property for host: {hostId}");
                 Console.WriteLine($"Property data: Title={propertyDto.Title}, Type={propertyDto.PropertyType}, CategoryId={propertyDto.CategoryId}");
-                
+
                 var createdProperty = await _propertyService.AddPropertyAsync(propertyDto, hostId);
                 return CreatedAtAction(nameof(GetProperty), new { id = createdProperty.Id }, createdProperty);
             }
@@ -95,13 +96,13 @@ namespace API.Controllers
             {
                 Console.WriteLine($"Error creating property: {ex.Message}");
                 Console.WriteLine($"Stack trace: {ex.StackTrace}");
-                
+
                 if (ex.InnerException != null)
                 {
                     Console.WriteLine($"Inner exception: {ex.InnerException.Message}");
                     Console.WriteLine($"Inner exception stack trace: {ex.InnerException.StackTrace}");
                 }
-                
+
                 return BadRequest($"Error creating property: {ex.Message}");
             }
         }
@@ -150,17 +151,6 @@ namespace API.Controllers
             return Ok(properties);
         }
 
-        [HttpGet("search")]
-        public async Task<IActionResult> SearchProperties(
-            [FromQuery] string city = null,
-            [FromQuery] decimal? minPrice = null,
-            [FromQuery] decimal? maxPrice = null,
-            [FromQuery] int? maxGuests = null)
-        {
-            var properties = await _propertyService.SearchPropertiesAsync(city, minPrice, maxPrice, maxGuests);
-            return Ok(properties);
-        }
-
         [HttpPost("images/upload")]
         [Authorize]
         public async Task<IActionResult> UploadImages([FromForm] List<IFormFile> files)
@@ -197,9 +187,9 @@ namespace API.Controllers
             try
             {
                 var hostId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
-                
+
                 List<string> imageUrls;
-                
+
                 // Handle input that could be either a direct array or an object with an imageUrls property
                 if (imageUrlsData is List<string> urlList)
                 {
@@ -212,8 +202,8 @@ namespace API.Controllers
                     {
                         var jsonElement = JsonSerializer.Deserialize<JsonElement>(
                             JsonSerializer.Serialize(imageUrlsData));
-                            
-                        if (jsonElement.TryGetProperty("imageUrls", out var urlsElement) && 
+
+                        if (jsonElement.TryGetProperty("imageUrls", out var urlsElement) &&
                             urlsElement.ValueKind == JsonValueKind.Array)
                         {
                             imageUrls = JsonSerializer.Deserialize<List<string>>(
@@ -231,12 +221,12 @@ namespace API.Controllers
                         return BadRequest("Expected either an array of URLs or an object with an 'imageUrls' property");
                     }
                 }
-                
+
                 if (imageUrls == null || !imageUrls.Any())
                 {
                     return BadRequest("No image URLs provided");
                 }
-                
+
                 Console.WriteLine($"Adding {imageUrls.Count} images to property {id} for host {hostId}");
 
                 await _propertyService.AddImagesToPropertyAsync(id, imageUrls, hostId);
@@ -250,5 +240,86 @@ namespace API.Controllers
                 return BadRequest($"Error adding images to property: {ex.Message}");
             }
         }
+
+        [HttpPost("{id}/upload-images")]
+        [Authorize]
+        public async Task<IActionResult> UploadImagesForProperty(int id, [FromForm] List<IFormFile> files)
+        {
+            try
+            {
+                var hostId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+
+                if (files == null || !files.Any())
+                {
+                    return BadRequest("No files were uploaded.");
+                }
+
+                Console.WriteLine($"Received {files.Count} files for upload to property {id}");
+
+                // First upload the files to get URLs using the existing method
+                var imageUrls = await _propertyService.UploadImagesAsync(files);
+                Console.WriteLine($"Successfully uploaded files. Generated URLs: {string.Join(", ", imageUrls)}");
+
+                // Then add these URLs to the property using the existing method
+                var success = await _propertyService.AddImagesToPropertyAsync(id, imageUrls, hostId);
+                if (!success)
+                {
+                    return BadRequest("Failed to add images to property. Property not found or you don't have permission.");
+                }
+
+                Console.WriteLine("Successfully added images to property");
+
+                return Ok(new { message = "Images uploaded and added to property successfully", imageUrls });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error uploading images for property: {ex.Message}");
+                return BadRequest($"Error uploading images for property: {ex.Message}");
+            }
+        }
+
+        [HttpDelete("{propertyId}/images/{imageId}")]
+        [Authorize]
+        public async Task<IActionResult> DeletePropertyImage(int propertyId, int imageId)
+        {
+            try
+            {
+                var hostId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+
+                Console.WriteLine($"Attempting to delete image {imageId} from property {propertyId} for host {hostId}");
+
+                var success = await _propertyService.DeletePropertyImageAsync(propertyId, imageId, hostId);
+
+                if (!success)
+                {
+                    return NotFound("Property image not found or you don't have permission to delete it.");
+                }
+
+                Console.WriteLine($"Successfully deleted image {imageId} from property {propertyId}");
+
+                return Ok(new { message = "Property image deleted successfully" });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error deleting property image: {ex.Message}");
+                return BadRequest($"Error deleting property image: {ex.Message}");
+            }
+        }
+
+        [HttpGet("Newsearch")]
+        public async Task<IActionResult> SearchProperties([FromQuery] string title = null, [FromQuery] string country = null, [FromQuery] int? minNights = null, [FromQuery] int? maxNights = null, [FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null, [FromQuery] int? maxGuests = null)
+        {
+            try
+            {
+                var properties = await _propertyService.SearchPropertiesAsync(title, country, minNights, maxNights, startDate, endDate, maxGuests);
+
+                return Ok(properties);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"An error occurred: {ex.Message}");
+            }
+        }
     }
+
 }

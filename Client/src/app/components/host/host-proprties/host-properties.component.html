@@ -1,0 +1,89 @@
+<!-- Header -->
+<div class="container-fluid py-4 border-bottom">
+  <div class="container">
+    <div class="d-flex justify-content-between align-items-center">
+      <h1 class="h3 mb-0">Your listings</h1>
+      <button class="btn btn-dark" routerLink="/host/properties/new">
+        <i class="bi bi-plus-lg me-2"></i>Create new listing
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Main Content -->
+<div class="container py-4">
+  <!-- Loading State -->
+  <div *ngIf="loading" class="text-center py-5">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error" class="alert alert-danger" role="alert">
+    {{ error }}
+  </div>
+
+  <!-- No Properties State -->
+  <div *ngIf="!loading && !error && properties.length === 0" class="text-center py-5">
+    <i class="bi bi-house-door display-1 text-muted"></i>
+    <h2 class="h4 mt-3">No listings yet</h2>
+    <p class="text-muted">Start creating your first property listing</p>
+    <button class="btn btn-primary mt-3" routerLink="/host/properties/new">
+      Create your first listing
+    </button>
+  </div>
+
+  <!-- Properties Grid -->
+  <div *ngIf="!loading && !error && properties.length > 0" class="row g-4">
+    <div *ngFor="let property of properties" class="col-12 col-md-6 col-lg-4">
+      <div class="card h-100 border-0 shadow-sm">
+        <!-- Property Image -->
+        <div class="position-relative">
+          <img [src]="property.images[0]?.imageUrl || 'assets/placeholder.jpg'" 
+               class="card-img-top" 
+               alt="{{ property.title }}"
+               style="height: 200px; object-fit: cover;">
+          <div class="position-absolute top-0 end-0 p-2">
+            <div class="dropdown">
+              <button class="btn btn-light rounded-circle" type="button" data-bs-toggle="dropdown">
+                <i class="bi bi-three-dots"></i>
+              </button>
+              <ul class="dropdown-menu">
+                <li><button class="dropdown-item" (click)="editProperty(property.id)">Edit</button></li>
+                <li><button class="dropdown-item text-danger" (click)="deleteProperty(property.id)">Delete</button></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Property Details -->
+        <div class="card-body">
+          <h5 class="card-title mb-1">{{ property.title }}</h5>
+          <p class="text-muted small mb-2">{{ property.city }}, {{ property.country }}</p>
+          
+          <!-- Property Stats -->
+          <div class="d-flex gap-3 mb-3">
+            <span class="text-muted small">
+              <i class="bi bi-door-closed me-1"></i>{{ property.bedrooms }} bedrooms
+            </span>
+            <span class="text-muted small">
+              <i class="bi bi-people me-1"></i>{{ property.maxGuests }} guests
+            </span>
+          </div>
+          
+          <!-- Price -->
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <span class="h5 mb-0">${{ property.pricePerNight }}</span>
+              <span class="text-muted">/night</span>
+            </div>
+            <span [class]="'badge ' + (property.status === 'Active' ? 'bg-success' : 'bg-warning')">
+              {{ property.status }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div> 

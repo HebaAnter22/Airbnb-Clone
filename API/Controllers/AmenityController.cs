@@ -1,6 +1,6 @@
-using API.DTOs;
+using API.DTOs.Amenity;
 using API.Models;
-using API.Services;
+using API.Services.AmenityRepo;
 using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers
