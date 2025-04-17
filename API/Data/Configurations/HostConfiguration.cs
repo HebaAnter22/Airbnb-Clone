@@ -19,6 +19,8 @@ namespace API.Data.Configurations
             builder.Property(h => h.Languages).HasMaxLength(100).HasColumnName("languages");
             builder.Property(h => h.IsVerified).HasDefaultValue(false).HasColumnName("is_verified");
 
+
+
             builder.Property(h => h.LivesIn).HasMaxLength(100).HasColumnName("lives_in").HasColumnType("varchar(100)").IsRequired(false);
 
             builder.Property(h => h.DreamDestination).HasMaxLength(100).HasColumnName("dream_destination").HasColumnType("varchar(100)").IsRequired(false);

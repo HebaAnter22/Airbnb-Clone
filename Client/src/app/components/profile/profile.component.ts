@@ -109,7 +109,12 @@ export class ProfileComponent implements OnInit {
     this.profileService.getUserProfile(userId).subscribe({
       next: (profile) => {
         this.userProfile = profile;
+        
+        if(this.userProfile.role=='Host'){
         this.loadHostProfile(userId);
+        }
+        this.isLoading = false;
+
       },
       error: (err) => {
         this.errorMessage = 'Failed to load profile';

@@ -46,7 +46,6 @@
         public virtual ICollection<Booking> Bookings { get; set; } = new List<Booking>();
         public virtual ICollection<Favourite> Favourites { get; set; } = new List<Favourite>();
         public virtual ICollection<PropertyAvailability> Availabilities { get; set; } = new List<PropertyAvailability>();
-        public virtual ICollection<Review> Reviews { get; set; } = new List<Review>();
         public virtual ICollection<Conversation> Conversations { get; set; } = new List<Conversation>();
 
 

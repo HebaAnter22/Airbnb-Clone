@@ -568,8 +568,9 @@ namespace API.Services
                     .ThenInclude(h => h.User)
                 .Include(p => p.Bookings)
                     .ThenInclude(b => b.Review)
-                    .ThenInclude(r=>r.Reviewer)
+                    .ThenInclude(r => r.Reviewer)
                 .FirstOrDefaultAsync();
+
 
             if (property == null)
                 return null;

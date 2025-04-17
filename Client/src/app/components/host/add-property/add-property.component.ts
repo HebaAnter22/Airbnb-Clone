@@ -8,10 +8,10 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { CreatePropertyService, PropertyCreateDto } from '../../../services/property-crud.service';
-import { AuthService } from '../../auth/auth.service';
 import { PropertyCategory, Amenity } from '../../../models/property';
 import { LocationMapComponent } from '../../map/location-map.component';
 import { ImageUploadComponent } from '../image-upload/image-upload.component';
+import { AuthService } from '../../../services/auth.service';
 
 interface InvalidField {
   field: string;
