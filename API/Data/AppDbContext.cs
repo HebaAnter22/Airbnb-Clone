@@ -28,12 +28,22 @@ namespace API.Data
         public DbSet<PropertyCategory> PropertyCategories { get; set; }
         public DbSet<PropertyAvailability> PropertyAvailabilities { get; set; }
 
-        
+
+
+        public DbSet<VwPropertyDetails> VwPropertyDetails { get; set; }
+        public DbSet<VwHostPerformance> VwHostPerformance { get; set; }
+        public DbSet<VwActivePromotions> VwActivePromotions { get; set; }
+
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
-            
+
+            modelBuilder.Entity<VwPropertyDetails>().HasNoKey().ToView("vw_property_details");
+            modelBuilder.Entity<VwHostPerformance>().HasNoKey().ToView("vw_host_performance");
+            modelBuilder.Entity<VwActivePromotions>().HasNoKey().ToView("vw_active_promotions");
+
         }
 
     }

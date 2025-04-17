@@ -1,0 +1,69 @@
+<!-- wishlist.component.html -->
+<div class="container mt-5">
+    <h1 class="mb-4">My Wishlist</h1>
+    
+    <div *ngIf="loading" class="text-center my-5">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
+  
+    <div *ngIf="error" class="alert alert-danger">
+      {{ error }}
+    </div>
+  
+    <div *ngIf="!loading && !error">
+      <div *ngIf="favorites.length === 0" class="text-center my-5">
+        <p>You haven't added any properties to your wishlist yet.</p>
+        <button class="btn btn-primary" routerLink="/properties">Explore Properties</button>
+      </div>
+  
+      <div *ngIf="favorites.length > 0" class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        <div *ngFor="let favorite of favorites" class="col">
+          <div class="card h-100 shadow property-card" (click)="viewProperty(favorite.property.id)">
+            <div class="position-relative">
+              <img 
+                [src]="getPrimaryImageUrl(favorite.property)" 
+                class="card-img-top property-image" 
+                alt="{{ favorite.property.title }}"
+                onerror="this.src='assets/images/placeholder.jpg'"
+              >
+              <button 
+                class="btn btn-light position-absolute top-0 end-0 m-2 rounded-circle heart-btn"
+                (click)="removeFromWishlist(favorite.property.id, $event)"
+              >
+                <i class="fas fa-heart text-danger"></i>
+              </button>
+            </div>
+            <div class="card-body">
+              <h5 class="card-title">{{ favorite.property.title }}</h5>
+              <p class="card-text">
+                <i class="fas fa-map-marker-alt me-2"></i>
+                {{ favorite.property.city }}, {{ favorite.property.country }}
+              </p>
+              <p class="card-text">
+                <span class="badge bg-light text-dark me-2">{{ favorite.property.bedrooms }} beds</span>
+                <span class="badge bg-light text-dark me-2">{{ favorite.property.bathrooms }} baths</span>
+                <span class="badge bg-light text-dark">{{ favorite.property.maxGuests }} guests</span>
+              </p>
+              <div class="d-flex justify-content-between align-items-center mt-3">
+                <div>
+                  <span class="fw-bold">{{ favorite.property.pricePerNight | currency:favorite.property.currency }}</span>
+                  <span class="text-muted"> / night</span>
+                </div>
+                <div>
+                  <span class="badge bg-primary">
+                    <i class="fas fa-star"></i> 
+                    {{ favorite.property.averageRating ? (favorite.property.averageRating | number:'1.1-1') : '5.0' }}
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div class="card-footer text-muted">
+              <small>Added on {{ getFormattedDate(favorite.favoritedAt) }}</small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>

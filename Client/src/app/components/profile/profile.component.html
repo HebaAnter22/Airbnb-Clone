@@ -5,26 +5,425 @@
     {{ errorMessage }}
   </div>
 
-  <div *ngIf="userProfile && !isLoading" class="profile-card">
-    <h2>User Profile</h2>
+  <div *ngIf="userProfile && hostProfile && !isLoading" class="profile-layout">
+    <!-- Left sidebar (fixed) -->
+    <div class="profile-sidebar">
+      <div class="profile-header">
+
+
+
+
+
+
+
+
+
+
+
+
+
+        <div class="profile-image-container">
+  <div class="profile-image">
+    <img [src]="getProfileImageUrl()" alt="Profile picture">
+        <div class="verified-badge" *ngIf="hostProfile?.isVerified">
+      <svg viewBox="0 0 24 24" fill="white" width="16" height="16">
+        <path d="M10 15.27L7.52 17.67c-.31.29-.85.09-.85-.32v-2.02c-3.48-.53-6.17-3.23-6.17-6.83C.5 4.36 5.2 1 10.5 1S20.5 4.36 20.5 8.5c0 4.14-4.7 7.5-10 7.5c-.16 0-.33-.02-.5-.04v-.69z"></path>
+      </svg>
+    </div>
+  </div>
+
+  <button class="editProfile-button" (click)="goToEditProfile()"  *ngIf="isCurrentUserProfile">Edit your profile</button>
+  <!-- <div class="upload-section">
+    <input type="file" accept="image/*" (change)="onFileSelected($event)" #fileInput style="display: none;">
+    <button class="upload-button" (click)="fileInput.click()">Choose Photo</button>
     
-  
-    
-    <div class="profile-field">
-      <span class="field-label">Email:</span>
-      <span class="field-value">{{ userProfile.email }}</span>
+    <div *ngIf="selectedFile" class="file-info">
+      <span>{{ selectedFile.name }}</span>
+      <button class="upload-button" (click)="uploadProfilePicture()" [disabled]="isUploading">
+        {{ isUploading ? 'Uploading...' : 'Upload' }}
+      </button>
     </div>
     
-    <div class="profile-field">
-      <span class="field-label">First Name:</span>
-      <span class="field-value">{{ userProfile.firstName || 'Not specified' }}</span>
+    <div *ngIf="isUploading" class="progress-bar">
+      <div class="progress" [style.width.%]="uploadProgress"></div>
     </div>
     
-    <div class="profile-field">
-      <span class="field-label">Last Name:</span>
-      <span class="field-value">{{ userProfile.lastName || 'Not specified' }}</span>
+    <div *ngIf="errorMessage" class="error-message">
+      {{ errorMessage }}
+    </div>
+  </div> -->
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+        <h1>{{ userProfile.firstName }} {{ userProfile.lastName }}</h1>
+        <div class="superhost-badge" *ngIf="hostProfile.isVerified">
+          <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+            <path d="M12 0l3.09 6.31 6.91.99-5 4.87 1.18 6.88L12 15.94l-6.18 3.11 1.18-6.88-5-4.87 6.91-.99L12 0z"></path>
+          </svg>
+          Superhost
+        </div>
+
+
+
+        
+      </div>
+
+      <div class="host-stats">
+        <div class="stat-item">
+          <h3>{{ hostProfile.totalReviews }}</h3>
+          <span>Reviews</span>
+        </div>
+        <div class="stat-item">
+          <h3>{{ hostProfile.rating.toFixed(2) }}★</h3>
+          <span>Rating</span>
+        </div>
+        <div class="stat-item">
+          <h3>{{ getHostingYears() }}</h3>
+          <span>Years hosting</span>
+        </div>
+      </div>
+
+      <div class="verified-info">
+        <h3>{{ userProfile.firstName }}'s confirmed information</h3>
+        <ul>
+          <li>✓ Identity</li>
+          <li>✓ Email address</li>
+          <li><span *ngIf="userProfile.phoneNumber">✓</span>
+            <span *ngIf="!userProfile.phoneNumber">✖</span> Phone number</li>
+        </ul>
+        <a href="#" class="learn-more">Learn about identity verification</a>
+      </div>
+
+      <div class="host-listings" *ngIf="hostProfile.properties && hostProfile.properties.length > 0">
+        <h3>{{ userProfile.firstName }}'s listings</h3>
+        <div class="listing-previews">
+          <div class="listing-preview" *ngFor="let property of hostProfile.properties">
+            <img [src]="property.featuredImage || 'assets/default-property.jpg'" alt="Property">
+          </div>
+        </div>
+      </div>
     </div>
 
-    <button (click)="logout()" class="logout-btn">Logout</button>
+    <!-- Right content area -->
+    <div class="profile-content">
+      <div class="profile-tabs">
+        <button [class.active]="activeTab === 'about'" (click)="setActiveTab('about')">About</button>
+        <button [class.active]="activeTab === 'reviews'" (click)="setActiveTab('reviews')">Reviews</button>
+      </div>
+
+      <div *ngIf="activeTab === 'about'" class="about-section">
+        <h2>About {{ userProfile.firstName }}</h2>
+
+        <div *ngIf="shouldShowCreateProfile() && isCurrentUserProfile" class="empty-profile-prompt">
+          <div class="empty-profile-message">
+            <h3>Your profile is looking empty!</h3>
+            <p>Add information to help guests get to know you better</p>
+            <button class="create-profile-button" (click)="goToEditProfile()">
+              Create Your Profile
+            </button>
+          </div>
+        </div>
+      
+        
+        <div *ngIf="!shouldShowCreateProfile() || !isCurrentUserProfile"  class="about-content"
+        >
+          <div class="about-item"
+            *ngIf="userProfile.dateOfBirth ">
+            <div class="icon">
+              <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
+                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"></path>
+              </svg>
+            </div>
+            <div class="about-info">
+              <span>Born in {{ userProfile.dateOfBirth  | date:'yyyy' }}</span>
+            </div>
+          </div>
+
+          <div class="about-item"
+            *ngIf="hostProfile.work">
+            <div class="icon">
+              <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
+                <path d="M20 6h-4V4c0-1.1-.9-2-2-2h-4c-1.1 0-2 .9-2 2v2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-6 0h-4V4h4v2z"/>
+              </svg>
+            </div>
+            <div class="about-info">
+              <span>My work: {{ hostProfile.work || '' }}</span>
+            </div>
+          </div>
+
+        
+
+          
+        
+
+
+          
+
+          <div class="about-item" *ngIf="hostProfile.education"
+            
+          >
+            <div class="icon">
+              <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
+                <path d="M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82zM12 3L1 9l11 6 9-4.91V17h2V9L12 3z"></path>
+              </svg>
+            </div>
+            <div class="about-info">
+              <span>Where I went to school: {{ hostProfile.education || '' }}</span>
+            </div>
+          </div>
+
+          <div class="about-item"
+            *ngIf="hostProfile.dreamDestination">
+            <div class="icon">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M3 12L7 8L10 11L14 5L17 8L21 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M3 21L21 21" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                <path d="M4 16L7 12L10 15L14 9L17 12L20 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <div class="about-info">
+              <span>Where I've always wanted to go: {{hostProfile.dreamDestination}}</span>
+            </div>
+          </div>
+
+          <div class="about-item"
+            *ngIf="hostProfile.specialAbout">
+            <div class="icon">
+              <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
+                <path d="M12 15.39L8.24 17.66l1-4.28-3.32-2.88 4.38-.38L12 6.1l1.71 4.04 4.38.38-3.32 2.88 1 4.28z"/>
+                <path d="M22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21 12 17.27 18.18 21l-1.64-7.03L22 9.24z"/>
+              </svg>
+            </div>
+            <div class="about-info">
+              <span>What makes my home unique: {{hostProfile.specialAbout}}</span>
+            </div>
+          </div>
+
+          <div class="about-item"
+            *ngIf="hostProfile.languages">
+            <div class="icon">
+              <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
+                <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zm6.93 6h-2.95c-.32-1.25-.78-2.45-1.38-3.56 1.84.63 3.37 1.91 4.33 3.56zM12 4.04c.83 1.2 1.48 2.53 1.91 3.96h-3.82c.43-1.43 1.08-2.76 1.91-3.96zM4.26 14C4.1 13.36 4 12.69 4 12s.1-1.36.26-2h3.38c-.08.66-.14 1.32-.14 2 0 .68.06 1.34.14 2H4.26zm.82 2h2.95c.32 1.25.78 2.45 1.38 3.56-1.84-.63-3.37-1.9-4.33-3.56zm2.95-8H5.08c.96-1.66 2.49-2.93 4.33-3.56C8.81 5.55 8.35 6.75 8.03 8zM12 19.96c-.83-1.2-1.48-2.53-1.91-3.96h3.82c-.43 1.43-1.08 2.76-1.91 3.96zM14.34 14H9.66c-.09-.66-.16-1.32-.16-2 0-.68.07-1.35.16-2h4.68c.09.65.16 1.32.16 2 0 .68-.07 1.34-.16 2zm.25 5.56c.6-1.11 1.06-2.31 1.38-3.56h2.95c-.96 1.65-2.49 2.93-4.33 3.56zM16.36 14c.08-.66.14-1.32.14-2 0-.68-.06-1.34-.14-2h3.38c.16.64.26 1.31.26 2s-.1 1.36-.26 2h-3.38z"></path>
+              </svg>
+            </div>
+            <div class="about-info">
+              <span
+              
+              >Speaks: {{ hostProfile.languages || '' }}</span>
+            </div>
+          </div>
+
+          <div class="about-item"
+            *ngIf="hostProfile.livesIn">
+            <div class="icon">
+              <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
+                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"></path>
+              </svg>
+            </div>
+            <div class="about-info">
+              <span>Lives in: {{hostProfile.livesIn}}</span>
+            </div>
+          </div>
+
+          <div class="about-item"
+            *ngIf="hostProfile.funFact">
+            <div class="icon">
+              <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
+                <path d="M9 21c0 .5.4 1 1 1h4c.6 0 1-.5 1-1v-1H9v1zm3-19C8.1 2 5 5.1 5 9c0 2.4 1.2 4.5 3 5.7V17c0 .5.4 1 1 1h6c.6 0 1-.5 1-1v-2.3c1.8-1.3 3-3.4 3-5.7 0-3.9-3.1-7-7-7z"></path>
+              </svg>
+            </div>
+            <div class="about-info">
+              <span>Fun fact: {{hostProfile.funFact}}</span>
+            </div>
+          </div>
+
+          <div class="about-item"
+            *ngIf="hostProfile?.obsessedWith.length > 0">
+            <div class="icon">
+              <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
+                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"></path>
+              </svg>
+            </div>
+            <div class="about-info">
+              <span>I'm obsessed with: {{hostProfile.obsessedWith}}</span>
+            </div>
+          </div>
+
+
+
+          
+          <div class="about-item"
+            *ngIf="hostProfile.pets">
+            <div class="icon">
+              <i class="fas fa-paw"></i>
+            </div>
+            <div class="about-info">
+              <span>Pets: {{hostProfile.pets}}</span>
+            </div>
+          </div>
+
+          
+        </div>
+        <div class="about-description"
+          *ngIf="hostProfile.aboutMe && hostProfile.aboutMe.length > 0">
+
+          {{hostProfile.aboutMe}}
+        </div>
+
+
+
+
+        <div class="reviews-slider-section" *ngIf="activeTab === 'about'">
+          <h2>{{userProfile.firstName}}'s Reviews</h2>
+          
+          <div class="reviews-slider">
+            <div class="review-slide" *ngFor="let review of reviews">
+              <div class="review-text">
+                <p>“{{ (review.comment.length > 150 ? (review.comment | slice:0:150) + '...' : review.comment) }}”</p>
+              </div>
+              <div class="review-author">
+                <!-- add guest avatar -->
+                <div class="reviewer-img">
+                  <img [src]="review?.guestAvatar ? (backendBaseUrl + review.guestAvatar) : 'assets/default-avatar.jpg'" alt="Profile picture">
+                </div>
+                <strong>{{ review.guestName }}</strong>
+                <span>{{ review.createdAt |  date:'MMMM yyyy'  }}</span>
+
+
+              </div>
+            </div>
+          </div>
+          
+          <div class="slider-controls">
+            <button class="show-more-reviews"  (click)="setActiveTab('reviews') ">Show more reviews</button>
+            <div class="translation-note">
+              Some info has been automatically translated. <a href="#" class="show-original">Show original</a>
+            </div>
+          </div>
+        </div>
+
+
+
+
+
+
+        <!-- Listings Slider Section -->
+  
+
+  <div class="listings-section">
+    <div class="section-header">
+      <h2>{{ userProfile.firstName }}'s Listings</h2>
+      <a *ngIf="Listings.length > 4" href="#" class="view-all">View all {{ Listings.length }} listings</a>
+    </div>
+  
+    <div class="listings-slider">
+      <div class="listing-card" *ngFor="let property of Listings.slice(0, 4)">
+        <div class="property-image">
+         
+
+               <img [src]="property.images[0]?.imageUrl ? (backendBaseUrl + property.images[0]?.imageUrl) : 'assets/default-avatar.jpg'" alt="Profile picture"
+               (click)="goToPropertyPage(property.id)">
+
+        </div>
+        <div class="property-info">
+          <div class="property-type">{{ property.propertyType || 'Rental unit' }}</div>
+
+          <div class="property-rating">
+            <span class="stars">★</span>
+            <span class="rating-value">
+              {{ property.rating }} 
+            </span> <!-- Static for now since rating isn't in your data -->
+          </div>
+          <h3 class="property-title" >{{ property.title }}</h3>
+          <p>“{{ (property.description.length > 30 ? (property.description | slice:0:30) + '...' : property.description) }}”</p>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+
+
+
+      </div>
+
+      <div *ngIf="activeTab === 'reviews'" class="reviews-section">
+        <h2>{{ hostProfile.totalReviews }} Reviews</h2>
+        
+        <div class="reviews-container" *ngIf="reviews.length > 0">
+          <h2>Guest Reviews</h2>
+          
+          <div class="review-cards">
+            <div class="review-card" *ngFor="let review of reviews">
+              <div class="review-header">
+                <div class="reviewer-img">
+                  <img [src]="review.guestAvatar ? (backendBaseUrl + review.guestAvatar) : 'assets/default-avatar.jpg'" 
+                       [alt]="review.guestName">
+                </div>
+                <div class="reviewer-info">
+                  <div class="reviewer-name">{{ review.guestName }}</div>
+                  <div class="review-date">{{ review.createdAt | date:'MMMM yyyy' }}</div>
+                  <div class="review-rating">
+                    <div class="review-rating">
+                      <span *ngFor="let star of [1,2,3,4,5]">
+                        <i class="fas fa-star" [class.filled]="star <= review.rating" [class.empty]="star > review.rating"></i>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="review-content">
+                <p>"{{  review.comment }}"</p>
+              </div>
+            </div>
+          </div>
+        
+         
+        </div>
+
+        <button class="show-more">Show more reviews</button>
+      </div>
+
+      <div class="ask-about-section" *ngIf="activeTab === 'reviews'">
+        <div class="interest-tags">
+          <div class="interest-tag">
+            <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"></path>
+            </svg>
+            Adrenaline sports
+          </div>
+          <div class="interest-tag">
+            <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+              <path d="M4.5 9.5c.8 0 1.5-.7 1.5-1.5S5.3 6.5 4.5 6.5 3 7.2 3 8s.7 1.5 1.5 1.5z"></path>
+            </svg>
+            Animals
+          </div>
+          <div class="interest-tag">
+            <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+              <path d="M14 6l-4.22 5.63 1.25 1.67L14 9.33 19 16h-8.46l-4.01-5.37L1 18h22L14 6zM5 16l1.52-2.03L8.04 16H5z"></path>
+            </svg>
+            Boxing
+          </div>
+          <div class="interest-tag">
+            <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+              <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2zm-2 1H8v-6c0-2.48 1.51-4.5 4-4.5s4 2.02 4 4.5v6z"></path>
+            </svg>
+            Camping
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>

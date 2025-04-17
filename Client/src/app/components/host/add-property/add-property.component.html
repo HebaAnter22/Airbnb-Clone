@@ -1,0 +1,437 @@
+<header class="header">
+    <div class="header-container">
+        <div class="left">
+            <a routerLink="/" class="header-logo">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="airbnb-icon">
+                    <path fill="#FF5A5F"
+                        d="M224 373.1c-25.2-31.7-40.1-59.4-45-83.2-22.6-88 112.6-88 90.1 0-5.5 24.3-20.3 52-45 83.2zm138.2 73.2c-42.1 18.3-83.7-10.9-119.3-50.5 103.9-130.1 46.1-200-18.9-200-54.9 0-85.2 46.5-73.3 100.5 6.9 29.2 25.2 62.4 54.4 99.5-32.5 36.1-60.6 52.7-85.2 54.9-50 7.4-89.1-41.1-71.3-91.1 15.1-39.2 111.7-231.2 115.9-241.6 15.8-30.1 25.6-57.4 59.4-57.4 32.3 0 43.4 25.9 60.4 59.9 36 70.6 89.4 177.5 114.8 239.1 13.2 33.1-1.4 71.3-37 86z" />
+                </svg>
+                <span class="logo-text">airbnb</span>
+            </a>
+        </div>
+        <div class="right">
+            <button class="question-button" routerLink="/help">
+                <span>Questions?</span>
+            </button>
+            <button class="exit-button" routerLink="/host">
+                <span>Exit</span>
+            </button>
+        </div>
+    </div>
+    <div class="progress-bar">
+        <div class="progress" [style.width.%]="getStepProgress()"></div>
+    </div>
+</header>
+
+<main class="main-content">
+    <!-- <div class="progress-container" *ngIf="showForm">
+        <div class="progress-bar">
+            <div class="progress" [style.width.%]="getStepProgress()"></div>
+        </div>
+    </div> -->
+
+    <!-- Welcome Section -->
+    <div class="content-section" *ngIf="currentSection === 1 && !showForm">
+        <div class="new-listing">
+            <h1>Welcome back, {{getFullName()}}</h1>
+
+            <h1>Start a new listing</h1>
+            <button class="new-listing-btn" (click)="nextSection()">
+                New listing <span class="material-icons">chevron_right</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Instructions Section -->
+    <div class="content-section" *ngIf="currentSection === 2 && !showForm">
+        <div class="instruction">
+            <h1>It's easy to get started on Airbnb!</h1>
+            <ul class="instruction-list">
+                <li>1. Tell us about your place</li>
+                <li>2. Add photos</li>
+                <li>3. Set your price</li>
+                <li>4. Publish your listing</li>
+            </ul>
+            <button class="start-button" (click)="displayForm()">
+                <span>Get Started</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Error Message Display -->
+    <div *ngIf="errorMessage" class="error-message">
+        {{ errorMessage }}
+    </div>
+
+    <!-- Form Section -->
+    <form *ngIf="showForm" [formGroup]="propertyForm" (ngSubmit)="submitForm()">
+        <!-- Step 1: Property Category -->
+        <div class="form-step" *ngIf="currentStep === 1">
+            <h1 class="step-title">What kind of place are you listing?</h1>
+            <p class="step-subtitle">Choose a property type</p>
+
+            <div class="property-type-grid">
+                <button type="button" class="property-type-option"
+                    *ngFor="let category of categories"
+                    [class.selected]="propertyForm.get('categoryId')?.value === category.categoryId"
+                    (click)="propertyForm.patchValue({
+                        categoryId: category.categoryId,
+                        propertyType: category.name.toLowerCase()
+                    })">
+                    <mat-icon class="category-icon">{{category.iconUrl}}</mat-icon>
+                    <span class="category-name">{{category.name}}</span>
+                    <span class="category-description" *ngIf="category.description">{{category.description}}</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Step 2: Property Sharing Type -->
+        <div class="form-step" *ngIf="currentStep === 2">
+            <h1 class="step-title">What type of place will guests have?</h1>
+            <p class="step-subtitle">Choose the type of space you're listing</p>
+
+            <div class="sharing-type-grid">
+                <button type="button" class="sharing-type-option"
+                    [class.selected]="propertyForm.get('sharingType')?.value === 'entire_place'"
+                    (click)="propertyForm.patchValue({ sharingType: 'entire_place' })">
+                    <mat-icon>home</mat-icon>
+                    <span class="type-name">Entire place</span>
+                    <span class="type-description">Guests have the whole place to themselves</span>
+                </button>
+                <button type="button" class="sharing-type-option"
+                    [class.selected]="propertyForm.get('sharingType')?.value === 'private_room'"
+                    (click)="propertyForm.patchValue({ sharingType: 'private_room' })">
+                    <mat-icon>hotel</mat-icon>
+                    <span class="type-name">Private room</span>
+                    <span class="type-description">Guests have their own room in a home, plus access to shared spaces</span>
+                </button>
+                <button type="button" class="sharing-type-option"
+                    [class.selected]="propertyForm.get('sharingType')?.value === 'shared_room'"
+                    (click)="propertyForm.patchValue({ sharingType: 'shared_room' })">
+                    <mat-icon>group</mat-icon>
+                    <span class="type-name">Shared room</span>
+                    <span class="type-description">Guests sleep in a room or common area that may be shared with others</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Step 3: Location -->
+        <div class="form-step" *ngIf="currentStep === 3">
+            <h1 class="step-title">Where's your place located?</h1>
+            <p class="step-subtitle">Your address is only shared with guests after they've made a reservation.</p>
+
+            <div class="map-container">
+                <app-location-map class="map" style="height: 400px;"
+                    [latitude]="propertyForm.get('latitude')?.value"
+                    [longitude]="propertyForm.get('longitude')?.value"
+                    (locationSelected)="onLocationSelected($event)"
+                ></app-location-map>
+            </div>
+        </div>
+
+        <!-- Step 4: Basics -->
+        <div class="form-step" *ngIf="currentStep === 4">
+            <h1 class="step-title">Share some basics about your place</h1>
+            <p class="step-subtitle">You'll add more details later</p>
+
+            <div class="basics-grid">
+                <div class="form-group">
+                    <label>Bedrooms</label>
+                    <div class="counter">
+                        <button type="button" class="counter-btn" (click)="decrement('bedrooms')">-</button>
+                        <span>{{ propertyForm.get('bedrooms')?.value }}</span>
+                        <button type="button" class="counter-btn" (click)="increment('bedrooms')">+</button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Bathrooms</label>
+                    <div class="counter">
+                        <button type="button" class="counter-btn" (click)="decrement('bathrooms')">-</button>
+                        <span>{{ propertyForm.get('bathrooms')?.value }}</span>
+                        <button type="button" class="counter-btn" (click)="increment('bathrooms')">+</button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Max Guests</label>
+                    <div class="counter">
+                        <button type="button" class="counter-btn" (click)="decrement('maxGuests')">-</button>
+                        <span>{{ propertyForm.get('maxGuests')?.value }}</span>
+                        <button type="button" class="counter-btn" (click)="increment('maxGuests')">+</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 5: Amenities -->
+        <div class="form-step" *ngIf="currentStep === 5">
+            <h1 class="step-title">What amenities do you offer?</h1>
+            <p class="step-subtitle">You can add more amenities after you publish</p>
+
+            <div class="amenities-grid">
+                <div *ngFor="let amenity of amenities" 
+                     class="amenity-item" 
+                     [class.selected]="isAmenitySelected(amenity.amenityId)"
+                     (click)="toggleAmenity(amenity.amenityId); $event.stopPropagation()">
+                    <div class="amenity-icon">
+                        <mat-icon>{{ amenity.iconUrl || 'check_circle' }}</mat-icon>
+                    </div>
+                    <div class="amenity-label">{{ amenity.name }}</div>
+                </div>
+            </div>
+
+            <div class="error-message" *ngIf="propertyForm.get('amenities')?.touched && propertyForm.get('amenities')?.value?.length === 0">
+                Please select at least one amenity
+            </div>
+        </div>
+
+        <!-- Step 6: Photos -->
+        <div class="form-step" *ngIf="currentStep === 6">
+            <h1 class="step-title">Add some photos of your place</h1>
+            <p class="step-subtitle">You'll need 5 photos to get started. You can add more or make changes later.</p>
+
+            <div *ngIf="isLoading" class="loading-message">
+                <mat-spinner diameter="40"></mat-spinner>
+                <p>Preparing your property listing...</p>
+            </div>
+
+            <app-image-upload
+                *ngIf="!isLoading"
+                (uploadComplete)="onImagesUploaded($event)"
+                (uploadError)="onUploadError($event)">
+            </app-image-upload>
+
+            <div class="uploaded-images" *ngIf="uploadedImageUrls.length > 0">
+                <h3>Uploaded Photos</h3>
+                <div class="image-grid">
+                    <div class="image-item" *ngFor="let url of uploadedImageUrls; let i = index">
+                        <div class="primary-badge" *ngIf="i === 0">Main Photo</div>
+                        <img [src]="url" [alt]="'Property image ' + (i + 1)" 
+                             onerror="this.src='assets/images/placeholder.jpg'">
+                    </div>
+                </div>
+                <p class="photo-count" [class.error]="uploadedImageUrls.length < 5">
+                    {{ uploadedImageUrls.length }} of 5 required photos uploaded
+                </p>
+            </div>
+        </div>
+
+        <!-- Step 7: Title & Description -->
+        <div class="form-step" *ngIf="currentStep === 7">
+            <h1 class="step-title">Now, let's give your place a title and description</h1>
+            <p class="step-subtitle">Short titles work best. Have fun with it.</p>
+
+            <div class="form-group">
+                <label for="title">Title</label>
+                <input type="text" id="title" formControlName="title" class="form-control"
+                    placeholder="e.g., 'Cozy apartment in downtown'">
+                <div *ngIf="propertyForm.get('title')?.invalid && propertyForm.get('title')?.touched"
+                    class="error-text">
+                    Title must be at least 10 characters
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="description">Description</label>
+                <textarea id="description" formControlName="description" class="form-control" rows="5"
+                    placeholder="Tell guests what makes your place special"></textarea>
+                <div *ngIf="propertyForm.get('description')?.invalid && propertyForm.get('description')?.touched"
+                    class="error-text">
+                    Description must be at least 50 characters
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 8: Price & Booking -->
+        <div class="form-step" *ngIf="currentStep === 8">
+            <h1 class="step-title">Now, set your price</h1>
+            <p class="step-subtitle">You can change it anytime</p>
+
+            <div class="form-group">
+                <label for="pricePerNight">Price per night ($)</label>
+                <input type="number" id="pricePerNight" formControlName="pricePerNight" class="form-control" min="1">
+            </div>
+
+            <div class="form-group">
+                <label for="cleaningFee">Cleaning fee (optional)</label>
+                <input type="number" id="cleaningFee" formControlName="cleaningFee" class="form-control" min="0">
+            </div>
+
+            <div class="form-group">
+                <label for="serviceFee">Service fee (optional)</label>
+                <input type="number" id="serviceFee" formControlName="serviceFee" class="form-control" min="0">
+            </div>      
+        </div>
+        <div class="form-step" *ngIf="currentStep === 9">
+            <h1 class="step-title">Now, set  availability</h1>
+            <p class="step-subtitle">You can change it anytime</p>
+            <div class="form-group">
+                <label for="minNights">Minimum nights</label>
+                <input type="number" id="minNights" formControlName="minNights" class="form-control" min="1">
+            </div>
+
+            <div class="form-group">
+                <label for="maxNights">Maximum nights</label>
+                <input type="number" id="maxNights" formControlName="maxNights" class="form-control" min="1">
+            </div>
+        </div>
+        <div class="form-step" *ngIf="currentStep === 10">
+            <h1 class="step-title">Now, set Cancelation policy and instant booking</h1>
+
+            <div class="form-group">
+                <label for="instantBook">
+                    <input type="checkbox" id="instantBook" formControlName="instantBook">
+                    Enable instant booking
+                </label>
+                <p class="step-subtitle">You can change it anytime</p>
+
+            </div>
+            <div class="form-group">
+                <label for="cancellationPolicyId">Cancellation policy</label>
+                <select id="cancellationPolicyId" formControlName="cancellationPolicyId" class="form-control">
+                    <option value="1">Flexible</option>
+                    <option value="2">Moderate</option>
+                    <option value="3">Strict</option>
+                </select>
+                <p class="step-subtitle">You can change it anytime</p>
+
+            </div>
+        </div>
+    </form>
+
+    <footer class="footer" *ngIf="showForm">
+        <div class="footer-container">
+            <div class="left">
+                <button type="button" class="previous-button" (click)="prevStep()" [disabled]="isLoading" *ngIf="currentStep > 1">
+                    <span>Back</span>
+                </button>
+            </div>
+            <div class="right">
+                <button type="button" class="next-button" (click)="nextStep()" *ngIf="currentStep < totalSteps"
+                    [disabled]="isLoading">
+                    <span>Next</span>
+                </button>
+                <button type="submit" class="submit-button" *ngIf="currentStep === totalSteps" [disabled]="isLoading" (click)="submitForm()">
+                    <span *ngIf="!isLoading">Create Listing</span>
+                    <span *ngIf="isLoading">Creating...</span>
+                </button>
+            </div>
+        </div>
+    </footer>
+</main>
+
+<style>
+.uploaded-images {
+    margin-top: 2rem;
+    padding: 1rem;
+    background: #f7f7f7;
+    border-radius: 8px;
+}
+
+.uploaded-images h3 {
+    margin: 0 0 1rem 0;
+    color: #222;
+}
+
+.image-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 1rem;
+}
+
+.image-item {
+    position: relative;
+    aspect-ratio: 1;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.image-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.primary-badge {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    background: #ff385c;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    z-index: 1;
+}
+
+.photo-count {
+    margin: 1rem 0 0 0;
+    text-align: center;
+    color: #666;
+}
+
+.photo-count.error {
+    color: #ff385c;
+}
+
+.loading-message {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    margin: 2rem 0;
+}
+
+.amenities-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px;
+    margin-top: 24px;
+}
+
+.amenity-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.amenity-item:hover {
+    border-color: #ff385c;
+    background-color: rgba(255, 56, 92, 0.05);
+}
+
+.amenity-item.selected {
+    border-color: #ff385c;
+    background-color: rgba(255, 56, 92, 0.1);
+}
+
+.amenity-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #f5f5f5;
+}
+
+.amenity-icon mat-icon {
+    color: #484848;
+}
+
+.amenity-label {
+    font-size: 16px;
+    color: #484848;
+}
+
+.error-message {
+    color: #ff385c;
+    margin-top: 16px;
+    text-align: center;
+}
+</style>

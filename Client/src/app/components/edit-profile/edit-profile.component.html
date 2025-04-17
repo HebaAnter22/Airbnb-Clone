@@ -1,0 +1,230 @@
+<div class="edit-profile-container">
+    <div class="profile-header">
+      <h1>Your profile</h1>
+      <p>The information you share will be used across Airbnb to help other guests and Hosts get to know you.</p>
+    </div>
+  
+    <div class="profile-content">
+      <!-- Left side - Fixed profile picture section -->
+      <div class="profile-picture-section">
+        <div class="profile-picture-container">
+            <div class="profile-picture" [style.background-image]="profileImageUrl ? 'url(' + profileImageUrl + ')' : 'none'">
+                <div *ngIf="!profileImageUrl" class="profile-initial">
+                  {{ (user.firstName?.charAt(0) || 'H') | uppercase }}
+                </div>
+              </div>
+          <button class="add-photo-btn" (click)="fileInput.click()">
+            <i class="add-icon">+</i>
+            Add
+          </button>
+          <input
+            #fileInput
+            type="file"
+            style="display: none"
+            accept="image/*"
+            (change)="onFileSelected($event)"
+          />
+        </div>
+  
+        <div *ngIf="isUploading" class="upload-progress">
+          <div class="progress-bar" [style.width.%]="uploadProgress"></div>
+        </div>
+      </div>
+  
+      <!-- Right side - Scrollable form section -->
+      <div class="profile-form-section">
+        <form [formGroup]="profileForm" (ngSubmit)="onSubmit()">
+          <!-- Basic Information -->
+          <div class="form-section">
+            <h2>Personal Information</h2>
+            <div class="form-group">
+              <label for="firstName">First Name</label>
+              <input type="text" id="firstName" formControlName="firstName" class="form-input">
+            </div>
+            <div class="form-group">
+              <label for="lastName">Last Name</label>
+              <input type="text" id="lastName" formControlName="lastName" class="form-input">
+            </div>
+          
+          </div>
+  
+          <!-- About You Section -->
+          <div class="form-section">
+            <h2>About you</h2>
+            <div class="form-group">
+              <label for="aboutMe">Write something fun and punchy</label>
+              <textarea id="aboutMe" formControlName="aboutMe" class="form-textarea" placeholder="Add intro"></textarea>
+            </div>
+          </div>
+  
+          <!-- Profile Fields -->
+          <div class="form-section">
+            <h2>Profile Information</h2>
+            
+            <div class="form-row">
+              <div class="form-group">
+                <label for="whereIveAlwaysWantedToGo">
+                  <i class="icon">🌎</i> Where I've always wanted to go
+                </label>
+                <input type="text" id="whereIveAlwaysWantedToGo" formControlName="whereIveAlwaysWantedToGo" class="form-input">
+              </div>
+  
+              
+
+              <div class="form-group">
+                <label for="myWork">
+                  <i class="icon">💼</i> My work
+                </label>
+                <input type="text" id="myWork" formControlName="myWork" class="form-input">
+              </div>
+            </div>
+  
+            <div class="form-row">
+              <!-- <div class="form-group">
+                <label for="myFavoriteSong">
+                  <i class="icon">🎵</i> My favorite song in high school
+                </label>
+                <input type="text" id="myFavoriteSong" formControlName="myFavoriteSong" class="form-input">
+              </div> -->
+  
+              <div class="form-group">
+                <label for="whereIWentToSchool">
+                  <i class="icon">📖</i> Where i went to school
+                </label>
+                <input type="text" id="whereIWentToSchool" formControlName="whereIWentToSchool" class="form-input">
+              </div>
+  
+              <div class="form-group">
+                <label for="pets">
+                  <i class="icon">🐾</i> Pets
+                </label>
+                <input type="text" id="pets" formControlName="pets" class="form-input">
+              </div>
+            </div>
+  
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="pets">
+                        <i class="icon">📍</i> Date Of Birth
+                      </label>
+                  <mat-form-field appearance="fill">
+                    <mat-label>
+                        Pick a date
+                    </mat-label>
+                    <input matInput [matDatepicker]="picker" formControlName="whereIWasBorn">
+                    <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+                    <mat-datepicker #picker></mat-datepicker>
+                  </mat-form-field>
+                </div>
+                <div class="form-group">
+                  <label for="funFact">
+                    <i class="icon">💡</i> My fun fact
+                  </label>
+                  <input type="text" id="funFact" formControlName="funFact" class="form-input">
+                </div>
+              </div>
+              
+  
+            
+  
+            <div class="form-row">
+              <!-- <div class="form-group">
+                <label for="uselessSkill">
+                  <i class="icon">🔧</i> My most useless skill
+                </label>
+                <input type="text" id="uselessSkill" formControlName="uselessSkill" class="form-input">
+              </div> -->
+  
+              <div class="form-group">
+                <label for="languages">
+                  <i class="icon">🗣️</i> Languages I speak
+                </label>
+                <input type="text" id="languages" formControlName="languages" class="form-input">
+              </div>
+            </div>
+  
+            <div class="form-row">
+              <div class="form-group">
+                <label for="specialAbout">
+                  <i class="icon">📝</i> 
+                    Something special about Your home
+                </label>
+                <input type="text" id="specialAbout" formControlName="specialAbout" class="form-input">
+              </div>
+  
+              <div class="form-group">
+                <label for="obsessedWith">
+                  <i class="icon">❤️</i> I'm obsessed with
+                </label>
+                <input type="text" id="obsessedWith" formControlName="obsessedWith" class="form-input">
+              </div>
+            </div>
+  
+            <div class="form-row">
+              <div class="form-group">
+                <label for="whereILive">
+                  <i class="icon">🏠</i> Where I live
+                </label>
+                <input type="text" id="whereILive" formControlName="whereILive" class="form-input">
+              </div>
+            </div>
+          </div>
+  
+          <!-- Where you've been section -->
+          <div class="form-section">
+            <h2>Where you've been</h2>
+            <p>Choose whether other people can see all the places you've been on Airbnb.</p>
+            
+            <div class="toggle-switch">
+              <label class="switch">
+                <input type="checkbox">
+                <span class="slider round"></span>
+              </label>
+            </div>
+  
+            <div class="destinations-container">
+              <div class="destination-card">
+                <div class="destination-icon">🌎</div>
+                <div class="destination-text">Next destination</div>
+              </div>
+              <div class="destination-card">
+                <div class="destination-icon">☀️</div>
+                <div class="destination-text">Next destination</div>
+              </div>
+              <div class="destination-card">
+                <div class="destination-icon">✈️</div>
+                <div class="destination-text">Next destination</div>
+              </div>
+              <div class="destination-card">
+                <div class="destination-icon">🧳</div>
+                <div class="destination-text">Next destination</div>
+              </div>
+            </div>
+          </div>
+  
+          <!-- What you're into section -->
+          <div class="form-section">
+            <h2>What you're into</h2>
+            <p>Find common ground with other guests and Hosts by adding interests to your profile.</p>
+            
+            <div class="interests-container">
+              <div class="interest-badge">
+                <span class="plus-icon">+</span>
+              </div>
+              <div class="interest-badge">
+                <span class="plus-icon">+</span>
+              </div>
+              <div class="interest-badge">
+                <span class="plus-icon">+</span>
+              </div>
+            </div>
+            <a href="#" class="add-interests-link">Add interests</a>
+          </div>
+          
+          <div class="form-actions">
+            <button type="submit" class="submit-btn">Done</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>

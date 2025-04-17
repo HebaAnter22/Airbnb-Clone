@@ -10,7 +10,7 @@
     {
         public int Id { get; set; }
         public int HostId { get; set; }
-        public int CategoryId { get; set; }
+        public int? CategoryId { get; set; }
         public string Title { get; set; }
         public string Description { get; set; }
         public string PropertyType { get; set; }
@@ -20,7 +20,7 @@
         public string PostalCode { get; set; }
         public decimal Latitude { get; set; }
         public decimal Longitude { get; set; }
-        public string currency { get; set; } = "USD";
+        public string Currency { get; set; } = "USD";
         public decimal PricePerNight { get; set; }
         public decimal CleaningFee { get; set; }
         public decimal ServiceFee { get; set; }
@@ -35,7 +35,7 @@
         public string Status { get; set; } = PropertyStatus.Pending.ToString();
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime UpdatedAt { get; set; } 
-        public int CancellationPolicyId { get; set; }
+        public int? CancellationPolicyId { get; set; }
 
         // Navigation Properties
         public virtual Host Host { get; set; } = null!;
@@ -46,7 +46,6 @@
         public virtual ICollection<Booking> Bookings { get; set; } = new List<Booking>();
         public virtual ICollection<Favourite> Favourites { get; set; } = new List<Favourite>();
         public virtual ICollection<PropertyAvailability> Availabilities { get; set; } = new List<PropertyAvailability>();
-
         public virtual ICollection<Conversation> Conversations { get; set; } = new List<Conversation>();
 
 

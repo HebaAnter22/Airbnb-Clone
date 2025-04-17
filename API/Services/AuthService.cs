@@ -83,6 +83,8 @@ namespace API.Services
                 user.FirstName = userDto.FirstName;
                 user.LastName = userDto.LastName;
                 user.Role = userDto.Role;
+                user.ProfilePictureUrl = "/uploads/profile-pictures/default.png";
+                
                 _context.Users.Add(user);
                 await _context.SaveChangesAsync();
 

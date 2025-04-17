@@ -55,3 +55,77 @@
     color: #484848;
     font-size: 0.9rem;
   }
+
+
+  /* navbar.component.css */
+.profile-section {
+  margin-left: auto;
+  position: relative;
+}
+
+.profile-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px 12px;
+  border-radius: 20px;
+  transition: background-color 0.3s;
+}
+
+.profile-btn:hover {
+  background-color: #f5f5f5;
+}
+
+.profile-pic {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.dropdown-menu {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  min-width: 160px;
+  z-index: 1000;
+}
+
+.dropdown-menu a {
+  display: block;
+  padding: 10px 16px;
+  color: #333;
+  text-decoration: none;
+}
+
+.dropdown-menu a:hover {
+  background-color: #f5f5f5;
+}
+
+.auth-buttons {
+  margin-left: auto;
+  display: flex;
+  gap: 12px;
+}
+
+.login-btn, .signup-btn {
+  padding: 8px 16px;
+  border-radius: 4px;
+  text-decoration: none;
+}
+
+.login-btn {
+  border: 1px solid #ddd;
+}
+
+.signup-btn {
+  background-color: #ff385c;
+  color: white;
+}

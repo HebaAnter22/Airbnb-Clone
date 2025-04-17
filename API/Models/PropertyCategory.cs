@@ -1,4 +1,6 @@
-﻿namespace API.Models
+﻿using System.Text.Json.Serialization;
+
+namespace API.Models
 {
     public class PropertyCategory
     {
@@ -8,6 +10,7 @@
         public string? IconUrl { get; set; }
 
         // Relationships
+        [JsonIgnore]
         public virtual ICollection<Property> Properties { get; set; } = new List<Property>();
     }
 }

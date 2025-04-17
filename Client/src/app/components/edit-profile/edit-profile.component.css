@@ -1,0 +1,478 @@
+.edit-profile-container {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: 'Circular', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+}
+
+.profile-header {
+  margin-bottom: 30px;
+}
+
+.profile-header h1 {
+  font-size: 32px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #222222;
+}
+
+.profile-header p {
+  font-size: 16px;
+  color: #717171;
+  margin-bottom: 20px;
+}
+
+.profile-content {
+  display: flex;
+  gap: 40px;
+}
+
+/* Left side - Profile picture section */
+.profile-picture-section {
+  flex: 0 0 250px;
+  position: sticky;
+  top: 20px;
+  align-self: flex-start;
+}
+
+.profile-picture-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.profile-picture {
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  background-color: #222222;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 72px;
+  background-size: cover;
+  background-position: center;
+  position: relative;
+  margin-bottom: 10px;
+}
+
+.profile-initial {
+  font-size: 72px;
+  font-weight: 500;
+}
+
+.add-photo-btn {
+  background: white;
+  border: 1px solid #dddddd;
+  border-radius: 24px;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+  transition: box-shadow 0.2s ease;
+}
+
+.add-photo-btn:hover {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.add-icon {
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.upload-progress {
+  width: 200px;
+  height: 4px;
+  background-color: #ebebeb;
+  border-radius: 2px;
+  margin-top: 10px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  background-color: #FF385C;
+  transition: width 0.3s ease;
+}
+
+/* Right side - Form section */
+.profile-form-section {
+  flex: 1;
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
+  padding-right: 20px;
+}
+
+.form-section {
+  margin-bottom: 40px;
+  border-bottom: 1px solid #ebebeb;
+  padding-bottom: 32px;
+}
+
+.form-section h2 {
+  font-size: 22px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: #222222;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-row {
+  display: flex;
+  gap: 20px;
+}
+
+.form-row .form-group {
+  flex: 1;
+}
+
+.form-input, .form-textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #dddddd;
+  border-radius: 8px;
+  font-size: 16px;
+  transition: border-color 0.2s ease;
+}
+
+.form-input:focus, .form-textarea:focus {
+  border-color: #222222;
+  outline: none;
+}
+
+.form-textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: #222222;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.icon {
+  font-size: 18px;
+}
+
+/* Toggle Switch */
+.toggle-switch {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 24px;
+}
+
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 24px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #dddddd;
+  transition: .4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 20px;
+  width: 20px;
+  left: 2px;
+  bottom: 2px;
+  background-color: white;
+  transition: .4s;
+}
+
+input:checked + .slider {
+  background-color: #FF385C;
+}
+
+input:checked + .slider:before {
+  transform: translateX(26px);
+}
+
+.slider.round {
+  border-radius: 34px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}
+
+/* Destinations */
+.destinations-container {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  padding-bottom: 12px;
+}
+
+.destination-card {
+  min-width: 150px;
+  height: 100px;
+  border: 1px solid #dddddd;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 16px;
+}
+
+.destination-icon {
+  font-size: 24px;
+}
+
+.destination-text {
+  font-size: 14px;
+  color: #717171;
+}
+
+/* Interests */
+.interests-container {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.interest-badge {
+  width: 80px;
+  height: 40px;
+  border: 1px dashed #dddddd;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.plus-icon {
+  font-size: 18px;
+  color: #717171;
+}
+
+.add-interests-link {
+  color: #222222;
+  font-weight: 500;
+  text-decoration: underline;
+  display: inline-block;
+  margin-top: 8px;
+}
+
+/* Form Actions */
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 32px;
+}
+
+.submit-btn {
+  background-color: #222222;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 24px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: transform 0.1s ease;
+}
+
+.submit-btn:hover {
+  background-color: #000000;
+}
+
+.submit-btn:active {
+  transform: scale(0.98);
+}
+
+/* Media Queries */
+@media (max-width: 768px) {
+  .profile-content {
+    flex-direction: column;
+  }
+  
+  .profile-picture-section {
+    position: static;
+    margin-bottom: 30px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .form-row {
+    flex-direction: column;
+    gap: 0;
+  }
+}
+
+
+
+/* Add this to your edit-profile.component.css file */
+
+/* Styling for the date picker */
+::ng-deep .mat-datepicker-content {
+  background-color: #ffffff !important;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15) !important;
+  border-radius: 8px !important;
+}
+
+/* Calendar header styling */
+::ng-deep .mat-calendar-header {
+  background-color: #ffffff !important;
+  color: #333 !important;
+  padding: 12px !important;
+}
+
+/* Today's date highlight */
+::ng-deep .mat-calendar-body-today:not(.mat-calendar-body-selected):not(.mat-calendar-body-comparison-identical) {
+  border-color: #FF385C !important;
+}
+
+/* Selected date styling - using your main color */
+::ng-deep .mat-calendar-body-selected {
+  background-color: #FF385C !important;
+  color: #ffffff !important;
+  border-radius: 50% !important;
+}
+
+/* Hover effect for dates */
+::ng-deep .mat-calendar-body-cell:not(.mat-calendar-body-disabled):hover > .mat-calendar-body-cell-content:not(.mat-calendar-body-selected):not(.mat-calendar-body-comparison-identical) {
+  background-color: rgba(255, 56, 92, 0.1) !important;
+}
+
+/* Form field styling to match your existing form */
+::ng-deep .mat-form-field {
+  background-color: #ffffff;
+  width: 100%;
+  margin-bottom: 0 !important;
+}
+
+/* Remove underline from form field */
+::ng-deep .mat-form-field-underline {
+  display: none !important;
+}
+
+/* Customize input appearance */
+::ng-deep .mat-form-field-flex {
+  background-color: #ffffff !important;
+  border: 1px solid #ccc !important;
+  border-radius: 4px !important;
+  padding: 8px 12px !important;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+::ng-deep .mat-form-field-flex:hover {
+  border-color: #FF385C !important;
+}
+
+::ng-deep .mat-focused .mat-form-field-flex {
+  border-color: #FF385C !important;
+  box-shadow: 0 0 0 2px rgba(255, 56, 92, 0.25) !important;
+}
+
+/* Make sure the icon in the label is properly aligned */
+::ng-deep .mat-form-field-label .icon {
+  vertical-align: middle;
+  margin-right: 5px;
+  color: #FF385C;
+}
+
+/* Date picker toggle button styling */
+::ng-deep .mat-datepicker-toggle {
+  color: #FF385C !important;
+}
+
+::ng-deep .mat-datepicker-toggle:hover {
+  color: #e0284f !important;
+}
+
+/* Calendar navigation controls */
+::ng-deep .mat-calendar-previous-button,
+::ng-deep .mat-calendar-next-button {
+  color: #FF385C !important;
+}
+
+/* Calendar month/year selector */
+::ng-deep .mat-calendar-period-button {
+  color: #333 !important;
+}
+
+::ng-deep .mat-calendar-arrow {
+  border-top-color: #FF385C !important;
+}
+
+/* Calendar day styling */
+::ng-deep .mat-calendar-body-cell-content {
+  border-radius: 50% !important;
+}
+
+/* Highlight in-range dates if you implement a date range picker */
+::ng-deep .mat-calendar-body-in-range::before {
+  background: rgba(255, 56, 92, 0.2) !important;
+}
+
+/* Remove extra padding that might interfere with your layout */
+::ng-deep .mat-form-field-wrapper {
+  padding-bottom: 0 !important;
+}
+
+/* Make the label text match your form style */
+::ng-deep .mat-form-field-label {
+  color: #333 !important;
+}
+
+/* Style input text */
+::ng-deep .mat-input-element {
+  color: #333 !important;
+  font-size: 16px !important;
+}
+
+/* Remove inset background in fill appearance if used */
+::ng-deep .mat-form-field-appearance-fill .mat-form-field-flex {
+  background-color: #ffffff !important;
+}
+
+/* Additional calendar body styling to make it more rounded and modern */
+::ng-deep .mat-calendar-body-cell {
+  border-radius: 50% !important;
+}
+
+/* Adjust spacing of calendar cells */
+::ng-deep .mat-calendar-body-cell {
+  height: 40px !important;
+  width: 40px !important;
+}
+
+/* Active state for current month/year in multi-year view */
+::ng-deep .mat-calendar-body-active {
+  color: #FF385C !important;
+}
