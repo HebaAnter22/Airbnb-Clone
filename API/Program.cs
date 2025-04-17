@@ -3,6 +3,11 @@ using System.Text;
 using API.Data;
 using API.Middleware;
 using API.Services;
+using API.Services.AmenityRepo;
+using API.Services.BookingRepo;
+using API.Services.PromotionRepo;
+using API.Services.PropertyAvailabilityRepo;
+using API.Services.PropertyCategoryRepo;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
@@ -106,6 +111,12 @@ namespace API
 
             builder.Services.AddScoped<IAuthService, AuthService>();
             builder.Services.AddScoped<IPropertyService, PropertyService>();
+            builder.Services.AddScoped<IBookingRepository, BookingRepository>();
+            builder.Services.AddScoped<IPropertyAvailabilityRepository, PropertyAvailabilityRepository>();
+            builder.Services.AddScoped<IAmenityService, AmenityService>();
+            builder.Services.AddScoped<IPropertyCategoryService, PropertyCategoryService>();
+            builder.Services.AddScoped<IPromotionRepository, PromotionRepository>();
+
 
 
             builder.Services.AddAutoMapper(typeof(Program));

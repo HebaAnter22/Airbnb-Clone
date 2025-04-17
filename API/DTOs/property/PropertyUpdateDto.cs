@@ -4,54 +4,84 @@ namespace API.DTOs
 {
     public class PropertyUpdateDto
     {
-        [StringLength(255)]
+        [Required]
         public string Title { get; set; }
 
         public string Description { get; set; }
 
-        [StringLength(50)]
+        [Required]
         public string PropertyType { get; set; }
 
-        [StringLength(255)]
+        [Required]
+        public string Country { get; set; }
+
+        [Required]
         public string Address { get; set; }
 
-        [StringLength(100)]
+        [Required]
         public string City { get; set; }
 
-        [StringLength(100)]
-        public string State { get; set; }
-
-        [StringLength(20)]
         public string PostalCode { get; set; }
 
-        [Range(-90, 90)]
-        public decimal? Latitude { get; set; }
+        public double Latitude { get; set; }
 
-        [Range(-180, 180)]
-        public decimal? Longitude { get; set; }
+        public double Longitude { get; set; }
 
-        [Range(0, double.MaxValue)]
-        public decimal? PricePerNight { get; set; }
+        [Required]
+        public string Currency { get; set; }
 
         [Range(0, double.MaxValue)]
-        public decimal? CleaningFee { get; set; }
+        public decimal PricePerNight { get; set; }
 
         [Range(0, double.MaxValue)]
-        public decimal? ServiceFee { get; set; }
+        public decimal CleaningFee { get; set; }
+
+        [Range(0, double.MaxValue)]
+        public decimal ServiceFee { get; set; }
+
+        [Required]
+        [Range(1, int.MaxValue)]
+        public int MinNights { get; set; }
+
+        [Required]
+        [Range(1, int.MaxValue)]
+        public int MaxNights { get; set; }
 
         [Range(1, int.MaxValue)]
-        public int? MinNights { get; set; }
+        public int Bedrooms { get; set; }
 
         [Range(1, int.MaxValue)]
-        public int? MaxNights { get; set; }
-
-        [Range(0, int.MaxValue)]
-        public int? Bedrooms { get; set; }
-
-        [Range(0, int.MaxValue)]
-        public int? Bathrooms { get; set; }
+        public int Bathrooms { get; set; }
 
         [Range(1, int.MaxValue)]
-        public int? MaxGuests { get; set; }
+        public int MaxGuests { get; set; }
+
+        public string CheckInTime { get; set; }
+
+        public string CheckOutTime { get; set; }
+
+        public bool InstantBook { get; set; }
+
+        public string Status { get; set; }
+
+        public int CategoryId { get; set; }
+
+        public int CancellationPolicyId { get; set; }
+
+        // Amenities to add or update
+        public List<int> AmenityIds { get; set; } = new List<int>();
+
+
+        // Images to add or update
+        public List<PropertyImageUpdateDto> Images { get; set; } = new List<PropertyImageUpdateDto>();
+    }
+
+    public class PropertyImageUpdateDto
+    {
+        public int? Id { get; set; } // Null for new images
+        public string ImageUrl { get; set; }
+        public string Description { get; set; }
+        public bool IsPrimary { get; set; }
+        public string Category { get; set; }
     }
 }

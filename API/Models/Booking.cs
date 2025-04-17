@@ -18,8 +18,8 @@ namespace API.Models
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
 
-        public string CheckInStatus { get; set; } = string.Empty;
-        public string CheckOutStatus { get; set; } = string.Empty;
+        public string CheckInStatus { get; set; } = "pending";
+        public string CheckOutStatus { get; set; } = "pending";
         public string Status { get; set; }
         public decimal TotalAmount { get; set; }
         public int PromotionId { get; set; } = 0;

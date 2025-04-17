@@ -10,7 +10,7 @@
     {
         public int Id { get; set; }
         public int HostId { get; set; }
-        public int CategoryId { get; set; }
+        public int? CategoryId { get; set; }
         public string Title { get; set; }
         public string Description { get; set; }
         public string PropertyType { get; set; }
@@ -35,7 +35,7 @@
         public string Status { get; set; } = PropertyStatus.Pending.ToString();
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime UpdatedAt { get; set; } 
-        public int CancellationPolicyId { get; set; }
+        public int? CancellationPolicyId { get; set; }
 
         // Navigation Properties
         public virtual Host Host { get; set; } = null!;

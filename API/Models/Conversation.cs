@@ -1,4 +1,6 @@
-﻿namespace API.Models
+﻿using System.Text.Json.Serialization;
+
+namespace API.Models
 {
     public class Conversation
     {
@@ -10,6 +12,7 @@
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         // Navigation Properties
+        [JsonIgnore]
         public virtual Property Property { get; set; }
         public virtual User User1 { get; set; }
         public virtual User User2 { get; set; }
