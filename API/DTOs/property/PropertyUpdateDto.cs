@@ -33,17 +33,21 @@ namespace API.DTOs
         [Range(0, double.MaxValue)]
         public decimal? ServiceFee { get; set; }
 
+        [Required]
         [Range(1, int.MaxValue)]
         public int? MinNights { get; set; }
+
 
         [Range(1, int.MaxValue)]
         public int? MaxNights { get; set; }
 
-        [Range(1, int.MaxValue)]
-        public int? Bedrooms { get; set; }
 
         [Range(1, int.MaxValue)]
         public int? Bathrooms { get; set; }
+
+        [Range(1, int.MaxValue)]
+        public int? Bedrooms { get; set; }
+
 
         [Range(1, int.MaxValue)]
         public int? MaxGuests { get; set; }

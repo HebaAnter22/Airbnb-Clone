@@ -1,12 +1,18 @@
+using System.Security.Claims;
 using System.Text;
 using API.Data;
 using API.Middleware;
 using API.Services;
 using API.Services.AmenityRepo;
+using API.Services.BookingRepo;
+using API.Services.PromotionRepo;
+using API.Services.PropertyAvailabilityRepo;
 using API.Services.PropertyCategoryRepo;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -83,12 +89,33 @@ namespace API
                     ValidateIssuerSigningKey = true,
                 };
             });
-            
+
+
+
+
+            // Update the Google authentication configuration
+            builder.Services.AddAuthentication()
+                .AddGoogle(GoogleDefaults.AuthenticationScheme, opt =>
+                {
+                    var googleAuth = builder.Configuration.GetSection("Authentication:Google");
+                    opt.ClientId = googleAuth["ClientId"];
+                    opt.ClientSecret = googleAuth["ClientSecret"];
+                    opt.CallbackPath = "/api/auth/google-callback";
+                    opt.SaveTokens = true;
+
+                    // Map Google's response to our claims
+                    opt.ClaimActions.MapJsonKey(ClaimTypes.NameIdentifier, "sub");
+                    opt.ClaimActions.MapJsonKey(ClaimTypes.Name, "name");
+                    opt.ClaimActions.MapJsonKey(ClaimTypes.Email, "email");
+                });
+
 
             builder.Services.AddScoped<IAuthService, AuthService>();
             builder.Services.AddScoped<IAmenityService, AmenityService>();
             builder.Services.AddScoped<IPropertyService, PropertyService>();
             builder.Services.AddScoped<IPropertyCategoryService, PropertyCategoryService>();
+            builder.Services.AddScoped<IPromotionRepository, PromotionRepository>();
+
 
 
             builder.Services.AddAutoMapper(typeof(Program));

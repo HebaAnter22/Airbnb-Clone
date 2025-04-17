@@ -4,6 +4,7 @@ using API.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using System.Linq;
@@ -147,17 +148,6 @@ namespace API.Controllers
         public async Task<IActionResult> GetAllProperties()
         {
             var properties = await _propertyService.GetAllPropertiesAsync();
-            return Ok(properties);
-        }
-
-        [HttpGet("search")]
-        public async Task<IActionResult> SearchProperties(
-            [FromQuery] string city = null,
-            [FromQuery] decimal? minPrice = null,
-            [FromQuery] decimal? maxPrice = null,
-            [FromQuery] int? maxGuests = null)
-        {
-            var properties = await _propertyService.SearchPropertiesAsync(city, minPrice, maxPrice, maxGuests);
             return Ok(properties);
         }
 
@@ -315,5 +305,21 @@ namespace API.Controllers
                 return BadRequest($"Error deleting property image: {ex.Message}");
             }
         }
+
+        [HttpGet("Newsearch")]
+        public async Task<IActionResult> SearchProperties([FromQuery] string title = null, [FromQuery] string country = null, [FromQuery] int? minNights = null, [FromQuery] int? maxNights = null, [FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null, [FromQuery] int? maxGuests = null)
+        {
+            try
+            {
+                var properties = await _propertyService.SearchPropertiesAsync(title, country, minNights, maxNights, startDate, endDate, maxGuests);
+
+                return Ok(properties);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"An error occurred: {ex.Message}");
+            }
+        }
     }
+
 }

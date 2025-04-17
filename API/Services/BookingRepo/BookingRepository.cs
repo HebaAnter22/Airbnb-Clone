@@ -1,6 +1,7 @@
 ﻿using API.Data;
 using API.DTOs;
 using API.Models;
+using API.Services.PromotionRepo;
 using API.Services.PropertyAvailabilityRepo;
 using Microsoft.EntityFrameworkCore;
 using WebApiDotNet.Repos;
@@ -12,11 +13,14 @@ namespace API.Services.BookingRepo
         private readonly AppDbContext _context;
         private readonly IPropertyAvailabilityRepository _propertyAvailabilityRepo;
         private readonly IPropertyService _propertyService;
-        public BookingRepository(AppDbContext context, IPropertyAvailabilityRepository propertyAvailabilityRepo, IPropertyService propertyService) : base(context)
+        private readonly IPromotionRepository _promotionRepo;
+
+        public BookingRepository(AppDbContext context, IPropertyAvailabilityRepository propertyAvailabilityRepo, IPropertyService propertyService, IPromotionRepository promotionRepo) : base(context)
         {
             _context = context;
             _propertyAvailabilityRepo = propertyAvailabilityRepo;
             _propertyService = propertyService;
+            _promotionRepo = promotionRepo;
         }
 
 
@@ -27,7 +31,9 @@ namespace API.Services.BookingRepo
         {
             if (propertyId <= 0)
                 throw new ArgumentException("Property ID must be greater than zero.");
-
+            var property = await _context.Properties.FindAsync(propertyId);
+            if (property == null)
+                throw new KeyNotFoundException("Property not found.");
             var query = _context.Bookings
                 .Where(b => b.PropertyId == propertyId)
                 .AsNoTracking();
@@ -46,6 +52,9 @@ namespace API.Services.BookingRepo
         {
             if (propertyId <= 0)
                 throw new ArgumentException("Property ID must be greater than zero.");
+            var property = await _context.Properties.FindAsync(propertyId);
+            if (property == null)
+                throw new KeyNotFoundException("Property not found.");
 
             try
             {
@@ -63,18 +72,26 @@ namespace API.Services.BookingRepo
             }
         }
 
-        // Get bookings filtered by both user and property.
-        public async Task<IEnumerable<Booking>> GetBookingsByUserAndPropertyAsync(string userId, int propertyId)
+        // Get bookings filtered by both guest and property.
+        public async Task<IEnumerable<Booking>> GetBookingsByGuestAndPropertyAsync(string guestId, int propertyId)
         {
-            if (string.IsNullOrWhiteSpace(userId))
+            if (string.IsNullOrWhiteSpace(guestId))
                 throw new ArgumentException("User ID cannot be null or empty.");
             if (propertyId <= 0)
                 throw new ArgumentException("Property ID must be greater than zero.");
 
             try
             {
+                var guestIdInt = int.Parse(guestId);
+                var property = await _context.Properties.FindAsync(propertyId);
+                if (property == null)
+                    throw new KeyNotFoundException("Property not found.");
+                var guest = await _context.Users.FindAsync(guestIdInt);
+                if (guest == null)
+                    throw new KeyNotFoundException("Guest not found.");
+                // Fetch bookings for the specified guest and property.
                 return await _context.Bookings
-                    .Where(b => b.GuestId == int.Parse(userId) && b.PropertyId == propertyId)
+                    .Where(b => b.GuestId == guestIdInt && b.PropertyId == propertyId)
                     .AsNoTracking()
                     .ToListAsync();
             }
@@ -88,7 +105,6 @@ namespace API.Services.BookingRepo
             }
         }
 
-        
         // Get a booking by user ID and property ID.
         public async Task<Booking> GetBookingByPropertyandUserAsync(string userId, int propertyId)
         {
@@ -115,6 +131,8 @@ namespace API.Services.BookingRepo
         public async Task<bool> IsBookingOwnedByHostAsync(int bookingId, int hostId)
         {
             return await _context.Bookings
+                .Include(b => b.Property)
+                .ThenInclude(p => p.Host)
                 .AnyAsync(b => b.Id == bookingId && b.Property.HostId == hostId);
         }
 
@@ -270,7 +288,6 @@ namespace API.Services.BookingRepo
             }
         }
 
- 
         // Get detailed information about a specific booking by ID.
         public async Task<Booking> GetUserBookingetails(int bookingId)
         {
@@ -291,7 +308,6 @@ namespace API.Services.BookingRepo
             }
         }
 
-     
         // Get a booking with all related data included.
         public async Task<Booking> getBookingByIdWithData(int bookingId)
         {
@@ -328,6 +344,20 @@ namespace API.Services.BookingRepo
             catch (Exception ex)
             {
                 throw new ApplicationException("An error occurred while fetching property by ID.", ex);
+            }
+        }
+
+        public async Task<Promotion> GetPromotionByIdAsync(int promotionId)
+        {
+            if (promotionId <= 0)
+                throw new ArgumentException("Promotion ID must be greater than zero.");
+            try
+            {
+                return await _promotionRepo.GetByIdAsync(promotionId);
+            }
+            catch (Exception ex)
+            {
+                throw new ApplicationException("An error occurred while fetching promotion by ID.", ex);
             }
         }
     }

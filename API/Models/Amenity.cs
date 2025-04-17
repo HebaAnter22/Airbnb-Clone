@@ -1,5 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace API.Models
 {
@@ -22,8 +23,8 @@ namespace API.Models
         [Column("icon_url")]
         public string IconUrl { get; set; } = null!;
 
-
         // Relationships
+        [JsonIgnore]
         public virtual ICollection<Property> Properties { get; set; } = new List<Property>();
     }
 }

@@ -9,7 +9,7 @@ namespace API.Services.BookingRepo
         Task<(IEnumerable<Booking> bookings, int totalCount)> GetAllBookingForProperty(int propertyId, int page = 1, int pageSize = 10);
         Task<(IEnumerable<Booking> bookings, int totalCount)> GetAllUserBooking(string userId, int page = 1, int pageSize = 10);
         Task<Booking> getBookingByIdWithData(int bookingId);
-        Task<IEnumerable<Booking>> GetBookingsByUserAndPropertyAsync(string userId, int propertyId);
+        Task<IEnumerable<Booking>> GetBookingsByGuestAndPropertyAsync(string userId, int propertyId);
         Task<Booking> GetBookingByPropertyandUserAsync(string userId, int propertyId);
         Task<IEnumerable<Booking>> GetPropertyBookingDetails(int propertyId);
         Task<Booking> GetUserBookingetails(int bookingId);
@@ -24,5 +24,7 @@ namespace API.Services.BookingRepo
 
         Task<PropertyDto> getPropertyByIdAsync(int propertyId);
         //Task<Property> GetPropertyWithDetailsAsync(int propertyId);
+
+        Task<Promotion> GetPromotionByIdAsync(int promotionId);
     }
 }

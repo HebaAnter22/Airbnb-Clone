@@ -13,10 +13,10 @@ namespace API.Services
         Task<PropertyDto> GetPropertyByIdAsync(int propertyId);
         Task<List<PropertyDto>> GetHostPropertiesAsync(int hostId);
         Task<List<PropertyDto>> GetAllPropertiesAsync();
-        Task<List<PropertyDto>> SearchPropertiesAsync(string city = null, decimal? minPrice = null, decimal? maxPrice = null, int? maxGuests = null);
         Task<List<string>> UploadImagesAsync(List<IFormFile> files);
         Task<bool> AddImagesToPropertyAsync(int propertyId, List<string> imageUrls, int hostId);
         Task<bool> UpdatePropertyAmenitiesAsync(int propertyId, List<int> amenityIds, int hostId);
         Task<bool> DeletePropertyImageAsync(int propertyId, int imageId, int hostId);
+        Task<List<PropertyDto>> SearchPropertiesAsync(string title = null, string country = null, int? minNights = null, int? maxNights = null, DateTime? startDate = null, DateTime? endDate = null, int? maxGuests = null);
     }
 }

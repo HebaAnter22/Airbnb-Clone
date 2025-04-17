@@ -1,4 +1,6 @@
 ﻿using API.DTOs;
+using API.DTOs.Amenity;
+using API.DTOs.Review;
 using API.Models;
 using AutoMapper;
 using API.DTOs.Amenity;

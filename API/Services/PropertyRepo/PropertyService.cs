@@ -606,20 +606,60 @@ namespace API.Services
             return _mapper.Map<List<PropertyDto>>(properties);
         }
 
-        public async Task<List<PropertyDto>> SearchPropertiesAsync(string city = null, decimal? minPrice = null, decimal? maxPrice = null, int? maxGuests = null)
+
+        public async Task<List<PropertyDto>> SearchPropertiesAsync(string title = null, string country = null, int? minNights = null, int? maxNights = null, DateTime? startDate = null, DateTime? endDate = null, int? maxGuests = null)
         {
             var query = _context.Properties
                 .Where(p => p.Status == "Active")
                 .AsQueryable();
 
-            if (!string.IsNullOrEmpty(city))
-                query = query.Where(p => p.City.Contains(city));
-            if (minPrice.HasValue)
-                query = query.Where(p => p.PricePerNight >= minPrice.Value);
-            if (maxPrice.HasValue)
-                query = query.Where(p => p.PricePerNight <= maxPrice.Value);
+            if (!string.IsNullOrWhiteSpace(title))
+            {
+                query = query.Where(p => p.Title.Contains(title));
+            }
+
+            if (!string.IsNullOrWhiteSpace(country))
+            {
+                query = query.Where(p => p.Country.Equals(country));
+            }
+
+            if (minNights.HasValue && maxNights.HasValue)
+            {
+                query = query.Where(p => p.MinNights >= minNights.Value && p.MaxNights <= maxNights.Value);
+            }
+            else if (minNights.HasValue)
+            {
+                query = query.Where(p => p.MinNights >= minNights.Value);
+            }
+            else if (maxNights.HasValue)
+            {
+                query = query.Where(p => p.MaxNights <= maxNights.Value);
+            }
+
+            if (startDate.HasValue && endDate.HasValue)
+            {
+                var dateRange = Enumerable.Range(0, (endDate.Value - startDate.Value).Days + 1)
+                                          .Select(offset => startDate.Value.AddDays(offset))
+                                          .ToList();
+
+                query = query.Where(p => dateRange.All(date =>
+                    p.Availabilities.Any(pa => pa.Date == date && pa.IsAvailable)));
+            }
+            else if (startDate.HasValue)
+            {
+                query = query.Where(p => p.Availabilities
+                    .Any(pa => pa.Date == startDate.Value && pa.IsAvailable));
+            }
+            else if (endDate.HasValue)
+            {
+                query = query.Where(p => p.Availabilities
+                    .Any(pa => pa.Date == endDate.Value && pa.IsAvailable));
+            }
+
             if (maxGuests.HasValue)
+            {
                 query = query.Where(p => p.MaxGuests >= maxGuests.Value);
+            }
 
             var properties = await query
                 .Include(p => p.PropertyImages)
