@@ -19,6 +19,8 @@ import { PropertyDetailsComponent } from './components/property-details/property
 import { PropertyGalleryComponent } from './components/property-gallary/property-gallery.component';
 import { WishlistComponent } from './components/wishlist/wishlist.component';
 import { HostVerificationComponent } from './components/host-verification/host-verification.component';
+import { AdminComponent } from './components/admin/admin.component';
+import { HostDashboardComponent } from './components/host/host-dashboard/host-dashboard.component';
 
 
 
@@ -38,7 +40,7 @@ export const routes: Routes = [
   },
   { 
       path: 'host', 
-      component: HostComponent,
+      component: HostDashboardComponent,
       canActivate: [authGuard, roleGuard],
       data: { role: 'Host' }
     },
@@ -70,7 +72,11 @@ export const routes: Routes = [
       component: HostVerificationComponent, // Assuming HostComponent handles the verification process
     },
     { path: 'editProfile/:id', component: EditProfileComponent, canActivate: [authGuard] },
-
+{
+  path: 'admin',
+  component: AdminComponent,
+  // canActivate: [ roleGuard],
+},
     { path: 'forbidden', component: ForbiddenComponent },
     
   { path: '**',component:NotFoundComponent }

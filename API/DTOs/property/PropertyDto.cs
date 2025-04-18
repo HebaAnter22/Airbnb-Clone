@@ -31,6 +31,10 @@ namespace API.DTOs
         // Host information
         public string HostName { get; set; }
         public string HostProfileImage { get; set; }
+        
+
+        public int CategoryID { get; set; }
+
 
         // Images
         public List<PropertyImageDto> Images { get; set; } = new List<PropertyImageDto>();

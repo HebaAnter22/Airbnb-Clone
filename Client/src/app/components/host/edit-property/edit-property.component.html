@@ -1,19 +1,26 @@
 <!-- Header -->
-<div class="container-fluid py-4 border-bottom">
+<div class="header-container">
   <div class="container">
-    <div class="d-flex justify-content-between align-items-center">
-      <div class="d-flex align-items-center gap-3">
+    <div class="header-content">
+      <div class="header-title">
         <button class="btn btn-link text-dark p-0" (click)="cancel()">
-          <i class="bi bi-arrow-left fs-4"></i>
+          <i class="material-icons">arrow_back</i>
         </button>
         <h1 class="h3 mb-0">Edit listing</h1>
       </div>
-      <div class="d-flex gap-2">
-        <button class="btn btn-outline-secondary" (click)="cancel()">Cancel</button>
+      <div class="header-actions">
+        <button class="btn btn-outline-secondary" (click)="cancel()">
+          <i class="material-icons">close</i>
+          Cancel
+        </button>
         <button class="btn btn-primary" 
                 (click)="onSubmit()" 
-                [disabled]="propertyForm.invalid || saving">
-          <span *ngIf="!saving">Save changes</span>
+                [disabled]="propertyForm.invalid || saving"
+                style="background-color: #ff5a5f !important; border-color: #ff5a5f !important; color: white !important; display: flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 4px; font-weight: 500; opacity: 1 !important; visibility: visible !important;">
+          <span *ngIf="!saving">
+            <i class="material-icons">save</i>
+            Save changes
+          </span>
           <span *ngIf="saving" class="d-flex align-items-center gap-2">
             <div class="spinner-border spinner-border-sm"></div>
             Saving...
@@ -25,7 +32,7 @@
 </div>
 
 <!-- Main Content -->
-<div class="container py-4">
+<div class="container-fluid py-4">
   <!-- Loading State -->
   <div *ngIf="loading" class="text-center py-5">
     <div class="spinner-border text-primary" role="status">
@@ -35,63 +42,312 @@
 
   <!-- Error State -->
   <div *ngIf="error" class="alert alert-danger" role="alert">
+    <i class="material-icons">error_outline</i>
     {{ error }}
   </div>
 
   <!-- Edit Form -->
   <form [formGroup]="propertyForm" (ngSubmit)="onSubmit()" *ngIf="!loading">
-    <!-- Images Section -->
-    <div class="col-12">
-      <div class="card">
-        <div class="card-body">
-          <h5 class="card-title mb-4">Photos</h5>
-          
-          <!-- Image Upload Section -->
-          <div class="image-upload-section">
-            <h3>Property Images</h3>
-            
-            <!-- Error Display -->
-            <div class="error-message" *ngIf="error">
-              {{ error }}
+    <div class="row">
+      <!-- Left Navigation -->
+      <div class="col-md-3">
+        <div class="card">
+          <div class="card-body p-0">
+            <div class="list-group list-group-flush">
+              <a *ngFor="let section of sections" 
+                 class="list-group-item list-group-item-action" 
+                 [class.active]="activeSection === section.id"
+                 (click)="setActiveSection(section.id)">
+                <i class="material-icons">{{ getSectionIcon(section.id) }}</i>
+                {{ section.label }}
+              </a>
             </div>
+          </div>
+        </div>
+      </div>
 
-            <!-- Existing Images -->
-            <div class="existing-images" *ngIf="propertyImages.length > 0">
-              <h4>Current Images</h4>
-              <div class="image-grid">
-                <div class="image-container" *ngFor="let image of propertyImages; let i = index">
-                  <img [src]="image.imageUrl" [alt]="'Property image ' + (i + 1)" class="property-image">
-                  <div class="image-overlay">
-                    <button type="button" class="remove-button" (click)="removeImage(i)">
-                      Remove
-                    </button>
-                    <span class="primary-badge" *ngIf="image.isPrimary">Primary</span>
-                  </div>
+      <!-- Right Content -->
+      <div class="col-md-9">
+        <!-- Basic Info Section -->
+        <div class="card mb-4" *ngIf="activeSection === 'basic'">
+          <div class="card-body">
+            <h5 class="card-title">
+              <i class="material-icons">info</i>
+              Basic Information
+            </h5>
+            
+            <div class="row g-3">
+              <!-- Title -->
+              <div class="col-12">
+                <label class="form-label">
+                  <i class="material-icons">title</i>
+                  Title
+                </label>
+                <input type="text" 
+                       class="form-control" 
+                       formControlName="title"
+                       [class.is-invalid]="propertyForm.get('title')?.invalid && propertyForm.get('title')?.touched">
+                <div class="invalid-feedback" *ngIf="propertyForm.get('title')?.errors?.['required']">
+                  Title is required
+                </div>
+                <div class="invalid-feedback" *ngIf="propertyForm.get('title')?.errors?.['minlength']">
+                  Title must be at least 10 characters
+                </div>
+              </div>
+
+              <!-- Description -->
+              <div class="col-12">
+                <label class="form-label">
+                  <i class="material-icons">description</i>
+                  Description
+                </label>
+                <textarea class="form-control" 
+                          rows="4" 
+                          formControlName="description"
+                          [class.is-invalid]="propertyForm.get('description')?.invalid && propertyForm.get('description')?.touched">
+                </textarea>
+                <div class="invalid-feedback" *ngIf="propertyForm.get('description')?.errors?.['required']">
+                  Description is required
+                </div>
+                <div class="invalid-feedback" *ngIf="propertyForm.get('description')?.errors?.['minlength']">
+                  Description must be at least 50 characters
                 </div>
               </div>
             </div>
+          </div>
+        </div>
 
-            <!-- Upload New Images -->
-            <div class="upload-section">
-              <h4>Upload New Images</h4>
-              <input 
-                type="file" 
-                multiple 
-                accept="image/*" 
-                (change)="onFileUpload($event)"
-                #fileInput
-                class="file-input">
+        <!-- Location Section -->
+        <div class="card mb-4" *ngIf="activeSection === 'location'">
+          <div class="card-body">
+            <h5 class="card-title">
+              <i class="material-icons">location_on</i>
+              Location
+            </h5>
+            
+            <div class="row g-3">
+              <!-- Address -->
+              <div class="col-12">
+                <label class="form-label">
+                  <i class="material-icons">home</i>
+                  Address
+                </label>
+                <input type="text" class="form-control" formControlName="address">
+              </div>
+
+              <!-- City -->
+              <div class="col-md-6">
+                <label class="form-label">
+                  <i class="material-icons">location_city</i>
+                  City
+                </label>
+                <input type="text" class="form-control" formControlName="city">
+              </div>
+
+              <!-- Country -->
+              <div class="col-md-6">
+                <label class="form-label">
+                  <i class="material-icons">public</i>
+                  Country
+                </label>
+                <input type="text" class="form-control" formControlName="country">
+              </div>
+
+              <!-- Postal Code -->
+              <div class="col-md-6">
+                <label class="form-label">
+                  <i class="material-icons">markunread_mailbox</i>
+                  Postal Code
+                </label>
+                <input type="text" class="form-control" formControlName="postalCode">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pricing Section -->
+        <div class="card mb-4" *ngIf="activeSection === 'pricing'">
+          <div class="card-body">
+            <h5 class="card-title">
+              <i class="material-icons">attach_money</i>
+              Pricing
+            </h5>
+            
+            <div class="row g-3">
+              <!-- Price per night -->
+              <div class="col-md-4">
+                <label class="form-label">
+                  <i class="material-icons">payments</i>
+                  Price per night
+                </label>
+                <div class="input-group">
+                  <span class="input-group-text">$</span>
+                  <input type="number" class="form-control" formControlName="pricePerNight">
+                </div>
+              </div>
+
+              <!-- Cleaning fee -->
+              <div class="col-md-4">
+                <label class="form-label">
+                  <i class="material-icons">cleaning_services</i>
+                  Cleaning fee
+                </label>
+                <div class="input-group">
+                  <span class="input-group-text">$</span>
+                  <input type="number" class="form-control" formControlName="cleaningFee">
+                </div>
+              </div>
+
+              <!-- Service fee -->
+              <div class="col-md-4">
+                <label class="form-label">
+                  <i class="material-icons">support_agent</i>
+                  Service fee
+                </label>
+                <div class="input-group">
+                  <span class="input-group-text">$</span>
+                  <input type="number" class="form-control" formControlName="serviceFee">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Property Details Section -->
+        <div class="card mb-4" *ngIf="activeSection === 'details'">
+          <div class="card-body">
+            <h5 class="card-title">
+              <i class="material-icons">apartment</i>
+              Property Details
+            </h5>
+            
+            <div class="row g-3">
+              <!-- Bedrooms -->
+              <div class="col-md-3">
+                <label class="form-label">
+                  <i class="material-icons">bed</i>
+                  Bedrooms
+                </label>
+                <input type="number" class="form-control" formControlName="bedrooms">
+              </div>
+
+              <!-- Bathrooms -->
+              <div class="col-md-3">
+                <label class="form-label">
+                  <i class="material-icons">bathroom</i>
+                  Bathrooms
+                </label>
+                <input type="number" class="form-control" formControlName="bathrooms">
+              </div>
+
+              <!-- Max Guests -->
+              <div class="col-md-3">
+                <label class="form-label">
+                  <i class="material-icons">group</i>
+                  Max Guests
+                </label>
+                <input type="number" class="form-control" formControlName="maxGuests">
+              </div>
+
+              <!-- Min Nights -->
+              <div class="col-md-3">
+                <label class="form-label">
+                  <i class="material-icons">calendar_today</i>
+                  Minimum Nights
+                </label>
+                <input type="number" class="form-control" formControlName="minNights">
+              </div>
+
+              <!-- Max Nights -->
+              <div class="col-md-3">
+                <label class="form-label">
+                  <i class="material-icons">event</i>
+                  Maximum Nights
+                </label>
+                <input type="number" class="form-control" formControlName="maxNights">
+              </div>
+
+              <!-- Instant Book -->
+              <div class="mb-3">
+                <div class="form-check">
+                  <input  type="checkbox" id="instantBook">
+                  <label class="form-check-label" for="instantBook">
+                    <i class="material-icons">bolt</i>
+                    Allow instant booking
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Images Section -->
+        <div class="card mb-4" *ngIf="activeSection === 'images'">
+          <div class="card-body">
+            <h5 class="card-title">
+              <i class="material-icons">photo_library</i>
+              Photos
+            </h5>
+            
+            <!-- Image Upload Section -->
+            <div class="image-upload-section">
+              <h3>Property Images</h3>
               
-              <!-- Image Preview -->
-              <div class="preview-images" *ngIf="previewUrls.length > 0">
-                <h4>New Images Preview</h4>
+              <!-- Error Display -->
+              <div class="error-message" *ngIf="error">
+                <i class="material-icons">error_outline</i>
+                {{ error }}
+              </div>
+
+              <!-- Existing Images -->
+              <div class="existing-images" *ngIf="propertyImages.length > 0">
+                <h4>Current Images</h4>
                 <div class="image-grid">
-                  <div class="image-container" *ngFor="let url of previewUrls; let i = index">
-                    <img [src]="url" [alt]="'Preview image ' + (i + 1)" class="preview-image">
+                  <div class="image-container" *ngFor="let image of propertyImages; let i = index">
+                    <img [src]="image.imageUrl" [alt]="'Property image ' + (i + 1)" class="property-image">
                     <div class="image-overlay">
-                      <button type="button" class="remove-button" (click)="removeUploadedFile(i)">
+                      <button type="button" class="remove-button" (click)="removeImage(i)">
+                        <i class="material-icons">delete</i>
                         Remove
                       </button>
+                      <span class="primary-badge" *ngIf="image.isPrimary">
+                        <i class="material-icons">star</i>
+                        Primary
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Upload New Images -->
+              <div class="upload-section">
+                <h4>Upload New Images</h4>
+                <div class="file-input-container">
+                  <input 
+                    type="file" 
+                    multiple 
+                    accept="image/*" 
+                    (change)="onFileUpload($event)"
+                    #fileInput
+                    class="file-input">
+                  <div class="upload-placeholder">
+                    <i class="material-icons">cloud_upload</i>
+                    <span>Click to upload images</span>
+                  </div>
+                </div>
+                
+                <!-- Image Preview -->
+                <div class="preview-images" *ngIf="previewUrls.length > 0">
+                  <h4>New Images Preview</h4>
+                  <div class="image-grid">
+                    <div class="image-container" *ngFor="let url of previewUrls; let i = index">
+                      <img [src]="url" [alt]="'Preview image ' + (i + 1)" class="preview-image">
+                      <div class="image-overlay">
+                        <button type="button" class="remove-button" (click)="removeUploadedFile(i)">
+                          <i class="material-icons">delete</i>
+                          Remove
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -101,304 +357,6 @@
         </div>
       </div>
     </div>
-
-    <!-- Basic Info -->
-    <div class="col-12">
-      <div class="card">
-        <div class="card-body">
-          <h5 class="card-title mb-4">Basic Information</h5>
-          
-          <div class="row g-3">
-            <!-- Title -->
-            <div class="col-12">
-              <label class="form-label">Title</label>
-              <input type="text" 
-                     class="form-control" 
-                     formControlName="title"
-                     [class.is-invalid]="propertyForm.get('title')?.invalid && propertyForm.get('title')?.touched">
-              <div class="invalid-feedback" *ngIf="propertyForm.get('title')?.errors?.['required']">
-                Title is required
-              </div>
-              <div class="invalid-feedback" *ngIf="propertyForm.get('title')?.errors?.['minlength']">
-                Title must be at least 10 characters
-              </div>
-            </div>
-
-            <!-- Description -->
-            <div class="col-12">
-              <label class="form-label">Description</label>
-              <textarea class="form-control" 
-                        rows="4" 
-                        formControlName="description"
-                        [class.is-invalid]="propertyForm.get('description')?.invalid && propertyForm.get('description')?.touched">
-              </textarea>
-              <div class="invalid-feedback" *ngIf="propertyForm.get('description')?.errors?.['required']">
-                Description is required
-              </div>
-              <div class="invalid-feedback" *ngIf="propertyForm.get('description')?.errors?.['minlength']">
-                Description must be at least 50 characters
-              </div>
-            </div>
-
-            <!-- Property Type -->
-            <div class="col-12 col-md-6">
-              <label class="form-label">Property Type</label>
-              <select class="form-select" formControlName="propertyType">
-                <option value="">Select type</option>
-                <option value="Apartment">Apartment</option>
-                <option value="House">House</option>
-                <option value="Villa">Villa</option>
-                <option value="Condo">Condo</option>
-              </select>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Location -->
-    <div class="col-12">
-      <div class="card">
-        <div class="card-body">
-          <h5 class="card-title mb-4">Location</h5>
-          
-          <div class="row g-3">
-            <!-- Address -->
-            <div class="col-12">
-              <label class="form-label">Address</label>
-              <input type="text" class="form-control" formControlName="address">
-            </div>
-
-            <!-- City -->
-            <div class="col-md-6">
-              <label class="form-label">City</label>
-              <input type="text" class="form-control" formControlName="city">
-            </div>
-
-            <!-- Country -->
-            <div class="col-md-6">
-              <label class="form-label">Country</label>
-              <input type="text" class="form-control" formControlName="country">
-            </div>
-
-            <!-- Postal Code -->
-            <div class="col-md-6">
-              <label class="form-label">Postal Code</label>
-              <input type="text" class="form-control" formControlName="postalCode">
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Pricing -->
-    <div class="col-12">
-      <div class="card">
-        <div class="card-body">
-          <h5 class="card-title mb-4">Pricing</h5>
-          
-          <div class="row g-3">
-            <!-- Price per night -->
-            <div class="col-md-4">
-              <label class="form-label">Price per night</label>
-              <div class="input-group">
-                <span class="input-group-text">$</span>
-                <input type="number" class="form-control" formControlName="pricePerNight">
-              </div>
-            </div>
-
-            <!-- Cleaning fee -->
-            <div class="col-md-4">
-              <label class="form-label">Cleaning fee</label>
-              <div class="input-group">
-                <span class="input-group-text">$</span>
-                <input type="number" class="form-control" formControlName="cleaningFee">
-              </div>
-            </div>
-
-            <!-- Service fee -->
-            <div class="col-md-4">
-              <label class="form-label">Service fee</label>
-              <div class="input-group">
-                <span class="input-group-text">$</span>
-                <input type="number" class="form-control" formControlName="serviceFee">
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Details -->
-    <div class="col-12">
-      <div class="card">
-        <div class="card-body">
-          <h5 class="card-title mb-4">Property Details</h5>
-          
-          <div class="row g-3">
-            <!-- Bedrooms -->
-            <div class="col-md-3">
-              <label class="form-label">Bedrooms</label>
-              <input type="number" class="form-control" formControlName="bedrooms">
-            </div>
-
-            <!-- Bathrooms -->
-            <div class="col-md-3">
-              <label class="form-label">Bathrooms</label>
-              <input type="number" class="form-control" formControlName="bathrooms">
-            </div>
-
-            <!-- Max Guests -->
-            <div class="col-md-3">
-              <label class="form-label">Max Guests</label>
-              <input type="number" class="form-control" formControlName="maxGuests">
-            </div>
-
-            <!-- Min Nights -->
-            <div class="col-md-3">
-              <label class="form-label">Minimum Nights</label>
-              <input type="number" class="form-control" formControlName="minNights">
-            </div>
-
-            <!-- Max Nights -->
-            <div class="col-md-3">
-              <label class="form-label">Maximum Nights</label>
-              <input type="number" class="form-control" formControlName="maxNights">
-            </div>
-
-            <!-- Instant Book -->
-            <div class="col-12">
-              <div class="form-check">
-                <input class="form-check-input" 
-                       type="checkbox" 
-                       formControlName="instantBook" 
-                       id="instantBook">
-                <label class="form-check-label" for="instantBook">
-                  Allow instant booking
-                </label>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Form Buttons -->
-    <div class="form-buttons">
-      <button type="submit" [disabled]="!propertyForm.valid || saving">
-        {{ saving ? 'Saving...' : 'Save Changes' }}
-      </button>
-      <button type="button" (click)="cancel()">Cancel</button>
-    </div>
   </form>
 </div>
 
-<style>
-.image-upload-section {
-  margin: 2rem 0;
-}
-
-.error-message {
-  color: red;
-  margin-bottom: 1rem;
-}
-
-.image-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 1rem;
-  margin: 1rem 0;
-}
-
-.image-container {
-  position: relative;
-  aspect-ratio: 1;
-  overflow: hidden;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.property-image,
-.preview-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.image-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0,0,0,0.5);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  opacity: 0;
-  transition: opacity 0.3s;
-}
-
-.image-container:hover .image-overlay {
-  opacity: 1;
-}
-
-.remove-button {
-  background: #ff4444;
-  color: white;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  cursor: pointer;
-  margin-bottom: 0.5rem;
-}
-
-.primary-badge {
-  background: #4CAF50;
-  color: white;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  font-size: 0.8rem;
-}
-
-.file-input {
-  margin: 1rem 0;
-}
-
-.form-buttons {
-  margin-top: 2rem;
-  display: flex;
-  gap: 1rem;
-}
-
-.form-buttons button {
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.form-buttons button[type="submit"] {
-  background: #4CAF50;
-  color: white;
-  border: none;
-}
-
-.form-buttons button[type="submit"]:disabled {
-  background: #cccccc;
-  cursor: not-allowed;
-}
-
-.form-buttons button[type="button"] {
-  background: #f44336;
-  color: white;
-  border: none;
-}
-
-.loading {
-  text-align: center;
-  padding: 2rem;
-  font-size: 1.2rem;
-  color: #666;
-}
-</style> 

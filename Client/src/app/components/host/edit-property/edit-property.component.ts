@@ -4,13 +4,14 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { CreatePropertyService } from '../../../services/property-crud.service';
 import { PropertyDto, PropertyImageDto } from '../../../models/property';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-edit-property',
   standalone: true,
   templateUrl: './edit-property.component.html',
   styleUrls: ['./edit-property.component.css'],
-  imports: [CommonModule, ReactiveFormsModule]
+  imports: [CommonModule, ReactiveFormsModule, FormsModule]
 })
 export class EditPropertyComponent implements OnInit {
   propertyForm: FormGroup;
@@ -22,6 +23,17 @@ export class EditPropertyComponent implements OnInit {
   propertyImages: PropertyImageDto[] = [];
   uploadedFiles: File[] = [];
   previewUrls: string[] = [];
+  
+  // Navigation sections
+  sections = [
+    { id: 'basic', label: 'Basic Information' },
+    { id: 'location', label: 'Location' },
+    { id: 'pricing', label: 'Pricing' },
+    { id: 'details', label: 'Property Details' },
+    { id: 'images', label: 'Images' }
+  ];
+  
+  activeSection: string = 'basic';
 
   constructor(
     private fb: FormBuilder,
@@ -32,7 +44,6 @@ export class EditPropertyComponent implements OnInit {
     this.propertyForm = this.fb.group({
       title: ['', [Validators.required, Validators.minLength(10)]],
       description: ['', [Validators.required, Validators.minLength(50)]],
-      propertyType: ['', Validators.required],
       address: ['', Validators.required],
       city: ['', Validators.required],
       country: ['', Validators.required],
@@ -52,19 +63,48 @@ export class EditPropertyComponent implements OnInit {
 
   ngOnInit() {
     this.propertyId = +this.route.snapshot.params['id'];
-    this.loadProperty();
+    this.loadData();
   }
 
-  async loadProperty() {
+  getSectionIcon(sectionId: string): string {
+    const iconMap: { [key: string]: string } = {
+      'basic': 'info',
+      'location': 'location_on',
+      'pricing': 'attach_money',
+      'details': 'apartment',
+      'images': 'photo_library'
+    };
+    return iconMap[sectionId] || 'info';
+  }
+
+  async loadData() {
     try {
+      // Load property data
       this.property = await this.propertyService.getPropertyById(this.propertyId).toPromise();
-      this.propertyForm.patchValue(this.property);
+      
+      // Update form with property data
+      this.propertyForm.patchValue({
+        ...this.property,
+        instantBook: this.property.instantBook || false
+      });
+      
       this.propertyImages = this.property.images || [];
       this.loading = false;
     } catch (err) {
-      this.error = 'Failed to load property';
+      console.error('Error loading data:', err);
+      this.error = 'Failed to load property data';
       this.loading = false;
     }
+  }
+
+  setActiveSection(sectionId: string) {
+    this.activeSection = sectionId;
+  }
+
+  onInstantBookChange(event: any) {
+    const checked = event.target.checked;
+    this.propertyForm.patchValue({ instantBook: checked });
+    this.property.instantBook = checked;
   }
 
   async onFileUpload(event: any) {
@@ -96,6 +136,17 @@ export class EditPropertyComponent implements OnInit {
         console.error('Failed to upload images:', err);
         this.error = 'Failed to upload images';
       }
+    }
+  }
+
+  async loadProperty() {
+    try {
+      this.property = await this.propertyService.getPropertyById(this.propertyId).toPromise();
+      this.propertyForm.patchValue(this.property);
+      this.propertyImages = this.property.images || [];
+    } catch (err) {
+      console.error('Failed to reload property:', err);
+      this.error = 'Failed to reload property';
     }
   }
 
@@ -142,10 +193,13 @@ export class EditPropertyComponent implements OnInit {
         
         // Only include fields that have values
         Object.keys(formValue).forEach(key => {
-          if (formValue[key] !== null && formValue[key] !== undefined && formValue[key] !== '') {
+          if (formValue[key] !== null && formValue[key] !== undefined) {
             updatedProperty[key] = formValue[key];
           }
         });
+        
+        // Ensure instantBook is included
+        updatedProperty.instantBook = this.property.instantBook;
         
         console.log('Updating property with:', updatedProperty);
         

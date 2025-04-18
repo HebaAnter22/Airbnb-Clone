@@ -1,0 +1,138 @@
+<!-- Host Dashboard Container -->
+<div class="host-dashboard">
+  <!-- Top Navigation Bar -->
+  <nav class="top-nav">
+    <div class="nav-container">
+      <!-- Logo/Brand -->
+      <a href="/home" class="header-logo">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="airbnb-icon">
+          <path fill="#FF5A5F" d="M224 373.1c-25.2-31.7-40.1-59.4-45-83.2-22.6-88 112.6-88 90.1 0-5.5 24.3-20.3 52-45 83.2zm138.2 73.2c-42.1 18.3-83.7-10.9-119.3-50.5 103.9-130.1 46.1-200-18.9-200-54.9 0-85.2 46.5-73.3 100.5 6.9 29.2 25.2 62.4 54.4 99.5-32.5 36.1-60.6 52.7-85.2 54.9-50 7.4-89.1-41.1-71.3-91.1 15.1-39.2 111.7-231.2 115.9-241.6 15.8-30.1 25.6-57.4 59.4-57.4 32.3 0 43.4 25.9 60.4 59.9 36 70.6 89.4 177.5 114.8 239.1 13.2 33.1-1.4 71.3-37 86.6z"/>
+        </svg>
+      </a>
+
+      <!-- Navigation Links -->
+      <div class="nav-links">
+        <!-- My Listings Dropdown -->
+        <div class="nav-item dropdown" (click)="toggleDropdown('listings')">
+          <button class="nav-link" [class.active]="currentSection === 'listings'">
+            <i class="fas fa-home"></i>
+            My Listings
+            <i class="fas fa-chevron-down"></i>
+          </button>
+          <div class="dropdown-menu" [class.show]="isListingsDropdownOpen">
+            <a class="dropdown-item" (click)="setCurrentSection('active-listings')">
+              <i class="fas fa-check-circle"></i> Active
+            </a>
+            <a class="dropdown-item" (click)="setCurrentSection('pending-listings')">
+              <i class="fas fa-clock"></i> Pending
+            </a>
+          </div>
+        </div>
+
+        <!-- Bookings Dropdown -->
+        <div class="nav-item dropdown" (click)="toggleDropdown('bookings')">
+          <button class="nav-link" [class.active]="currentSection === 'bookings'">
+            <i class="fas fa-calendar-alt"></i>
+            Bookings
+            <i class="fas fa-chevron-down"></i>
+          </button>
+          <div class="dropdown-menu" [class.show]="isBookingsDropdownOpen">
+            <a class="dropdown-item" (click)="setCurrentSection('pending-bookings')">
+              <i class="fas fa-clock"></i> Pending
+            </a>
+            <a class="dropdown-item" (click)="setCurrentSection('current-bookings')">
+              <i class="fas fa-calendar-check"></i> Current
+            </a>
+            <a class="dropdown-item" (click)="setCurrentSection('upcoming-bookings')">
+              <i class="fas fa-calendar-plus"></i> Upcoming
+            </a>
+            <a class="dropdown-item" (click)="setCurrentSection('past-bookings')">
+              <i class="fas fa-history"></i> Past
+            </a>
+          </div>
+        </div>
+
+        <!-- Earnings -->
+        <div class="nav-item">
+          <button class="nav-link" (click)="setCurrentSection('earnings')" [class.active]="currentSection === 'earnings'">
+            <i class="fas fa-dollar-sign"></i>
+            Earnings
+          </button>
+        </div>
+
+        <!-- Account -->
+        <!-- <div class="nav-item">
+          <button class="nav-link" (click)="setCurrentSection('account')" [class.active]="currentSection === 'account'">
+            <i class="fas fa-user-circle"></i>
+            Account
+          </button>
+        </div> -->
+      </div>
+
+      <!-- User Profile with Dropdown -->
+      <div class="nav-item dropdown">
+        <div class="user-profile" data-bs-toggle="dropdown">
+          <span class="material-icons profile-icon">person</span>
+          <span class="user-name">{{userName}}</span>
+        </div>
+        <ul class="dropdown-menu dropdown-menu-end">
+          <li>
+            <button class="dropdown-item" (click)="goToUserProfile()">
+              <span class="material-icons me-2">account_circle</span>Account
+            </button>
+          </li>
+          <li>
+            <button class="dropdown-item text-danger" (click)="logout()">
+              <span class="material-icons me-2">logout</span>Logout
+            </button>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content Area -->
+  <div class="main-content">
+    <!-- My Listings Section -->
+    <div *ngIf="currentSection === 'active-listings'" class="content-section">
+      <app-host-properties [status]="'active'"></app-host-properties>
+    </div>
+
+    <div *ngIf="currentSection === 'pending-listings'" class="content-section">
+      <app-host-properties [status]="'pending'"></app-host-properties>
+    </div>
+
+    <!-- Bookings Section -->
+    <div *ngIf="currentSection === 'pending-bookings'" class="content-section">
+      <h2>Pending Bookings</h2>
+      <!-- Add pending bookings component here -->
+    </div>
+
+    <div *ngIf="currentSection === 'current-bookings'" class="content-section">
+      <h2>Current Bookings</h2>
+      <!-- Add current bookings component here -->
+    </div>
+
+    <div *ngIf="currentSection === 'upcoming-bookings'" class="content-section">
+      <h2>Upcoming Bookings</h2>
+      <!-- Add upcoming bookings component here -->
+    </div>
+
+    <div *ngIf="currentSection === 'past-bookings'" class="content-section">
+      <h2>Past Bookings</h2>
+      <!-- Add past bookings component here -->
+    </div>
+
+    <!-- Earnings Section -->
+    <div *ngIf="currentSection === 'earnings'" class="content-section">
+      <h2>Earnings Overview</h2>
+      <!-- Add earnings component here -->
+    </div>
+
+    <!-- Account Section -->
+    <div *ngIf="currentSection === 'account'" class="content-section">
+      <h2>Account Settings</h2>
+      <!-- Add account settings component here -->
+    </div>
+  </div>
+</div> 

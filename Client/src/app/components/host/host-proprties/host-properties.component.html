@@ -1,15 +1,4 @@
 <!-- Header -->
-<div class="container-fluid py-4 border-bottom">
-  <div class="container">
-    <div class="d-flex justify-content-between align-items-center">
-      <h1 class="h3 mb-0">Your listings</h1>
-      <button class="btn btn-dark" routerLink="/host/properties/new">
-        <i class="bi bi-plus-lg me-2"></i>Create new listing
-      </button>
-    </div>
-  </div>
-</div>
-
 <!-- Main Content -->
 <div class="container py-4">
   <!-- Loading State -->
@@ -25,64 +14,83 @@
   </div>
 
   <!-- No Properties State -->
-  <div *ngIf="!loading && !error && properties.length === 0" class="text-center py-5">
-    <i class="bi bi-house-door display-1 text-muted"></i>
-    <h2 class="h4 mt-3">No listings yet</h2>
-    <p class="text-muted">Start creating your first property listing</p>
-    <button class="btn btn-primary mt-3" routerLink="/host/properties/new">
-      Create your first listing
-    </button>
+  <div *ngIf="!loading && !error && filteredProperties.length === 0" class="empty-state">
+    <div class="empty-state-content">
+      <!-- Empty State for Active Properties -->
+      <div *ngIf="status === 'active'">
+        <i class="bi bi-house-door display-1"></i>
+        <h2>No listings yet</h2>
+        <p>Start creating your first property listing</p>
+        <button class="btn btn-primary mt-3" routerLink="/host/properties/new">
+          Create your first listing
+        </button>
+      </div>
+
+      <!-- Empty State for Pending Properties -->
+      <div *ngIf="status === 'pending'">
+        <i class="bi bi-clock-history display-1"></i>
+        <h2>No pending listings</h2>
+        <p>No properties pending approval</p>
+      </div>
+    </div>
   </div>
 
   <!-- Properties Grid -->
-  <div *ngIf="!loading && !error && properties.length > 0" class="row g-4">
-    <div *ngFor="let property of properties" class="col-12 col-md-6 col-lg-4">
-      <div class="card h-100 border-0 shadow-sm">
-        <!-- Property Image -->
-        <div class="position-relative">
-          <img [src]="property.images[0]?.imageUrl || 'assets/placeholder.jpg'" 
-               class="card-img-top" 
-               alt="{{ property.title }}"
-               style="height: 200px; object-fit: cover;">
-          <div class="position-absolute top-0 end-0 p-2">
-            <div class="dropdown">
-              <button class="btn btn-light rounded-circle" type="button" data-bs-toggle="dropdown">
-                <i class="bi bi-three-dots"></i>
-              </button>
-              <ul class="dropdown-menu">
-                <li><button class="dropdown-item" (click)="editProperty(property.id)">Edit</button></li>
-                <li><button class="dropdown-item text-danger" (click)="deleteProperty(property.id)">Delete</button></li>
-              </ul>
-            </div>
-          </div>
-        </div>
+  <div *ngIf="!loading && !error && filteredProperties.length > 0" class="property-grid">
+    <div *ngFor="let property of filteredProperties" class="property-card">
+      <!-- Image Container -->
+      <div class="image-container">
+        <img [src]="getPropertyImage(property)" 
+             [alt]="property?.title || 'Property Image'"
+             class="property-image"
+             (error)="handleImageError(property)">
         
-        <!-- Property Details -->
-        <div class="card-body">
-          <h5 class="card-title mb-1">{{ property.title }}</h5>
-          <p class="text-muted small mb-2">{{ property.city }}, {{ property.country }}</p>
-          
-          <!-- Property Stats -->
-          <div class="d-flex gap-3 mb-3">
-            <span class="text-muted small">
-              <i class="bi bi-door-closed me-1"></i>{{ property.bedrooms }} bedrooms
-            </span>
-            <span class="text-muted small">
-              <i class="bi bi-people me-1"></i>{{ property.maxGuests }} guests
-            </span>
-          </div>
-          
-          <!-- Price -->
-          <div class="d-flex justify-content-between align-items-center">
-            <div>
-              <span class="h5 mb-0">${{ property.pricePerNight }}</span>
-              <span class="text-muted">/night</span>
-            </div>
-            <span [class]="'badge ' + (property.status === 'Active' ? 'bg-success' : 'bg-warning')">
-              {{ property.status }}
-            </span>
-          </div>
+        <!-- Navigation Arrows -->
+        <button class="arrow left-arrow" 
+             (click)="prevImage(property.id, $event)"
+             *ngIf="(property?.images?.length ?? 0) > 1">
+          <span class="material-icons">chevron_left</span>
+        </button>
+        <button class="arrow right-arrow" 
+             (click)="nextImage(property.id, $event)"
+             *ngIf="(property?.images?.length ?? 0) > 1">
+          <span class="material-icons">chevron_right</span>
+        </button>
+
+        <!-- Status Badge -->
+        <div class="status-badge" [class.status-pending]="property.status === 'Pending'">
+          {{ property.status }}
         </div>
+
+        <!-- Property Actions -->
+        <div class="dropdown position-absolute" style="top: 15px; right: 15px; z-index: 2;">
+          <button class="btn btn-light" type="button" data-bs-toggle="dropdown">
+            <span class="material-icons">more_horiz</span>
+          </button>
+          <ul class="dropdown-menu">
+            <li>
+              <button class="dropdown-item" (click)="editProperty(property.id)">
+                <span class="material-icons me-2">edit</span>Edit
+              </button>
+            </li>
+            <li>
+              <button class="dropdown-item text-danger" (click)="deleteProperty(property.id)">
+                <span class="material-icons me-2">delete</span>Delete
+              </button>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Image Dots -->
+        <div class="image-dots" *ngIf="(property?.images?.length ?? 0) > 1">
+          <span *ngFor="let image of property?.images ?? []; let i = index"
+                [class.active]="i === (currentImageIndices[property?.id ?? 0] ?? 0)"></span>
+        </div>
+      </div>
+      
+      <!-- Property Info -->
+      <div class="property-info">
+        <h3 class="property-title">{{ property?.title || 'Untitled Property' }}</h3>
       </div>
     </div>
   </div>

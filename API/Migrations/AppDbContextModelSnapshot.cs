@@ -856,9 +856,6 @@ namespace API.Migrations
                         .HasColumnName("created_at")
                         .HasDefaultValueSql("SYSDATETIME()");
 
-                    b.Property<int?>("PropertyId")
-                        .HasColumnType("int");
-
                     b.Property<int>("Rating")
                         .HasColumnType("int")
                         .HasColumnName("rating");
@@ -875,8 +872,6 @@ namespace API.Migrations
 
                     b.HasIndex("BookingId")
                         .IsUnique();
-
-                    b.HasIndex("PropertyId");
 
                     b.HasIndex("ReviewerId");
 
@@ -1321,10 +1316,6 @@ namespace API.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("API.Models.Property", null)
-                        .WithMany("Reviews")
-                        .HasForeignKey("PropertyId");
-
                     b.HasOne("API.Models.User", "Reviewer")
                         .WithMany("Reviews")
                         .HasForeignKey("ReviewerId")
@@ -1420,8 +1411,6 @@ namespace API.Migrations
                     b.Navigation("Favourites");
 
                     b.Navigation("PropertyImages");
-
-                    b.Navigation("Reviews");
                 });
 
             modelBuilder.Entity("API.Models.PropertyCategory", b =>

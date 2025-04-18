@@ -14,6 +14,7 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatCardModule } from '@angular/material/card';
 import { finalize } from 'rxjs/operators';
 import { StickyNavComponent } from '../sticky-nav/sticky-nav.component';
+import { SearchBarComponent } from '../search-bar/search-bar.component';
 
 @Component({
   selector: 'app-property-listings',
@@ -28,7 +29,8 @@ import { StickyNavComponent } from '../sticky-nav/sticky-nav.component';
     HttpClientModule,
     ImageUploadComponent,
     MatSnackBarModule,
-    MatCardModule
+    MatCardModule,
+    SearchBarComponent
   ],
   templateUrl: './property-listing.component.html',
   styleUrls: ['./property-listing.component.css']
@@ -40,6 +42,7 @@ export class PropertyListingsComponent implements OnInit {
   selectedPropertyId: number | null = null;
   isLoading: boolean = true;
   activeFilter: string = 'All homes';
+  isSearching: boolean = false;
 
   constructor(
     private router: Router,
@@ -54,6 +57,7 @@ export class PropertyListingsComponent implements OnInit {
 
   fetchProperties() {
     this.isLoading = true;
+    this.isSearching = false;
     this.propertyService.getProperties()
       .pipe(
         finalize(() => {
@@ -62,10 +66,10 @@ export class PropertyListingsComponent implements OnInit {
       )
       .subscribe({
         next: (properties) => {
+          console.log('Fetched all properties:', properties);
           this.properties = properties;
           this.properties.forEach(property => {
             this.currentImageIndices[property.id] = 0;
-            console.log(`Property ${property.id} images:`, property.images);
           });
         },
         error: (error) => {
@@ -81,10 +85,31 @@ export class PropertyListingsComponent implements OnInit {
       });
   }
 
-  applyFilter(filter: string) {
-    this.activeFilter = filter;
-    // In a real implementation, this would filter the properties based on the selected filter
-    // For now, we'll just show all properties
+  onSearch(searchParams: any) {
+    console.log('Search params received:', searchParams);
+    this.isLoading = true;
+    this.isSearching = true;
+
+    this.propertyService.searchProperties({
+      country: searchParams.destination,
+      startDate: searchParams.checkIn,
+      endDate: searchParams.checkOut,
+      maxGuests: searchParams.guests.adults + searchParams.guests.children
+    }).subscribe({
+      next: (properties) => {
+        console.log('Search results:', properties);
+        this.properties = properties;
+        this.properties.forEach(property => {
+          this.currentImageIndices[property.id] = 0;
+        });
+        this.isLoading = false;
+      },
+      error: (error) => {
+        console.error('Search failed:', error);
+        this.showError('Failed to search properties');
+        this.isLoading = false;
+      }
+    });
   }
 
   showError(message: string) {
@@ -111,7 +136,6 @@ export class PropertyListingsComponent implements OnInit {
     if (property.images && property.images.length > currentIndex + 1) {
       this.currentImageIndices[property.id] = currentIndex + 1;
     } else {
-      // Use a placeholder if all images fail
       property.images = [{ 
         id: 0, 
         imageUrl: 'assets/images/property-placeholder.jpg', 
@@ -168,22 +192,9 @@ export class PropertyListingsComponent implements OnInit {
     localStorage.setItem('favorites', JSON.stringify(Array.from(this.favorites)));
   }
 
-  generateRandomWeeks(): number {
-    // Random number between 1 and 8
-    return Math.floor(Math.random() * 8) + 1;
-  }
-
-  generateRandomMonth(): string {
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    // Random month
-    return months[Math.floor(Math.random() * months.length)];
-  }
-
-  generateRandomDateRange(): string {
-    // Generate random start day between 1 and 25
-    const startDay = Math.floor(Math.random() * 25) + 1;
-    // End day is start day + random number between 3 and 7
-    const endDay = startDay + Math.floor(Math.random() * 5) + 3;
-    return `${startDay}-${endDay}`;
+  clearSearch() {
+    if (this.isSearching) {
+      this.fetchProperties();
+    }
   }
 }

@@ -20,6 +20,7 @@ export interface PropertyDto {
   description: string;
   propertyType: string;
   address: string;
+  categoryId: number;
   city: string;
   country?: string;  // Made optional
   latitude?: number;
@@ -48,6 +49,8 @@ export interface PropertyDto {
   // UI-only fields
   viewCount?: number;
   dates?: string;
+  currentImageIndex?: number; // Optional property for carousel functionality
+  instantBook?: boolean; // Added instantBook property
 }
 
 export interface PropertyCategory {

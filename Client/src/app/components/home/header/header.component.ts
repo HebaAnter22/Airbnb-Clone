@@ -3,10 +3,11 @@ import { Component, HostListener, Output, EventEmitter } from '@angular/core';
 import { SearchBarComponent } from '../search-bar/search-bar.component';
 import { NavbarComponent } from '../navbar/navbar.component';
 import { Route } from '@angular/router';
+
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [SearchBarComponent,NavbarComponent],
+  imports: [SearchBarComponent, NavbarComponent],
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.css']
 })
@@ -16,6 +17,7 @@ export class HeaderComponent {
   isScrolled: boolean = false;
 
   @Output() scrollStateChanged = new EventEmitter<boolean>();
+  @Output() searchPerformed = new EventEmitter<any>();
 
   @HostListener('window:scroll', ['$event'])
   onScroll() {
@@ -46,6 +48,11 @@ export class HeaderComponent {
     console.log('Closing modal');
     this.isSearchModalOpen = false;
     this.modalMode = null;
+  }
+
+  onSearch(searchParams: any) {
+    console.log('Search params in header:', searchParams);
+    this.searchPerformed.emit(searchParams);
   }
 
   dropdownClicked() {

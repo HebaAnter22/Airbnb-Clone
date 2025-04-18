@@ -407,6 +407,7 @@ coHosts = [
         if (this.property.images && this.property.images.length > 0) {
           // Find primary image or use first one
           const primaryImage = this.property.images.find((img: any) => img.isPrimary);
+          console.log("ourlog",this.property.images)
           this.mainImage = primaryImage ?
             this.getFullImageUrl(primaryImage.imageUrl) :
             this.getFullImageUrl(this.property.images[0].imageUrl);
@@ -536,13 +537,15 @@ coHosts = [
   
   
   getFullImageUrl(imageUrl: string): string {
+    console.log('imageUrl:', imageUrl);
     // Check if the URL is already absolute
-    if (imageUrl.startsWith('http')) {
+    // if (imageUrl.startsWith('http')) {
       return imageUrl;
-    }
+      
+    // }
    
     // Otherwise, prepend the base URL
-    return `https://localhost:7228${imageUrl}`;
+    // return `https://localhost:7228${imageUrl}`;
   }
  
   reserve(): void {

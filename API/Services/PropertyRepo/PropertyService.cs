@@ -21,15 +21,8 @@ namespace API.Services
             _mapper = mapper;
             _environment = environment;
         }
-
         public async Task<PropertyDto> AddPropertyAsync(PropertyCreateDto propertyDto, int hostId)
         {
-            // Log input data
-            Console.WriteLine($"Starting AddPropertyAsync. Host ID: {hostId}");
-            Console.WriteLine($"Property details: Title='{propertyDto.Title}', CategoryId={propertyDto.CategoryId}, PropertyType='{propertyDto.PropertyType}'");
-            Console.WriteLine($"Location: {propertyDto.Address}, {propertyDto.City}, {propertyDto.Country}");
-            Console.WriteLine($"Images count: {propertyDto.Images?.Count ?? 0}");
-
             if (propertyDto.Images != null && propertyDto.Images.Any())
             {
                 Console.WriteLine("Image URLs to process:");
@@ -45,7 +38,6 @@ namespace API.Services
                 throw new ArgumentException("MinNights cannot be greater than MaxNights.");
             }
 
-
             var hostExists = await _context.Users.AnyAsync(u => u.Id == hostId && u.Role == "host");
             if (!hostExists)
             {
@@ -53,7 +45,6 @@ namespace API.Services
             }
 
             // Check if category exists
-            Console.WriteLine($"Looking for category with ID: {propertyDto.CategoryId}");
             var categoryExists = await _context.PropertyCategories.AnyAsync(c => c.CategoryId == propertyDto.CategoryId);
             if (!categoryExists)
             {
@@ -61,31 +52,23 @@ namespace API.Services
 
                 // List available categories for debugging
                 var categories = await _context.PropertyCategories.Select(c => new { c.CategoryId, c.Name }).ToListAsync();
-                Console.WriteLine($"Available categories: {string.Join(", ", categories.Select(c => $"{c.CategoryId}: {c.Name}"))}");
-
                 throw new ArgumentException($"Category with ID {propertyDto.CategoryId} does not exist.");
             }
-
-            Console.WriteLine($"Category with ID {propertyDto.CategoryId} found. Proceeding with property creation.");
 
             // Check if cancellation policy exists
             if (propertyDto.CancellationPolicyId.HasValue && propertyDto.CancellationPolicyId.Value > 0)
             {
-                Console.WriteLine($"Looking for cancellation policy with ID: {propertyDto.CancellationPolicyId}");
                 var policyExists = await _context.CancellationPolicies.AnyAsync(c => c.Id == propertyDto.CancellationPolicyId);
                 if (!policyExists)
                 {
-                    Console.WriteLine($"Cancellation policy with ID {propertyDto.CancellationPolicyId} does not exist");
                     // Get default policy ID
                     var defaultPolicy = await _context.CancellationPolicies.FirstOrDefaultAsync();
                     if (defaultPolicy != null)
                     {
-                        Console.WriteLine($"Using default cancellation policy with ID: {defaultPolicy.Id}");
                         propertyDto.CancellationPolicyId = defaultPolicy.Id;
                     }
                     else
                     {
-                        Console.WriteLine("No cancellation policies found in the database");
                         throw new ArgumentException("No cancellation policies available. Please create at least one cancellation policy.");
                     }
                 }
@@ -96,12 +79,10 @@ namespace API.Services
                 var defaultPolicy = await _context.CancellationPolicies.FirstOrDefaultAsync();
                 if (defaultPolicy != null)
                 {
-                    Console.WriteLine($"Using default cancellation policy with ID: {defaultPolicy.Id}");
                     propertyDto.CancellationPolicyId = defaultPolicy.Id;
                 }
                 else
                 {
-                    Console.WriteLine("No cancellation policies found in the database");
                     throw new ArgumentException("No cancellation policies available. Please create at least one cancellation policy.");
                 }
             }
@@ -111,11 +92,25 @@ namespace API.Services
 
             try
             {
+                // Create the property entity
                 var property = _mapper.Map<Property>(propertyDto);
                 property.HostId = hostId;
                 property.CreatedAt = DateTime.UtcNow;
                 property.UpdatedAt = DateTime.UtcNow;
-                property.Status = "Active";
+                property.Status = "Pending";
+
+                // Add amenities to the property
+                if (propertyDto.Amenities != null && propertyDto.Amenities.Any())
+                {
+                    var amenities = await _context.Amenities
+                        .Where(a => propertyDto.Amenities.Contains(a.Id))
+                        .ToListAsync();
+
+                    foreach (var amenity in amenities)
+                    {
+                        property.Amenities.Add(amenity);
+                    }
+                }
 
                 // Add property to context but don't save yet
                 _context.Properties.Add(property);
@@ -136,18 +131,16 @@ namespace API.Services
 
                 // Populate PropertyAvailability based on MinNights and MaxNights
                 var availabilities = new List<PropertyAvailability>();
-                var startDate = DateTime.UtcNow.Date; 
-                var endDate = startDate.AddDays(property.MaxNights); 
+                var startDate = DateTime.UtcNow.Date;
+                var endDate = startDate.AddDays(property.MaxNights);
 
                 for (var date = startDate; date <= endDate; date = date.AddDays(1))
                 {
-                    //bool isAvailable = date >= startDate.AddDays(property.MinNights - 1);
                     availabilities.Add(new PropertyAvailability
                     {
                         PropertyId = property.Id,
                         Date = date,
                         IsAvailable = true,
-                        //BlockedReason = isAvailable ? null : "Minimum stay requirement not met",
                         BlockedReason = null,
                         Price = property.PricePerNight
                     });
@@ -155,7 +148,6 @@ namespace API.Services
 
                 await _context.PropertyAvailabilities.AddRangeAsync(availabilities);
                 await _context.SaveChangesAsync();
-
 
                 // After property is saved, get the ID and process images
                 if (propertyDto.Images != null && propertyDto.Images.Any())
@@ -195,10 +187,10 @@ namespace API.Services
                             string sourcePath = null;
                             var possiblePaths = new[]
                             {
-                                Path.Combine(_environment.WebRootPath, "uploads", "properties", fileName),
-                                Path.Combine(_environment.WebRootPath, imagePath.TrimStart('/')),
-                                Path.Combine(_environment.WebRootPath, "uploads", "temp", fileName)
-                            };
+                        Path.Combine(_environment.WebRootPath, "uploads", "properties", fileName),
+                        Path.Combine(_environment.WebRootPath, imagePath.TrimStart('/')),
+                        Path.Combine(_environment.WebRootPath, "uploads", "temp", fileName)
+                    };
 
                             foreach (var path in possiblePaths)
                             {
@@ -333,9 +325,10 @@ namespace API.Services
                 // Commit the transaction
                 await transaction.CommitAsync();
 
-                // Reload the property with images to return
+                // Reload the property with images and amenities to return
                 var result = await _context.Properties
                     .Include(p => p.PropertyImages)
+                    .Include(p => p.Amenities)  // Include amenities in the result
                     .FirstOrDefaultAsync(p => p.Id == property.Id);
 
                 return _mapper.Map<PropertyDto>(result);
@@ -344,11 +337,9 @@ namespace API.Services
             {
                 // Rollback on any error
                 await transaction.RollbackAsync();
-                Console.WriteLine($"Error saving property: {ex.Message}");
                 throw new Exception("Error saving property to the database.", ex);
             }
         }
-
         public async Task<PropertyDto> EditPropertyAsync(int propertyId, PropertyUpdateDto updatedPropertyDto, int hostId)
         {
             try
@@ -421,7 +412,8 @@ namespace API.Services
                 
                 if (updatedPropertyDto.PropertyType != null)
                     property.PropertyType = updatedPropertyDto.PropertyType;
-                
+             
+
                 if (updatedPropertyDto.Country != null)
                     property.Country = updatedPropertyDto.Country;
                 
@@ -563,6 +555,7 @@ namespace API.Services
             var property = await _context.Properties
                 .Where(p => p.Id == propertyId && p.Status == "Active")
                 .Include(p => p.PropertyImages)
+                .Include(p => p.Category)
                 .Include(p => p.Amenities)
                 .Include(p => p.Host)
                     .ThenInclude(h => h.User)
@@ -581,7 +574,8 @@ namespace API.Services
         public async Task<List<PropertyDto>> GetHostPropertiesAsync(int hostId)
         {
             var properties = await _context.Properties
-                .Where(p => p.Status == "Active" && p.HostId == hostId)
+                .Where(p => p.HostId == hostId)
+                .Include(p => p.Category)
                 .Include(p => p.PropertyImages)
                 .Include(p => p.Amenities)
                 .Include(p => p.Host)
@@ -597,6 +591,7 @@ namespace API.Services
         {
             var properties = await _context.Properties
                 .Where(p => p.Status == "Active")
+                .Include(p => p.Category)
                 .Include(p => p.PropertyImages)
                 .Include(p => p.Amenities)
                 .Include(p => p.Host)

@@ -1,0 +1,167 @@
+<div class="admin-container">
+  <!-- Sidebar Toggle Button -->
+  <div class="sidebar-toggle" (click)="toggleSidebar()">
+    <i class="fas" [class.fa-bars]="isSidebarCollapsed" [class.fa-times]="!isSidebarCollapsed"></i>
+  </div>
+
+  <!-- Sidebar -->
+  <div class="sidebar" [class.collapsed]="isSidebarCollapsed">
+    <!-- Logo Section -->
+    <div class="admin-profile">
+        <!-- <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="airbnb-icon">
+            <path fill="#FF5A5F" d="M224 373.1c-25.2-31.7-40.1-59.4-45-83.2-22.6-88 112.6-88 90.1 0-5.5 24.3-20.3 52-45 83.2zm138.2 73.2c-42.1 18.3-83.7-10.9-119.3-50.5 103.9-130.1 46.1-200-18.9-200-54.9 0-85.2 46.5-73.3 100.5 6.9 29.2 25.2 62.4 54.4 99.5-32.5 36.1-60.6 52.7-85.2 54.9-50 7.4-89.1-41.1-71.3-91.1 15.1-39.2 111.7-231.2 115.9-241.6 15.8-30.1 25.6-57.4 59.4-57.4 32.3 0 43.4 25.9 60.4 59.9 36 70.6 89.4 177.5 114.8 239.1 13.2 33.1-1.4 71.3-37 86.6z"/>
+        </svg>
+  -->
+      <img [src]="adminPicture" alt="Admin Profile" class="admin-avatar" *ngIf="!isSidebarCollapsed">
+      <h5 class="admin-name" *ngIf="!isSidebarCollapsed">{{adminName}}</h5>
+    </div>
+
+    <nav class="sidebar-nav">
+      <!-- Hosts Section -->
+      <div class="nav-section">
+        <div class="nav-item" (click)="toggleHostSection()" [class.active]="isHostDropdownOpen || currentSection.startsWith('all-hosts') || currentSection.startsWith('verified-hosts') || currentSection.startsWith('unverified-hosts') || currentSection.startsWith('host-reports')" data-tooltip="Hosts">
+          <i class="fas fa-users"></i>
+          <span *ngIf="!isSidebarCollapsed">Hosts</span>
+          <i class="fas" [class.fa-chevron-down]="!isHostDropdownOpen" [class.fa-chevron-up]="isHostDropdownOpen" style="margin-left: auto;" *ngIf="!isSidebarCollapsed"></i>
+        </div>
+        <div class="nav-submenu" [class.show]="isHostDropdownOpen && !isSidebarCollapsed">
+          <div class="nav-item" (click)="setCurrentSection('all-hosts')" [class.active]="currentSection === 'all-hosts'" data-tooltip="All Hosts">
+            <i class="fas fa-list"></i>
+            <span *ngIf="!isSidebarCollapsed">All Hosts</span>
+          </div>
+          <div class="nav-item" (click)="setCurrentSection('verified-hosts')" [class.active]="currentSection === 'verified-hosts'" data-tooltip="Verified Hosts">
+            <i class="fas fa-check-circle"></i>
+            <span *ngIf="!isSidebarCollapsed">Verified Hosts</span>
+          </div>
+          <div class="nav-item" (click)="setCurrentSection('unverified-hosts')" [class.active]="currentSection === 'unverified-hosts'" data-tooltip="Unverified Hosts">
+            <i class="fas fa-exclamation-circle"></i>
+            <span *ngIf="!isSidebarCollapsed">Unverified Hosts</span>
+          </div>
+          <div class="nav-item" (click)="setCurrentSection('host-reports')" [class.active]="currentSection === 'host-reports'" data-tooltip="Host Reports">
+            <i class="fas fa-flag"></i>
+            <span *ngIf="!isSidebarCollapsed">Reports</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Properties Section -->
+      <div class="nav-section">
+        <div class="nav-item" (click)="togglePropertySection()" [class.active]="isPropertyDropdownOpen || currentSection.startsWith('all-properties') || currentSection.startsWith('unverified-properties') || currentSection.startsWith('verified-properties')" data-tooltip="Properties">
+          <i class="fas fa-home"></i>
+          <span *ngIf="!isSidebarCollapsed">Properties</span>
+          <i class="fas" [class.fa-chevron-down]="!isPropertyDropdownOpen" [class.fa-chevron-up]="isPropertyDropdownOpen" style="margin-left: auto;" *ngIf="!isSidebarCollapsed"></i>
+        </div>
+        <div class="nav-submenu" [class.show]="isPropertyDropdownOpen && !isSidebarCollapsed">
+          <div class="nav-item" (click)="setCurrentSection('all-properties')" [class.active]="currentSection === 'all-properties'" data-tooltip="All Properties">
+            <i class="fas fa-list"></i>
+            <span *ngIf="!isSidebarCollapsed">All Properties</span>
+          </div>
+          <div class="nav-item" (click)="setCurrentSection('unverified-properties')" [class.active]="currentSection === 'unverified-properties'" data-tooltip="Unverified Properties">
+            <i class="fas fa-exclamation-circle"></i>
+            <span *ngIf="!isSidebarCollapsed">Unverified</span>
+          </div>
+          <div class="nav-item" (click)="setCurrentSection('verified-properties')" [class.active]="currentSection === 'verified-properties'" data-tooltip="Verified Properties">
+            <i class="fas fa-check-circle"></i>
+            <span *ngIf="!isSidebarCollapsed">Verified</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Guests Section -->
+      <div class="nav-item" (click)="setCurrentSection('guests')" [class.active]="currentSection === 'guests'" data-tooltip="Guests">
+        <i class="fas fa-user-friends"></i>
+        <span *ngIf="!isSidebarCollapsed">Guests</span>
+      </div>
+
+      <!-- Analytics Section -->
+      <div class="nav-item" (click)="setCurrentSection('analytics')" [class.active]="currentSection === 'analytics'" data-tooltip="Analytics">
+        <i class="fas fa-chart-bar"></i>
+        <span *ngIf="!isSidebarCollapsed">Analytics</span>
+      </div>
+
+      <!-- Account Details -->
+      <div class="nav-item" (click)="setCurrentSection('account')" [class.active]="currentSection === 'account'" data-tooltip="Account Details">
+        <i class="fas fa-user-circle"></i>
+        <span *ngIf="!isSidebarCollapsed">Account Details</span>
+      </div>
+
+      <!-- Settings -->
+      <div class="nav-item" (click)="setCurrentSection('settings')" [class.active]="currentSection === 'settings'" data-tooltip="Settings">
+        <i class="fas fa-cog"></i>
+        <span *ngIf="!isSidebarCollapsed">Settings</span>
+      </div>
+    </nav>
+
+    <!-- Logout Button -->
+    <div class="logout-section">
+      <button class="logout-button" (click)="logout()">
+        <i class="fas fa-sign-out-alt"></i>
+        <span *ngIf="!isSidebarCollapsed">Logout</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content" [class.expanded]="isSidebarCollapsed">
+    <!-- Host Management -->
+    <div *ngIf="currentSection === 'all-hosts'" class="content-section">
+      <h2>All Hosts</h2>
+      <!-- Add host list component here -->
+    </div>
+
+    <div *ngIf="currentSection === 'verified-hosts'" class="content-section">
+      <h2>Verified Hosts</h2>
+      <!-- Add verified hosts component here -->
+    </div>
+
+    <div *ngIf="currentSection === 'unverified-hosts'" class="content-section">
+      <h2>Unverified Hosts</h2>
+      <!-- Add unverified hosts component here -->
+    </div>
+
+    <div *ngIf="currentSection === 'host-reports'" class="content-section">
+      <h2>Host Reports</h2>
+      <!-- Add reports component here -->
+    </div>
+
+    <!-- Property Management -->
+    <div *ngIf="currentSection === 'all-properties'" class="content-section">
+      <h2>All Properties</h2>
+      <!-- Add property list component here -->
+    </div>
+
+    <div *ngIf="currentSection === 'unverified-properties'" class="content-section">
+      <h2>Unverified Properties</h2>
+      <!-- Add unverified properties component here -->
+    </div>
+
+    <div *ngIf="currentSection === 'verified-properties'" class="content-section">
+      <h2>Verified Properties</h2>
+      <!-- Add verified properties component here -->
+    </div>
+
+    <!-- Guests Management -->
+    <div *ngIf="currentSection === 'guests'" class="content-section">
+      <h2>Guest Management</h2>
+      <!-- Add guest management component here -->
+    </div>
+
+    <!-- Analytics -->
+    <div *ngIf="currentSection === 'analytics'" class="content-section">
+      <h2>Analytics Dashboard</h2>
+      <!-- Add analytics components here -->
+    </div>
+
+    <!-- Account Details -->
+    <div *ngIf="currentSection === 'account'" class="content-section">
+      <app-profile></app-profile>
+      <!-- Add account details component here -->
+    </div>
+
+    <!-- Settings -->
+    <div *ngIf="currentSection === 'settings'" class="content-section">
+      <h2>Settings</h2>
+      <!-- Add settings component here -->
+    </div>
+  </div>
+</div> 
