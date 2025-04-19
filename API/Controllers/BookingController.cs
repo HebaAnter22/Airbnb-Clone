@@ -312,7 +312,7 @@ namespace API.Controllers
 
 
         [HttpPost]
-        [Authorize(Roles = "guest")]
+        [Authorize(Roles = "Guest")]
         public async Task<IActionResult> CreateBooking([FromBody] BookingInputDTO input)
         {
             if (!ModelState.IsValid)

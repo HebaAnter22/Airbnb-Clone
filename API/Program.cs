@@ -17,6 +17,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Microsoft.Extensions.FileProviders;
+using API.Services.AdminRepo;
+using API.Services.HostVerificationRepo;
 
 namespace API
 {
@@ -116,6 +118,12 @@ namespace API
             builder.Services.AddScoped<IPropertyService, PropertyService>();
             builder.Services.AddScoped<IPropertyCategoryService, PropertyCategoryService>();
             builder.Services.AddScoped<IPromotionRepository, PromotionRepository>();
+
+
+            builder.Services.AddScoped<IBookingRepository, BookingRepository>();
+            builder.Services.AddScoped<IPropertyAvailabilityRepository, PropertyAvailabilityRepository>();
+            builder.Services.AddScoped<IAdminRepository, AdminRepository>();
+            builder.Services.AddScoped<IHostVerificationRepository, HostVerificationRepository>();
 
 
 

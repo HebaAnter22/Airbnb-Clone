@@ -26,5 +26,7 @@ namespace API.Services.BookingRepo
         //Task<Property> GetPropertyWithDetailsAsync(int propertyId);
 
         Task<Promotion> GetPromotionByIdAsync(int promotionId);
+        Task<decimal> GetTotalIncomeForHostAsync(int hostId);
+        Task<decimal> GetTotalSpentByGuestAsync(int guestId);
     }
 }
