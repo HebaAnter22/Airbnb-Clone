@@ -5,8 +5,12 @@ namespace API.Services.HostVerificationRepo
 {
     public interface IHostVerificationRepository : IGenericRepository<HostVerification>
     {
+        Task<IEnumerable<HostVerification>> GetAllVerificationsAsync();
         Task<HostVerification> GetVerificationByIdAsync(int verificationId);
         Task<bool> UpdateVerificationStatusAsync(int verificationId, string newStatus);
+        Task<HostVerification> CreateVerificationWithImagesAsync(int hostId, List<IFormFile> files);
+
+
     }
 
 }

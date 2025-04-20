@@ -66,8 +66,8 @@ namespace API.Services.AdminRepo
         public async Task<IEnumerable<User>> GetAllHostsAsync()
         {
             return await _context.Users
-                .Include(u => u.Host).ThenInclude(h => h.Properties).Include(h=>h.Bookings)
-                .Where(u => u.Role == UserRole.Host.ToString()) 
+                .Include(u => u.Host).ThenInclude(h => h.Properties).ThenInclude(p => p.Bookings).ThenInclude(b => b.Review)
+                .Where(u => u.Role == UserRole.Host.ToString())
                 .ToListAsync();
         }
 
@@ -85,11 +85,35 @@ namespace API.Services.AdminRepo
 
         public async Task<bool> ApprovePropertyAsync(int propertyId, bool isApproved)
         {
+            try
+            {
+                var property = await _context.Properties.FindAsync(propertyId);
+                if (property == null)
+                {
+                    Console.WriteLine($"Property with ID {propertyId} not found.");
+                    return false;
+                }
+
+                property.Status = isApproved ? "Active" : "Rejected";
+                _context.Properties.Update(property);
+                await _context.SaveChangesAsync();
+                Console.WriteLine($"Property with ID {propertyId} updated to status: {property.Status}");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in ApprovePropertyAsync: {ex.Message}");
+                throw;
+            }
+        }
+
+        public async Task<bool> SuspendPropertyAsync(int propertyId, bool isSuspended)
+        {
             var property = await _context.Properties.FindAsync(propertyId);
             if (property == null)
                 return false;
 
-            property.Status = isApproved ? "Active" : "Pending";
+            property.Status = "Suspended"; 
             _context.Properties.Update(property);
             await _context.SaveChangesAsync();
             return true;
@@ -101,6 +125,22 @@ namespace API.Services.AdminRepo
                 .Include(p => p.Host)
                 .ThenInclude(h => h.User)
                 .Where(p => p.Status == "Pending")
+                .ToListAsync();
+        }
+
+
+        public async Task<IEnumerable<Property>> GetAllApprovedPropertiesAsync()
+        {
+            return await _context.Properties
+                .Where(p => p.Status == "Active")
+                .Include(p => p.Host)
+                .ThenInclude(h => h.User)
+                .Include(p => p.Bookings)
+                .ThenInclude(b => b.Review)
+                .ThenInclude(r => r.Reviewer)
+                .Include(p => p.PropertyImages)
+                .Include(p => p.Amenities)
+
                 .ToListAsync();
         }
 

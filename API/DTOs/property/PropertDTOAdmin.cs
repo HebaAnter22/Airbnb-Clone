@@ -1,9 +1,8 @@
 ﻿using API.DTOs.Amenity;
-using API.DTOs.Review;
 
-namespace API.DTOs
+namespace API.DTOs.property
 {
-    public class PropertyDto
+    public class PropertyDTOAdmin
     {
         public int Id { get; set; }
         public int? HostId { get; set; }
@@ -31,14 +30,15 @@ namespace API.DTOs
         // Host information
         public string HostName { get; set; }
         public string HostProfileImage { get; set; }
-        
+
 
         public int CategoryID { get; set; }
 
 
         // Images
-        public List<PropertyImageDto> Images { get; set; } = new List<PropertyImageDto>();
+        //public List<PropertyImageDto> Images { get; set; } = new List<PropertyImageDto>();
 
+        public List<string> Images { get; set; } = new List<string>();
 
         // Amenities
         public List<AmenityDto> Amenities { get; set; } = new List<AmenityDto>();

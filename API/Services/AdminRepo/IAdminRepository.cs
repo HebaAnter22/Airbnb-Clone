@@ -12,10 +12,12 @@ namespace API.Services.AdminRepo
 
         Task<IEnumerable<User>> GetAllGuestsAsync();
 
-
         Task<bool> ApprovePropertyAsync(int propertyId, bool isApproved);
         Task<IEnumerable<Property>> GetAllPendingPropertiesAsync();
 
+        Task<IEnumerable<Property>> GetAllApprovedPropertiesAsync();
+
+        Task<bool> SuspendPropertyAsync(int propertyId, bool isSuspended);
         Task<IEnumerable<Booking>> GetAllBookingsAsync();
         Task<bool> UpdateBookingStatusAsync(int bookingId, string newStatus);
     }

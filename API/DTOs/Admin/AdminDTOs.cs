@@ -10,6 +10,11 @@
         public bool IsApproved { get; set; }
     }
 
+    public class SusspendPropertyDTO
+    {
+        public bool IsSuspended { get; set; }
+    }
+
     public class UpdateBookingStatusDto
     {
         public string Status { get; set; }
@@ -32,6 +37,8 @@
         public DateTime DateOfBirth { get; set; }
         public int BookingsCount { get; set; }
         public decimal TotalSpent { get; set; }
+
+       
 
     }
 
