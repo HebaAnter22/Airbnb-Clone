@@ -600,20 +600,25 @@ export class AdminComponent implements OnInit, AfterViewInit {
     });
   }
 
-  verifyHost(verificationId: number): void {
-    this.loading = true;
-    this.adminService.verifyHost(verificationId).subscribe({
-      next: () => {
-        this.loadHosts();
-        this.loading = false;
-        alert('Host verified successfully.');
-      },
-      error: (error: any) => {
-        console.error('Error verifying host:', error);
-        this.error = 'Failed to verify host.';
-        this.loading = false;
-      }
-    });
+  // verifyHost(verificationId: number): void {
+  //   this.loading = true;
+  //   this.adminService.verifyHost(verificationId).subscribe({
+  //     next: () => {
+  //       this.loadHosts();
+  //       this.loading = false;
+  //       alert('Host verified successfully.');
+  //     },
+  //     error: (error: any) => {
+  //       console.error('Error verifying host:', error);
+  //       this.error = 'Failed to verify host.';
+  //       this.loading = false;
+  //     }
+  //   });
+  // }
+
+
+  verifyHost(hostId: number) {
+    this.router.navigate(['/admin/verifinghost', hostId]);
   }
 
   // Guest Management

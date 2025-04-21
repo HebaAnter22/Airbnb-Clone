@@ -1,5 +1,6 @@
 ﻿using API.DTOs;
 using API.Models;
+using Microsoft.Extensions.Hosting;
 using WebApiDotNet.Repos;
 
 namespace API.Services.BookingRepo
@@ -17,7 +18,7 @@ namespace API.Services.BookingRepo
         Task CreateBookingAndUpdateAvailabilityAsync(Booking booking);
         Task UpdateBookingAndUpdateAvailabilityAsync(Booking booking, DateTime oldStartDate, DateTime oldEndDate);
         Task DeleteBookingAndUpdateAvailabilityAsync(int id);
-
+        Task<IEnumerable<Booking>> GetAllBookingsAsync(int hostId);
         Task<DateTime?> GetLastAvailableDateForPropertyAsync(int propertyId);
         Task<bool> IsBookingOwnedByHostAsync(int bookingId, int hostId);
         Task<bool> UpdateBookingStatusAsync(int bookingId, string newStatus);

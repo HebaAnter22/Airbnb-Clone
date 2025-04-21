@@ -1,19 +1,23 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild, TemplateRef } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CreatePropertyService } from '../../../services/property-crud.service';
-import { PropertyDto, PropertyImageDto } from '../../../models/property';
+import { PropertyDto, PropertyImageDto, Amenity } from '../../../models/property';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { NgbToastModule, NgbModal } from '@ng-bootstrap/ng-bootstrap';
 
 @Component({
   selector: 'app-edit-property',
   standalone: true,
   templateUrl: './edit-property.component.html',
   styleUrls: ['./edit-property.component.css'],
-  imports: [CommonModule, ReactiveFormsModule, FormsModule]
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, NgbToastModule]
 })
 export class EditPropertyComponent implements OnInit {
+  @ViewChild('deleteModal') deleteModal!: TemplateRef<any>;
+  propertyToDelete: number | null = null;
+
   propertyForm: FormGroup;
   propertyId!: number;
   property!: PropertyDto;
@@ -23,6 +27,9 @@ export class EditPropertyComponent implements OnInit {
   propertyImages: PropertyImageDto[] = [];
   uploadedFiles: File[] = [];
   previewUrls: string[] = [];
+  allAmenities: Amenity[] = [];
+  propertyAmenities: Amenity[] = [];
+  selectedAmenityIds: Set<number> = new Set();
   
   // Navigation sections
   sections = [
@@ -30,16 +37,22 @@ export class EditPropertyComponent implements OnInit {
     { id: 'location', label: 'Location' },
     { id: 'pricing', label: 'Pricing' },
     { id: 'details', label: 'Property Details' },
+    { id: 'amenities', label: 'Amenities' },
     { id: 'images', label: 'Images' }
   ];
   
   activeSection: string = 'basic';
 
+  showToast = false;
+  toastMessage = '';
+  toastType = 'danger'; // can be 'success', 'danger', 'warning', etc.
+
   constructor(
     private fb: FormBuilder,
     private route: ActivatedRoute,
     private router: Router,
-    private propertyService: CreatePropertyService
+    private propertyService: CreatePropertyService,
+    private modalService: NgbModal
   ) {
     this.propertyForm = this.fb.group({
       title: ['', [Validators.required, Validators.minLength(10)]],
@@ -57,7 +70,8 @@ export class EditPropertyComponent implements OnInit {
       bathrooms: ['', [Validators.required, Validators.min(1)]],
       maxGuests: ['', [Validators.required, Validators.min(1)]],
       instantBook: [false],
-      status: ['Active']
+      status: ['Active'],
+      amenities: [[]]
     });
   }
 
@@ -72,6 +86,7 @@ export class EditPropertyComponent implements OnInit {
       'location': 'location_on',
       'pricing': 'attach_money',
       'details': 'apartment',
+      'amenities': 'spa',
       'images': 'photo_library'
     };
     return iconMap[sectionId] || 'info';
@@ -81,20 +96,53 @@ export class EditPropertyComponent implements OnInit {
     try {
       // Load property data
       this.property = await this.propertyService.getPropertyById(this.propertyId).toPromise();
+      console.log('Loaded property data:', this.property);
+      
+      // Initialize selected amenities as a Set with proper IDs
+      this.selectedAmenityIds = new Set(
+        this.property.amenities?.map(a => a.id) || []
+      );
       
       // Update form with property data
       this.propertyForm.patchValue({
         ...this.property,
-        instantBook: this.property.instantBook || false
+        instantBook: this.property.instantBook || false,
+        amenities: Array.from(this.selectedAmenityIds)
       });
       
       this.propertyImages = this.property.images || [];
       this.loading = false;
+
+      // Load and categorize amenities
+      await this.loadAmenities();
     } catch (err) {
       console.error('Error loading data:', err);
       this.error = 'Failed to load property data';
       this.loading = false;
     }
+  }
+
+  async loadAmenities() {
+    try {
+      const result = await this.propertyService.getAmenities().toPromise();
+      this.allAmenities = result || [];
+      
+      // Update property amenities based on selected IDs
+      this.updatePropertyAmenities();
+
+      console.log('All Amenities:', this.allAmenities);
+      console.log('Selected Amenity IDs:', Array.from(this.selectedAmenityIds));
+      console.log('Property Amenities:', this.propertyAmenities);
+    } catch (err) {
+      console.error('Error loading amenities:', err);
+      this.error = 'Failed to load amenities';
+    }
+  }
+
+  private updatePropertyAmenities() {
+    this.propertyAmenities = this.allAmenities.filter(amenity => 
+      this.selectedAmenityIds.has(amenity.id)
+    );
   }
 
   setActiveSection(sectionId: string) {
@@ -183,6 +231,68 @@ export class EditPropertyComponent implements OnInit {
     this.previewUrls.splice(index, 1);
   }
 
+  toggleAmenity(amenityId: number, event: Event) {
+    event.preventDefault();
+    event.stopPropagation();
+    
+    if (!amenityId) {
+      console.error('Invalid amenity ID:', amenityId);
+      return;
+    }
+
+    if (this.selectedAmenityIds.has(amenityId)) {
+      this.selectedAmenityIds.delete(amenityId);
+    } else {
+      this.selectedAmenityIds.add(amenityId);
+    }
+
+    // Update the form control value with the current selection
+    const selectedIds = Array.from(this.selectedAmenityIds);
+    this.propertyForm.patchValue({
+      amenities: selectedIds
+    });
+
+    // Update the property amenities list
+    this.propertyAmenities = this.allAmenities.filter(amenity => 
+      this.selectedAmenityIds.has(amenity.id)
+    );
+
+    console.log('Selected amenity IDs:', selectedIds);
+    console.log('Updated property amenities:', this.propertyAmenities);
+  }
+
+  isAmenitySelected(amenityId: number): boolean {
+    return amenityId ? this.selectedAmenityIds.has(amenityId) : false;
+  }
+
+  async deleteProperty(propertyId: number) {
+    this.propertyToDelete = propertyId;
+    this.modalService.open(this.deleteModal, { centered: true });
+  }
+
+  async confirmDelete() {
+    if (!this.propertyToDelete) return;
+
+    try {
+      await this.propertyService.deleteProperty(this.propertyToDelete).toPromise();
+      this.modalService.dismissAll();
+      this.toastMessage = 'Property deleted successfully';
+      this.toastType = 'success';
+      this.showToast = true;
+      setTimeout(() => {
+        this.showToast = false;
+        this.router.navigate(['/host']);
+      }, 2000);
+    } catch (err) {
+      this.modalService.dismissAll();
+      this.toastMessage = 'Failed to delete property';
+      this.toastType = 'danger';
+      this.showToast = true;
+      setTimeout(() => this.showToast = false, 3000);
+    }
+    this.propertyToDelete = null;
+  }
+
   async onSubmit() {
     if (this.propertyForm.valid) {
       this.saving = true;
@@ -198,13 +308,14 @@ export class EditPropertyComponent implements OnInit {
           }
         });
         
-        // Ensure instantBook is included
+        // Ensure instantBook and amenities are included
         updatedProperty.instantBook = this.property.instantBook;
+        updatedProperty.amenities = Array.from(this.selectedAmenityIds);
         
         console.log('Updating property with:', updatedProperty);
         
         await this.propertyService.editPropertyAsync(this.propertyId, updatedProperty).toPromise();
-        this.router.navigate(['/host/properties']);
+        this.router.navigate(['/host']);
       } catch (err) {
         console.error('Failed to update property:', err);
         this.error = 'Failed to update property';
@@ -214,6 +325,6 @@ export class EditPropertyComponent implements OnInit {
   }
 
   cancel() {
-    this.router.navigate(['/host/properties']);
+    this.router.navigate(['/host']);
   }
 } 

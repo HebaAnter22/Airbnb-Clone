@@ -462,7 +462,7 @@ namespace API.Services
                 if (updatedPropertyDto.AmenityIds != null)
             {
                 // Clear existing amenities
-                property.Amenities.Clear();
+                //property.Amenities.Clear();
 
                 // Add new amenities
                 foreach (var amenityId in updatedPropertyDto.AmenityIds)
@@ -553,7 +553,7 @@ namespace API.Services
         public async Task<PropertyDto> GetPropertyByIdAsync(int propertyId)
         {
             var property = await _context.Properties
-                .Where(p => p.Id == propertyId && p.Status == "Active")
+                .Where(p => p.Id == propertyId)
                 .Include(p => p.PropertyImages)
                 .Include(p => p.Category)
                 .Include(p => p.Amenities)
@@ -574,7 +574,7 @@ namespace API.Services
         public async Task<List<PropertyDto>> GetHostPropertiesAsync(int hostId)
         {
             var properties = await _context.Properties
-                .Where(p => p.HostId == hostId)
+                .Where(p => p.HostId == hostId && p.Status == "Active" || p.Status == "Pending")
                 .Include(p => p.Category)
                 .Include(p => p.PropertyImages)
                 .Include(p => p.Amenities)
@@ -602,6 +602,9 @@ namespace API.Services
 
             return _mapper.Map<List<PropertyDto>>(properties);
         }
+
+
+
 
 
         public async Task<List<PropertyDto>> SearchPropertiesAsync(string title = null, string country = null, int? minNights = null, int? maxNights = null, DateTime? startDate = null, DateTime? endDate = null, int? maxGuests = null)
@@ -845,7 +848,7 @@ namespace API.Services
                 return false;
 
             // Clear existing amenities
-            property.Amenities.Clear();
+            //property.Amenities.Clear();
 
             // Add new amenities
             foreach (var amenityId in amenityIds)

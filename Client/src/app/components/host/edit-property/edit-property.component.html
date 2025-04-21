@@ -1,3 +1,15 @@
+<!-- Add this at the top of your template -->
+<div class="toast-container position-fixed top-0 end-0 p-3">
+  <ngb-toast
+    *ngIf="showToast"
+    [class]="'bg-' + toastType"
+    [autohide]="true"
+    [delay]="3000"
+    (hidden)="showToast = false">
+    <div class="text-white">{{ toastMessage }}</div>
+  </ngb-toast>
+</div>
+
 <!-- Header -->
 <div class="header-container">
   <div class="container">
@@ -25,6 +37,9 @@
             <div class="spinner-border spinner-border-sm"></div>
             Saving...
           </span>
+        </button>
+        <button class="dropdown-item text-danger" (click)="deleteProperty(property.id)">
+          <span class="material-icons me-2">delete</span>Delete
         </button>
       </div>
     </div>
@@ -281,6 +296,67 @@
           </div>
         </div>
 
+        <!-- Amenities Section -->
+        <div class="card mb-4" *ngIf="activeSection === 'amenities'">
+          <div class="card-body">
+            <h5 class="card-title">
+              <i class="material-icons">spa</i>
+              Amenities
+            </h5>
+
+            <!-- Property Amenities -->
+            <div class="mb-4">
+              <h6 class="mb-3">
+                Selected Amenities
+              </h6>
+              <div class="amenities-grid" *ngIf="propertyAmenities.length > 0">
+                <div *ngFor="let amenity of propertyAmenities" 
+                     class="amenity-item selected"
+                     (click)="toggleAmenity(amenity.id, $event)">
+                  <div class="form-check w-100">
+                    <input class="form-check-input" 
+                           type="checkbox" 
+                           [id]="'selected-amenity-' + amenity.id"
+                           [checked]="true" 
+                           (click)="$event.stopPropagation()">
+                    <label class="form-check-label" [for]="'selected-amenity-' + amenity.id">
+                      {{ amenity.name }}
+                    </label>
+                  </div>
+                </div>
+              </div>
+              <div *ngIf="propertyAmenities.length === 0" class="text-muted p-3 bg-light rounded">
+                No amenities selected for this property
+              </div>
+            </div>
+
+            <!-- Available Amenities -->
+            <div>
+              <h6 class="mb-3">
+                Available Amenities
+              </h6>
+              <div class="amenities-grid">
+                <div *ngFor="let amenity of allAmenities" 
+                     class="amenity-item"
+                     [class.selected]="isAmenitySelected(amenity.id)"
+                     [class.d-none]="isAmenitySelected(amenity.id)"
+                     (click)="toggleAmenity(amenity.id, $event)">
+                  <div class="form-check w-100">
+                    <input class="form-check-input" 
+                           type="checkbox" 
+                           [id]="'amenity-' + amenity.id"
+                           [checked]="isAmenitySelected(amenity.id)" 
+                           (click)="$event.stopPropagation()">
+                    <label class="form-check-label" [for]="'amenity-' + amenity.id">
+                      {{ amenity.name }}
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- Images Section -->
         <div class="card mb-4" *ngIf="activeSection === 'images'">
           <div class="card-body">
@@ -359,4 +435,19 @@
     </div>
   </form>
 </div>
+
+<!-- Delete confirmation modal -->
+<ng-template #deleteModal let-modal>
+  <div class="modal-header">
+    <h5 class="modal-title">Confirm Delete</h5>
+    <button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss()"></button>
+  </div>
+  <div class="modal-body">
+    <p>Are you sure you want to delete this property? This action cannot be undone.</p>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-secondary" (click)="modal.dismiss()">Cancel</button>
+    <button type="button" class="btn btn-danger" (click)="confirmDelete()">Delete Property</button>
+  </div>
+</ng-template>
 

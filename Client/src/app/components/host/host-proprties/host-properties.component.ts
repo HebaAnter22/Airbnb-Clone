@@ -132,7 +132,11 @@ export class HostPropertiesComponent implements OnInit, OnChanges {
   }
 
   editProperty(propertyId: number) {
-    this.router.navigate(['/host/properties/edit', propertyId]);
+    this.router.navigate(['/host/edit', propertyId]);
+  }
+
+  viewBookingDetails(propertyId: number) {
+    this.router.navigate(['/host/bookings', propertyId]);
   }
 
   async deleteProperty(propertyId: number) {

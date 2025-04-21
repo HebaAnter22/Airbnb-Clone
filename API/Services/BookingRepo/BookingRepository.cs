@@ -150,13 +150,24 @@
                 await _context.SaveChangesAsync();
                 return true;
             }
-            #endregion
+        #endregion
+        public async Task<IEnumerable<Booking>> GetAllBookingsAsync(int hostId)
+        {
+            return await _context.Bookings
+                .Include(b => b.Property)
+                    .ThenInclude(p => p.Host)
+                .Include(b => b.Guest)
+                .Include(b => b.Payments)
+                .Where(b => b.Property.HostId == hostId)
+                .ToListAsync();
+        }
 
-            #region Guest Methods
+
+        #region Guest Methods
 
 
-            //Check if a property is available for booking within a specified date range. (IMPORTANT)
-            public async Task<bool> IsPropertyAvailableForBookingAsync(int propertyId, DateTime startDate, DateTime endDate)
+        //Check if a property is available for booking within a specified date range. (IMPORTANT)
+        public async Task<bool> IsPropertyAvailableForBookingAsync(int propertyId, DateTime startDate, DateTime endDate)
             {
                 return await _propertyAvailabilityRepo.IsPropertyAvailableAsync(propertyId, startDate, endDate);
             }

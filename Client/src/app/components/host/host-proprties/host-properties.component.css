@@ -75,6 +75,7 @@
   background-color: #ffffff;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   max-width: 100%;
+  position: relative;
 }
 
 .property-card:hover {
@@ -233,13 +234,18 @@
 }
 
 .dropdown-menu {
+  position: absolute;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
   border: none;
   border-radius: 8px;
   padding: 8px;
   min-width: 150px;
-  z-index: 100;
+  z-index: 1000;
   background: white;
+  right: 0;
+  top: 100%;
+  margin-top: 5px;
+  transform-origin: top right;
 }
 
 .dropdown-item {
@@ -248,7 +254,7 @@
   transition: all 0.2s ease;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 0px;
 }
 
 .dropdown-item:hover {

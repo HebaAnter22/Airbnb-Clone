@@ -9,7 +9,7 @@ namespace API.Services.HostVerificationRepo
         Task<HostVerification> GetVerificationByIdAsync(int verificationId);
         Task<bool> UpdateVerificationStatusAsync(int verificationId, string newStatus);
         Task<HostVerification> CreateVerificationWithImagesAsync(int hostId, List<IFormFile> files);
-
+        Task<HostVerification> GetVerificationByhostsAsync(int hostid);
 
     }
 

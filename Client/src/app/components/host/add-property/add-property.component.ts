@@ -437,7 +437,7 @@ export class AddPropertyComponent implements OnInit {
       console.log('Mapped amenities:', this.amenities);
       if (this.amenities.length > 0) {
         console.log('First amenity:', this.amenities[0]);
-        console.log('First amenity ID:', this.amenities[0].amenityId);
+        console.log('First amenity ID:', this.amenities[0].id);
         console.log('First amenity keys:', Object.keys(this.amenities[0]));
       }
       

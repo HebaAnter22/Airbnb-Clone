@@ -1,0 +1,60 @@
+<div class="booking-container">
+    <h3>{{ status }} Bookings</h3>
+  
+    <div *ngIf="isLoading" class="loading">
+      <div class="spinner"></div>
+      <p>Loading bookings...</p>
+    </div>
+  
+    <table *ngIf="!isLoading && filteredBookings.length > 0" class="booking-table">
+      <thead>
+        <tr>
+          <th>Booking ID</th>
+          <th>Guest Name</th>
+          <th>Property Title</th>
+          <th>Start Date</th>
+          <th>End Date</th>
+          <th>Status</th>
+          <th>Total Amount</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let booking of filteredBookings">
+          <td>#{{ booking.id }}</td>
+          <td>{{ booking.guestName }}</td>
+          <td>{{ booking.propertyTitle }}</td>
+          <td>{{ booking.startDate | date:'mediumDate' }}</td>
+          <td>{{ booking.endDate | date:'mediumDate' }}</td>
+          <td>
+            <span class="status-badge" 
+                  [ngClass]="{
+                    'status-pending': booking.status.toLowerCase() === 'pending',
+                    'status-confirmed': booking.status.toLowerCase() === 'confirmed',
+                    'status-cancelled': booking.status.toLowerCase() === 'cancelled'
+                  }">
+              {{ booking.status }}
+            </span>
+          </td>
+          <td>{{ booking.totalAmount | currency }}</td>
+          <td>
+            <button (click)="viewDetails(booking.id)">View Details</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  
+    <div *ngIf="!isLoading && filteredBookings.length === 0" class="no-bookings">
+      <p>No {{ status.toLowerCase() }} bookings found.</p>
+    </div>
+  
+    <div *ngIf="totalCount > pageSize" class="pagination">
+      <button [disabled]="currentPage === 1" (click)="onPageChange(currentPage - 1)">
+        Previous
+      </button>
+      <span>Page {{ currentPage }} of {{ totalCount / pageSize | ceil }}</span>
+      <button [disabled]="currentPage * pageSize >= totalCount" (click)="onPageChange(currentPage + 1)">
+        Next
+      </button>
+    </div>
+  </div>

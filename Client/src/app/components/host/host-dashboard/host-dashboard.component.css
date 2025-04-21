@@ -234,6 +234,101 @@
   font-size: 1.5rem;
 }
 
+/* Payouts Section Styles */
+.payouts-container {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.payout-summary {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.payout-card {
+  flex: 1;
+  min-width: 250px;
+  background-color: #f8f9fa;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+}
+
+.payout-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.payout-card h3 {
+  font-size: 1.1rem;
+  color: #666;
+  margin-bottom: 15px;
+}
+
+.payout-card .amount {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+.payout-card .date {
+  font-size: 0.9rem;
+  color: #888;
+  margin-bottom: 20px;
+}
+
+.payout-card button {
+  width: 100%;
+  padding: 10px;
+  background-color: #ff5a5f;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.payout-card button:hover {
+  background-color: #ff4248;
+}
+
+.payout-history {
+  background-color: #f8f9fa;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.payout-history h3 {
+  font-size: 1.2rem;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 0;
+  color: #888;
+}
+
+.empty-state i {
+  font-size: 3rem;
+  margin-bottom: 15px;
+  color: #ccc;
+}
+
+.empty-state p {
+  font-size: 1.1rem;
+}
+
 /* Responsive Design */
 @media (max-width: 1024px) {
   .nav-container {

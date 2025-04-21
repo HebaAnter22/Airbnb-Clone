@@ -1,0 +1,83 @@
+.booking-details-container {
+  padding: 20px 0;
+}
+
+.analytics-card {
+  height: 100%;
+  transition: transform 0.3s ease;
+}
+
+.analytics-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.analytics-icon {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+
+.analytics-icon mat-icon {
+  font-size: 36px;
+  width: 36px;
+  height: 36px;
+  color: #3f51b5;
+}
+
+.analytics-value {
+  font-size: 24px;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 5px;
+}
+
+.analytics-label {
+  font-size: 14px;
+  color: #666;
+  text-align: center;
+}
+
+.status-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.mat-chip.mat-standard-chip {
+  min-height: 32px;
+  padding: 0 12px;
+}
+
+.mat-table {
+  width: 100%;
+}
+
+.mat-row:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+.mat-header-cell {
+  font-weight: bold;
+  color: #333;
+}
+
+.mat-cell {
+  color: #555;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .analytics-card {
+    margin-bottom: 15px;
+  }
+  
+  .analytics-value {
+    font-size: 20px;
+  }
+  
+  .analytics-label {
+    font-size: 12px;
+  }
+} 

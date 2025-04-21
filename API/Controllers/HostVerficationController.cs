@@ -53,6 +53,24 @@ namespace API.Controllers
             return Ok(dto);
         }
 
+        [HttpGet("GetVerificationsByHostId/{hostId}")]
+        public async Task<IActionResult> GetVerificationsByHostId(int hostId)
+        {
+            var verification = await _hostVerificationRepository.GetVerificationByhostsAsync(hostId);
+            if (verification == null)
+                return NotFound();
+            var dto = new HostVerificationOutputDTO
+            {
+                Id = verification.Id,
+                HostId = verification.UserId,
+                HostName = $"{verification.Host.User.FirstName} {verification.Host.User.LastName}",
+                Status = verification.Status,
+                VerificationDocumentUrl = verification.DocumentUrl,
+                SubmittedAt = verification.SubmittedAt
+            };
+            return Ok(dto);
+        }
+
         [HttpPut("{verificationId}")]
         public async Task<IActionResult> UpdateVerificationStatus(int verificationId, [FromBody] string newStatus)
         {

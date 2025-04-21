@@ -14,7 +14,7 @@
       <div class="nav-links">
         <!-- My Listings Dropdown -->
         <div class="nav-item dropdown" (click)="toggleDropdown('listings')">
-          <button class="nav-link" [class.active]="currentSection === 'listings'">
+          <button class="nav-link" [class.active]="currentSection === 'active-listings' || currentSection === 'pending-listings'">
             <i class="fas fa-home"></i>
             My Listings
             <i class="fas fa-chevron-down"></i>
@@ -26,12 +26,15 @@
             <a class="dropdown-item" (click)="setCurrentSection('pending-listings')">
               <i class="fas fa-clock"></i> Pending
             </a>
+            <a class="dropdown-item" (click)="navigateToAddProperty()">
+              <i class="fas fa-plus-circle"></i> Create New
+            </a>
           </div>
         </div>
 
         <!-- Bookings Dropdown -->
         <div class="nav-item dropdown" (click)="toggleDropdown('bookings')">
-          <button class="nav-link" [class.active]="currentSection === 'bookings'">
+          <button class="nav-link" [class.active]="currentSection === 'pending-bookings' || currentSection === 'current-bookings' || currentSection === 'upcoming-bookings' || currentSection === 'past-bookings'">
             <i class="fas fa-calendar-alt"></i>
             Bookings
             <i class="fas fa-chevron-down"></i>
@@ -52,12 +55,21 @@
           </div>
         </div>
 
-        <!-- Earnings -->
-        <div class="nav-item">
-          <button class="nav-link" (click)="setCurrentSection('earnings')" [class.active]="currentSection === 'earnings'">
+        <!-- Earnings Dropdown -->
+        <div class="nav-item dropdown" (click)="toggleDropdown('earnings')">
+          <button class="nav-link" [class.active]="currentSection === 'earnings-chart' || currentSection === 'payouts'">
             <i class="fas fa-dollar-sign"></i>
             Earnings
+            <i class="fas fa-chevron-down"></i>
           </button>
+          <div class="dropdown-menu" [class.show]="isEarningsDropdownOpen">
+            <a class="dropdown-item" (click)="setCurrentSection('earnings-chart')">
+              <i class="fas fa-chart-line"></i> Earnings Chart
+            </a>
+            <a class="dropdown-item" (click)="setCurrentSection('payouts')">
+              <i class="fas fa-money-bill-wave"></i> Payouts
+            </a>
+          </div>
         </div>
 
         <!-- Account -->
@@ -102,32 +114,53 @@
       <app-host-properties [status]="'pending'"></app-host-properties>
     </div>
 
-    <!-- Bookings Section -->
-    <div *ngIf="currentSection === 'pending-bookings'" class="content-section">
-      <h2>Pending Bookings</h2>
-      <!-- Add pending bookings component here -->
-    </div>
+   <!-- Bookings Section -->
+<div *ngIf="currentSection === 'pending-bookings'" class="content-section">
+  <app-booking status="pending"></app-booking>
+</div>
 
-    <div *ngIf="currentSection === 'current-bookings'" class="content-section">
-      <h2>Current Bookings</h2>
-      <!-- Add current bookings component here -->
-    </div>
+<div *ngIf="currentSection === 'current-bookings'" class="content-section">
+  <app-booking status="current"></app-booking>
+</div>
 
-    <div *ngIf="currentSection === 'upcoming-bookings'" class="content-section">
-      <h2>Upcoming Bookings</h2>
-      <!-- Add upcoming bookings component here -->
-    </div>
+<div *ngIf="currentSection === 'upcoming-bookings'" class="content-section">
+  <app-booking status="upcoming"></app-booking>
+</div>
 
-    <div *ngIf="currentSection === 'past-bookings'" class="content-section">
-      <h2>Past Bookings</h2>
-      <!-- Add past bookings component here -->
-    </div>
+<div *ngIf="currentSection === 'past-bookings'" class="content-section">
+  <app-booking status="past"></app-booking>
+</div>
 
-    <!-- Earnings Section -->
-    <div *ngIf="currentSection === 'earnings'" class="content-section">
-      <h2>Earnings Overview</h2>
-      <!-- Add earnings component here -->
+<!-- Earnings Chart Section -->
+<div *ngIf="currentSection === 'earnings-chart'" class="content-section">
+  <app-earnings-chart></app-earnings-chart>
+</div>
+
+<!-- Payouts Section -->
+<div *ngIf="currentSection === 'payouts'" class="content-section">
+  <h2>Payouts</h2>
+  <div class="payouts-container">
+    <div class="payout-summary">
+      <div class="payout-card">
+        <h3>Available Balance</h3>
+        <p class="amount">$0.00</p>
+        <button class="btn btn-primary">Request Payout</button>
+      </div>
+      <div class="payout-card">
+        <h3>Next Payout</h3>
+        <p class="amount">$0.00</p>
+        <p class="date">Not scheduled</p>
+      </div>
     </div>
+    <div class="payout-history">
+      <h3>Payout History</h3>
+      <div class="empty-state">
+        <i class="fas fa-money-bill-wave"></i>
+        <p>No payout history available</p>
+      </div>
+    </div>
+  </div>
+</div>
 
     <!-- Account Section -->
     <div *ngIf="currentSection === 'account'" class="content-section">

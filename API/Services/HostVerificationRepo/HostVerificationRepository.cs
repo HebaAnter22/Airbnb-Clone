@@ -33,6 +33,15 @@ namespace API.Services.HostVerificationRepo
                 .FirstOrDefaultAsync(v => v.Id == verificationId);
         }
 
+        public async Task<HostVerification> GetVerificationByhostsAsync(int hostid)
+        {
+            return await _context.HostVerifications
+                .Include(v => v.Host)
+                .ThenInclude(h => h.User)
+                .Where(v => v.Host.HostId == hostid)
+                .FirstOrDefaultAsync();
+        }
+
         public async Task<bool> UpdateVerificationStatusAsync(int verificationId, string newStatus)
         {
             var verification = await _context.HostVerifications.FindAsync(verificationId);

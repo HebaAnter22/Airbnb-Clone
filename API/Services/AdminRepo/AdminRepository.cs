@@ -79,6 +79,41 @@ namespace API.Services.AdminRepo
         }
 
 
+        public async Task<HostVerification> GetVerificationByhostsAsync(int hostid)
+        {
+            return await _context.HostVerifications
+                .Include(v => v.Host)
+                .ThenInclude(h => h.User)
+                .Where(v => v.Host.HostId == hostid)
+                .FirstOrDefaultAsync();
+        }
+
+        public async Task<bool> ApproveHostAsync(int hostId, bool isApproved)
+        {
+            try
+            {
+                var host = await _context.HostProfules
+                    .Include(h => h.User)
+                    .FirstOrDefaultAsync(h => h.HostId == hostId);
+
+                if (host == null)
+                    return false;
+
+                host.IsVerified = true;
+                host.User.AccountStatus = "Active";
+                
+                _context.HostProfules.Update(host);
+                await _context.SaveChangesAsync();
+                
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in ApproveHostAsync: {ex.Message}");
+                return false;
+            }
+        }
+
         #endregion
 
         #region Property Management

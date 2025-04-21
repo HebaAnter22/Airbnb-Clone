@@ -3,11 +3,13 @@ import { HostPropertiesComponent } from '../host-proprties/host-properties.compo
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../../services/auth.service';
 import { ProfileService } from '../../../services/profile.service';
+import { BookingComponent } from '../bookings/bookings.component';
 import { Router } from '@angular/router';
+import { EarningsChartComponent } from './earnings';
 
 @Component({
   selector: 'app-host-dashboard',
-  imports: [HostPropertiesComponent, CommonModule],
+  imports: [HostPropertiesComponent, CommonModule , BookingComponent, EarningsChartComponent],
   templateUrl: './host-dashboard.component.html',
   styleUrls: ['./host-dashboard.component.css']
 })
@@ -15,6 +17,7 @@ export class HostDashboardComponent implements OnInit {
   currentSection: string = 'active-listings';
   isListingsDropdownOpen: boolean = false;
   isBookingsDropdownOpen: boolean = false;
+  isEarningsDropdownOpen: boolean = false;
   userProfileImage: string = 'assets/default-profile.png';
   userName: string = '';
 
@@ -57,13 +60,19 @@ export class HostDashboardComponent implements OnInit {
     this.router.navigate(['/login']);
   }
 
-  toggleDropdown(type: 'listings' | 'bookings'): void {
+  toggleDropdown(type: 'listings' | 'bookings' | 'earnings'): void {
     if (type === 'listings') {
       this.isListingsDropdownOpen = !this.isListingsDropdownOpen;
       this.isBookingsDropdownOpen = false;
+      this.isEarningsDropdownOpen = false;
     } else if (type === 'bookings') {
       this.isBookingsDropdownOpen = !this.isBookingsDropdownOpen;
       this.isListingsDropdownOpen = false;
+      this.isEarningsDropdownOpen = false;
+    } else if (type === 'earnings') {
+      this.isEarningsDropdownOpen = !this.isEarningsDropdownOpen;
+      this.isListingsDropdownOpen = false;
+      this.isBookingsDropdownOpen = false;
     }
   }
 
@@ -71,6 +80,12 @@ export class HostDashboardComponent implements OnInit {
     this.currentSection = section;
     this.isListingsDropdownOpen = false;
     this.isBookingsDropdownOpen = false;
+    this.isEarningsDropdownOpen = false;
+  }
+
+  navigateToAddProperty(): void {
+    this.router.navigate(['/host/add-property']);
+    this.isListingsDropdownOpen = false;
   }
 
   // Close dropdowns when clicking outside
@@ -79,6 +94,7 @@ export class HostDashboardComponent implements OnInit {
     if (!target.closest('.dropdown')) {
       this.isListingsDropdownOpen = false;
       this.isBookingsDropdownOpen = false;
+      this.isEarningsDropdownOpen = false;
     }
   }
 } 

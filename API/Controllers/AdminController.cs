@@ -24,6 +24,40 @@ namespace API.Controllers
             _bookingRepository = bookingRepository;
         }
 
+        [HttpGet("GetVerificationsByHostId/{hostId}")]
+        public async Task<IActionResult> GetVerificationsByHostId(int hostId)
+        {
+            var verification = await _adminRepository.GetVerificationByhostsAsync(hostId);
+            if (verification == null)
+                return NotFound();
+            var dto = new HostVerificationOutputDTO
+            {
+                Id = verification.Id,
+                HostId = verification.UserId,
+                HostName = $"{verification.Host.User.FirstName} {verification.Host.User.LastName}",
+                Status = verification.Status,
+                VerificationDocumentUrl = verification.DocumentUrl,
+                SubmittedAt = verification.SubmittedAt
+            };
+            return Ok(dto);
+        }
+
+        [HttpPut("hosts/{hostId}/verify")]
+        public async Task<IActionResult> VerifyHost(int hostId, [FromBody] HostVerificationInputDTO input)
+        {
+            try
+            {
+                var success = await _adminRepository.ApproveHostAsync(hostId, input.IsVerified);
+                if (!success)
+                    return NotFound("Host not found.");
+                return Ok(new { Message = $"Host {(input.IsVerified ? "verified" : "unverified")} successfully." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"An unexpected error occurred: {ex.Message}");
+            }
+        }
+
         [HttpGet("hosts")]
         public async Task<IActionResult> GetAllHosts()
         {
@@ -363,6 +397,7 @@ namespace API.Controllers
                         PromotionId = booking.PromotionId,
                         CreatedAt = booking.CreatedAt,
                         UpdatedAt = booking.UpdatedAt
+
                     });
                 }
                 return Ok(dtos);

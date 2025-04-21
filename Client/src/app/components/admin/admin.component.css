@@ -3,12 +3,13 @@
   min-height: 100vh;
   background-color: #f8f9fa;
   position: relative;
+  max-width: 100%;
 }
 
 /* Sidebar Toggle Button */
 .sidebar-toggle {
   position: fixed;
-  top: 10px;
+  top: 5px;
   left: 20px;
   z-index: 1000;
   width: 40px;
@@ -21,6 +22,7 @@
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
   cursor: pointer;
   transition: all 0.3s ease;
+  margin-bottom: 30px;
 }
 
 .sidebar-toggle:hover {
@@ -51,7 +53,7 @@
 
 /* Sidebar Styles */
 .sidebar {
-  width: 280px;
+  width: 230px;
   background-color: #ffffff;
   box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
   padding: 0;
@@ -105,7 +107,11 @@
   margin: 15px 0;
   transition: all 0.3s ease;
 }
-
+.material-icons profile-icon{
+  margin-top: 20px;
+  font-size: 2rem;
+  color: #333;
+}
 .admin-name {
   margin: 0;
   color: #333;
@@ -186,16 +192,16 @@
 
 /* Main Content Styles */
 .main-content {
-  width: 1300px;
+  width: 1024px;
   flex: 1;
-  margin-left: 280px;
+  margin-left: 220px;
   padding: 10px;
   transition: all 0.3s ease;
 }
 
 .main-content.expanded {
   margin-left: 90px;
-  width: 1300px;
+  width: 100px;
 
 }
 
@@ -203,7 +209,7 @@
   background-color: #ffffff;
   width: 100%;
   border-radius: 8px;
-  padding: 25px;
+  padding: 20px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
@@ -277,10 +283,58 @@
     width: 100%;
     height: auto;
     position: relative;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    /* justify-content: j; */
+    padding: 10px;
   }
 
   .sidebar.collapsed {
+    display: flex;
+    flex-direction: row;
     width: 100%;
+  }
+
+  .admin-profile {
+    margin: 0;
+    padding: 10px;
+    border-bottom: none;
+    border-right: 1px solid #eee;
+    flex-direction: row;
+    gap: 10px;
+  }
+
+  .admin-avatar {
+    width: 40px;
+    height: 40px;
+    margin: 0;
+  }
+
+  .sidebar-nav {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    padding: 0;
+    margin: 0;
+    gap: 15px;
+    flex: 1;
+    justify-content: center;
+  }
+
+  .nav-section {
+    margin: 0;
+  }
+
+  .nav-item {
+    padding: 8px 15px;
+  }
+
+  .logout-section {
+    margin: 0;
+    padding: 10px;
+    border-top: none;
+    border-left: 1px solid #eee;
   }
 
   .main-content {
@@ -435,6 +489,7 @@
 .booking-card:hover {
   transform: translateY(-5px);
 }
+
 
 /* Profile Pictures */
 .profile-picture {
@@ -783,30 +838,81 @@
 }
 
 .analytics-container .filter-section {
-  margin-bottom: 12px;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 15px;
+  margin-bottom: 20px;
+  padding: 15px;
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .analytics-container .filter-section label {
+  color: #FF5A5F;
   font-weight: 500;
-  color: #333;
+  font-size: 0.95rem;
 }
 
-.analytics-container .filter-section select {
-  padding: 7px 14px;
-  border-radius: 6px;
-  border: 1px solid #d0d7de;
-  background: #f8fafc;
-  font-size: 1rem;
-  color: #222;
+.analytics-container .filter-section select,
+.analytics-container .filter-section input {
+  padding: 8px 15px;
+  border: 1.5px solid #FF5A5F22;
+  border-radius: 20px;
+  background-color: #fff5f6;
+  color: #484848;
+  font-size: 0.9rem;
   outline: none;
-  transition: border 0.2s;
+  transition: all 0.3s ease;
+  min-width: 150px;
 }
 
-.analytics-container .filter-section select:focus {
-  border: 1.5px solid #007bff;
+.analytics-container .filter-section select:focus,
+.analytics-container .filter-section input:focus {
+  border-color: #FF5A5F;
+  background-color: #fff;
+  box-shadow: 0 0 0 2px #FF5A5F22;
+}
+
+.analytics-container .filter-section select:hover,
+.analytics-container .filter-section input:hover {
+  border-color: #FF5A5F;
+}
+
+.analytics-container .filter-section button {
+  padding: 8px 20px;
+  background-color: #FF5A5F;
+  color: white;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.analytics-container .filter-section button:hover {
+  background-color: #FF385C;
+  transform: translateY(-1px);
+}
+
+/* Responsive styles for filter section */
+@media (max-width: 768px) {
+  .analytics-container .filter-section {
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .analytics-container .filter-section select,
+  .analytics-container .filter-section input {
+    flex: 1;
+    min-width: 120px;
+  }
+
+  .analytics-container .filter-section button {
+    width: 100%;
+  }
 }
 
 .charts-section {
@@ -906,7 +1012,7 @@
 @media (max-width: 768px) {
   .top-items-section {
     flex-direction: column;
-    gap: 16px;
+    gap: 10px;
   }
 }
 
@@ -1012,7 +1118,7 @@
   
   .data-table th,
   .data-table td {
-    padding: 8px 10px;
+    padding: 8px 5px;
   }
   
   .block-btn,

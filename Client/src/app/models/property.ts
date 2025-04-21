@@ -6,11 +6,10 @@ export interface PropertyImageDto {
 }
 
 export interface Amenity {
-  amenityId: number;
+  id: number;
   name: string;
-  description?: string;
-  iconUrl: string;
   category: string;
+  iconUrl: string;
 }
 
 export interface PropertyDto {

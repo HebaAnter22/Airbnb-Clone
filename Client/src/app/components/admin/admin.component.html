@@ -8,7 +8,7 @@
   <div class="sidebar" [class.collapsed]="isSidebarCollapsed">
     <!-- Logo Section -->
     <div class="admin-profile">
-      <img [src]="adminPicture" alt="Admin Profile" class="admin-avatar" *ngIf="!isSidebarCollapsed">
+      <span class="material-icons profile-icon">person</span>
       <h5 class="admin-name" *ngIf="!isSidebarCollapsed">{{adminName}}</h5>
     </div>
 
@@ -142,7 +142,6 @@
           </thead>
           <tbody>
             <tr *ngFor="let host of hosts">
-
               <td>{{ host?.firstName }} {{ host?.lastName }}</td>
               <td>{{ host?.email }}</td>
               <td>{{ host?.phoneNumber }}</td>
@@ -157,7 +156,7 @@
               <td>
                 <div class="action-buttons">
                   <button *ngIf="!host?.isVerified" class="verify-btn" (click)="verifyHost(host?.id ?? 0)">
-                    Verify
+                    View Verification
                   </button>
                 </div>
               </td>
@@ -384,7 +383,8 @@
           <span *ngIf="analytics?.topBookedProperties?.length">
             <img [src]="analytics?.topBookedProperties[0]?.images[0] || 'assets/images/default-property.jpg'" alt="Most Booked Property" class="property-image">
             <br>
-            <span class="highlight">({{ analytics?.topBookedProperties[0]?.title }})</span>
+            <!-- <span class="highlight">({{ analytics?.topBookedProperties[0]?.title }})</span> -->
+            <br>
 
             <span class="highlight">({{ analytics?.topBookedProperties[0]?.bookingsCount }} bookings)</span>
           </span>
@@ -437,7 +437,6 @@
     </div>
     <div class="charts-section">
       <div class="chart">
-        <h3>Properties Analytics</h3>
         <canvas #propertiesAnalyticsChart></canvas>
       </div>
     </div>

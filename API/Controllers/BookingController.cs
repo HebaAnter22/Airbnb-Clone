@@ -61,7 +61,7 @@ namespace API.Controllers
       
         // Get detailed bookings for a property.
         [HttpGet("property/details/{propertyId}")]
-        [Authorize(Roles = "host")]
+        [Authorize(Roles = "Host")]
         public async Task<IActionResult> GetPropertyBookingDetails(int propertyId)
         {
             var bookings = await _bookingRepo.GetPropertyBookingDetails(propertyId);
@@ -78,18 +78,8 @@ namespace API.Controllers
             {
                 Id = b.Id,
                 PropertyId = b.PropertyId,
-                GuestId = b.GuestId,
-                StartDate = b.StartDate,
-                EndDate = b.EndDate,
-                CheckInStatus = b.CheckInStatus,
-                CheckOutStatus = b.CheckOutStatus,
-                Status = b.Status,
-                TotalAmount = b.TotalAmount,
-                PromotionId = b.PromotionId,
-                CreatedAt = b.CreatedAt,
-                UpdatedAt = b.UpdatedAt,
-                GuestName = $"{b.Guest.FirstName} {b.Guest.LastName}",
                 PropertyTitle = b.Property.Title,
+                GuestName = $"{b.Guest.FirstName} {b.Guest.LastName}",
                 Payments = b.Payments.Select(p => new PaymentDTO
                 {
                     Id = p.Id,
@@ -97,7 +87,17 @@ namespace API.Controllers
                     PaymentMethodType = p.PaymentMethodType,
                     Status = p.Status,
                     CreatedAt = p.CreatedAt
-                }).ToList()
+                }).ToList(),
+                GuestId = b.GuestId,
+                StartDate = b.StartDate,
+                EndDate = b.EndDate,
+                Status = b.Status,
+                CheckInStatus = b.CheckInStatus,
+                CheckOutStatus = b.CheckOutStatus,
+                TotalAmount = b.TotalAmount,
+                PromotionId = b.PromotionId,
+                CreatedAt = b.CreatedAt,
+                UpdatedAt = b.UpdatedAt
             });
 
             return Ok(dtos);
@@ -160,7 +160,7 @@ namespace API.Controllers
         }
 
         [HttpPut("confirm/{bookingId}")]
-        [Authorize(Roles = "host")]
+        [Authorize(Roles = "Host")]
         public async Task<IActionResult> ConfirmBooking(int bookingId)
         {
             try
@@ -194,6 +194,54 @@ namespace API.Controllers
             }
         }
 
+
+
+
+        [HttpGet("allbookings")]
+        public async Task<IActionResult> GetAllBookings()
+        {
+            try
+            {
+                var hostId = GetCurrentUserId();
+                var bookings = await _bookingRepo.GetAllBookingsAsync(hostId);
+                var dtos = new List<BookingDetailsDTO>();
+                foreach (var booking in bookings)
+                {
+                    var property = await _bookingRepo.getPropertyByIdAsync(booking.PropertyId);
+                    var guest = await _bookingRepo.GetUserBookingetails(booking.Id);
+                    dtos.Add(new BookingDetailsDTO
+                    {
+                        Id = booking.Id,
+                        PropertyId = booking.PropertyId,
+                        PropertyTitle = property.Title,
+                        GuestName = guest.Guest.FirstName + " " + guest.Guest.LastName,
+                        Payments = booking.Payments.Select(p => new PaymentDTO
+                        {
+                            Id = p.Id,
+                            Amount = p.Amount,
+                            PaymentMethodType = p.PaymentMethodType,
+                            Status = p.Status,
+                            CreatedAt = p.CreatedAt
+                        }).ToList(),
+                        GuestId = booking.GuestId,
+                        StartDate = booking.StartDate,
+                        EndDate = booking.EndDate,
+                        Status = booking.Status,
+                        CheckInStatus = booking.CheckInStatus,
+                        CheckOutStatus = booking.CheckOutStatus,
+                        TotalAmount = booking.TotalAmount,
+                        PromotionId = booking.PromotionId,
+                        CreatedAt = booking.CreatedAt,
+                        UpdatedAt = booking.UpdatedAt
+                    });
+                }
+                return Ok(dtos);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"An unexpected error occurred: {ex.Message}");
+            }
+        }
         #endregion
 
 
@@ -201,7 +249,7 @@ namespace API.Controllers
         #region Guest Methods
         // Get all bookings made by a specific user (paginated).
         [HttpGet("userBookings")]
-        [Authorize(Roles = "guest")]
+        [Authorize(Roles = "Guest")]
         public async Task<IActionResult> GetAllUserBooking(int page = 1, int pageSize = 10)
         {
             var userId = GetCurrentUserId();
@@ -285,18 +333,8 @@ namespace API.Controllers
             {
                 Id = booking.Id,
                 PropertyId = booking.PropertyId,
-                GuestId = booking.GuestId,
-                StartDate = booking.StartDate,
-                EndDate = booking.EndDate,
-                CheckInStatus = booking.CheckInStatus,
-                CheckOutStatus = booking.CheckOutStatus,
-                Status = booking.Status,
-                TotalAmount = booking.TotalAmount,
-                PromotionId = booking.PromotionId,
-                CreatedAt = booking.CreatedAt,
-                UpdatedAt = booking.UpdatedAt,
-                GuestName = $"{booking.Guest.FirstName} {booking.Guest.LastName}",
                 PropertyTitle = booking.Property.Title,
+                GuestName = $"{booking.Guest.FirstName} {booking.Guest.LastName}",
                 Payments = booking.Payments.Select(p => new PaymentDTO
                 {
                     Id = p.Id,
@@ -304,7 +342,17 @@ namespace API.Controllers
                     PaymentMethodType = p.PaymentMethodType,
                     Status = p.Status,
                     CreatedAt = p.CreatedAt
-                }).ToList()
+                }).ToList(),
+                GuestId = booking.GuestId,
+                StartDate = booking.StartDate,
+                EndDate = booking.EndDate,
+                Status = booking.Status,
+                CheckInStatus = booking.CheckInStatus,
+                CheckOutStatus = booking.CheckOutStatus,
+                TotalAmount = booking.TotalAmount,
+                PromotionId = booking.PromotionId,
+                CreatedAt = booking.CreatedAt,
+                UpdatedAt = booking.UpdatedAt
             };
 
             return Ok(dto);

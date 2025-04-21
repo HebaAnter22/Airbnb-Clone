@@ -124,8 +124,12 @@ export class AdminServiceService {
     return this.http.get<HostDto[]>(`${this.API_URL}/hosts/not-verified`);
   }
 
-  verifyHost(verificationId: number): Observable<any> {
-    return this.http.put<any>(`${this.API_URL}/hosts/${verificationId}/verify`, {});
+  gethostverfication(hostid: number): Observable<any> {
+    return this.http.get<any>(`${this.API_URL}/GetVerificationsByHostId/${hostid}`);
+  }
+
+  verifyHost(hostid: number): Observable<any> {
+    return this.http.put<any>(`${this.API_URL}/hosts/${hostid}/verify`, {});
   }
 
   // Guest Management
