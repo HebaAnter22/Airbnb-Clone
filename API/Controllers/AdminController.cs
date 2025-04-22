@@ -1,8 +1,8 @@
 ﻿using AirBnb.BL.Dtos.BookingDtos;
 using API.DTOs;
-using API.DTOs.property;
-using API.DTOs.PropertyCategoryDTOs;
 using API.DTOs.Admin;
+using API.DTOs.HostVerification;
+using API.DTOs.property;
 using API.Services.AdminRepo;
 using API.Services.BookingRepo;
 using Microsoft.AspNetCore.Authorization;
@@ -13,12 +13,12 @@ namespace API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize(Roles = "admin")] // Restrict access to Admin users only
+    [Authorize(Roles = "Admin")] 
     public class AdminController : ControllerBase
     {
         private readonly IAdminRepository _adminRepository;
         private readonly IBookingRepository _bookingRepository;
-        public AdminController(IAdminRepository adminRepository,IBookingRepository bookingRepository)
+        public AdminController(IAdminRepository adminRepository, IBookingRepository bookingRepository)
         {
             _adminRepository = adminRepository;
             _bookingRepository = bookingRepository;
@@ -33,30 +33,44 @@ namespace API.Controllers
             var dto = new HostVerificationOutputDTO
             {
                 Id = verification.Id,
-                HostId = verification.UserId,
+                HostId = verification.HostId,
                 HostName = $"{verification.Host.User.FirstName} {verification.Host.User.LastName}",
                 Status = verification.Status,
-                VerificationDocumentUrl = verification.DocumentUrl,
+                VerificationDocumentUrl1 = verification.DocumentUrl1,
+                VerificationDocumentUrl2 = verification.DocumentUrl2,
                 SubmittedAt = verification.SubmittedAt
             };
             return Ok(dto);
         }
 
+        public class VerifyHostRequest
+        {
+            public bool IsVerified { get; set; }
+        }
+
         [HttpPut("hosts/{hostId}/verify")]
-        public async Task<IActionResult> VerifyHost(int hostId, [FromBody] HostVerificationInputDTO input)
+        public async Task<IActionResult> VerifyHost(int hostId, [FromBody] VerifyHostRequest request)
         {
             try
             {
-                var success = await _adminRepository.ApproveHostAsync(hostId, input.IsVerified);
+                var verification = await _adminRepository.GetVerificationByhostsAsync(hostId);
+                if (verification == null)
+                    return NotFound("Verification not found.");
+                var result = await _adminRepository.ConfirmHostVerificationAsync(verification.Id, hostId);
+                if (!result)
+                    return NotFound();
+                var success = await _adminRepository.ApproveHostAsync(hostId, request.IsVerified);
                 if (!success)
                     return NotFound("Host not found.");
-                return Ok(new { Message = $"Host {(input.IsVerified ? "verified" : "unverified")} successfully." });
+
+                return Ok(new { Message = $"Host {(request.IsVerified ? "verified" : "unverified")} successfully." });
             }
             catch (Exception ex)
             {
                 return StatusCode(500, $"An unexpected error occurred: {ex.Message}");
             }
         }
+
 
         [HttpGet("hosts")]
         public async Task<IActionResult> GetAllHosts()
@@ -69,7 +83,7 @@ namespace API.Controllers
                 foreach (var h in hosts)
                 {
                     var totalIncome = await _bookingRepository.GetTotalIncomeForHostAsync(h.Id);
-                    var rating = h.Host.Properties.SelectMany(p => p.Bookings).Where(b => b.Review != null).Select(b => b.Review.Rating);
+                    var rating = h.Host.Properties.SelectMany(p => p.Bookings).Where(b => b.Review != null).Select( b => b.Review.Rating);
                     var averageRating = rating.Any() ? rating.Average() : 0;
 
                     dtos.Add(new HostDto
@@ -80,7 +94,7 @@ namespace API.Controllers
                         Email = h.Email,
                         PhoneNumber = h.PhoneNumber,
                         Role = h.Role,
-                        IsVerified = h.AccountStatus == "Active",
+                        IsVerified = h.Host.IsVerified,
                         ProfilePictureUrl = h.ProfilePictureUrl,
                         StartDate = h.CreatedAt,
                         TotalReviews = rating.Count(),
@@ -141,7 +155,6 @@ namespace API.Controllers
             {
                 var hosts = await _adminRepository.GetAllHostsAsync();
                 var verifiedHosts = hosts.Where(h => h.Host.IsVerified == true).ToList();
-              
                 //var verifiedHosts = await _adminRepository.GetVerifiedHostsAsync();
                 var dtos = new List<HostDto>();
                 foreach (var host in verifiedHosts)
@@ -157,10 +170,10 @@ namespace API.Controllers
                         Email = host.Email,
                         PhoneNumber = host.PhoneNumber,
                         Role = host.Role,
-                        IsVerified = host.AccountStatus == "active" ? true : false,
+                        IsVerified = host.Host.IsVerified,
                         ProfilePictureUrl = host.ProfilePictureUrl,
                         StartDate = host.CreatedAt,
-                        TotalReviews = rating.Count(),
+                        TotalReviews =rating.Count(),
                         Rating = (decimal)averageRating,
                         PropertiesCount = host.Host.Properties.Count,
                         TotalIncome = totalIncome
@@ -183,7 +196,7 @@ namespace API.Controllers
                 var notVerifiedHosts = hosts.Where(h => h.Host.IsVerified == false).ToList();
                 //var notVerifiedHosts = await _adminRepository.GetNotVerifiedHostsAsync();
                 var dtos = new List<HostDto>();
-                foreach (var host in notVerifiedHosts)
+                foreach (var host in notVerifiedHosts) 
                 {
                     var totalIncome = await _bookingRepository.GetTotalIncomeForHostAsync(host.Id);
                     var rating = host.Host.Properties.SelectMany(p => p.Bookings).Where(b => b.Review != null).Select(b => b.Review.Rating);
@@ -196,7 +209,7 @@ namespace API.Controllers
                         Email = host.Email,
                         PhoneNumber = host.PhoneNumber,
                         Role = host.Role,
-                        IsVerified = host.AccountStatus == "active" ? true : false,
+                        IsVerified = host.Host.IsVerified,
                         ProfilePictureUrl = host.ProfilePictureUrl,
                         StartDate = host.CreatedAt,
                         TotalReviews = rating.Count(),
@@ -212,6 +225,7 @@ namespace API.Controllers
                 return StatusCode(500, $"An unexpected error occurred: {ex.Message}");
             }
         }
+
 
         [HttpPut("users/{userId}/block")]
         public async Task<IActionResult> BlockUser(int userId, [FromBody] BlockUserDto input)
@@ -237,31 +251,26 @@ namespace API.Controllers
         {
             try
             {
-                Console.WriteLine($"Received request to approve property with ID {propertyId}. Approval status: {input.IsApproved}");
                 var success = await _adminRepository.ApprovePropertyAsync(propertyId, input.IsApproved);
                 if (!success)
-                {
-                    Console.WriteLine($"Property with ID {propertyId} not found or could not be updated.");
-                    return NotFound(new { Message = "Property not found or could not be updated." });
-                }
+                    return NotFound("Property not found.");
 
-                Console.WriteLine($"Property with ID {propertyId} {(input.IsApproved ? "approved" : "rejected")} successfully.");
-                return Ok(new { Message = $"Property {(input.IsApproved ? "approved" : "rejected")} successfully." });
+                return Ok(new { Message = $"Property {(input.IsApproved ? "approved" : "suspended")} successfully." });
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error in ApproveProperty: {ex.Message}");
-                return StatusCode(500, new { Message = $"An unexpected error occurred: {ex.Message}" });
+                return StatusCode(500, $"An unexpected error occurred: {ex.Message}");
             }
         }
 
+        
         [HttpGet("properties/pending")]
         public async Task<IActionResult> GetPendingProperties()
         {
             try
             {
                 var properties = await _adminRepository.GetAllPendingPropertiesAsync();
-               var images = properties.Where(p => p.PropertyImages != null).SelectMany(p => p.PropertyImages).ToList();
+                var images = properties.Where(p => p.PropertyImages != null).SelectMany(p => p.PropertyImages).ToList();
 
                 var dtos = new List<PropertyDTOAdmin>();
                 foreach (var property in properties)
@@ -280,7 +289,8 @@ namespace API.Controllers
     .OrderByDescending(img => img.IsPrimary)
     .Select(i => i.ImageUrl)
     .ToList()
-               ,         PostalCode = property.PostalCode,
+               ,
+                        PostalCode = property.PostalCode,
                         Latitude = property.Latitude,
                         Longitude = property.Longitude,
                         PricePerNight = property.PricePerNight,
@@ -294,7 +304,7 @@ namespace API.Controllers
                         Status = property.Status,
                         CreatedAt = property.CreatedAt,
                         UpdatedAt = property.UpdatedAt,
-                      
+
                     });
                 }
                 return Ok(dtos);
@@ -313,7 +323,7 @@ namespace API.Controllers
                 var properties = await _adminRepository.GetAllApprovedPropertiesAsync();
                 var dtos = new List<PropertyDTOAdmin>();
 
-      
+
                 foreach (var property in properties)
                 {
                     dtos.Add(new PropertyDTOAdmin
@@ -331,7 +341,7 @@ namespace API.Controllers
                         Latitude = property.Latitude,
                         Longitude = property.Longitude,
                         PricePerNight = property.PricePerNight,
-                      Images = property.PropertyImages
+                        Images = property.PropertyImages
                        .OrderByDescending(img => img.IsPrimary)
                        .Select(i => i.ImageUrl)
                        .ToList(),
@@ -367,7 +377,6 @@ namespace API.Controllers
                 return NotFound("Property not found.");
             return Ok(new { Message = "Property suspended successfully." });
         }
-
         #endregion
 
         #region Booking Management
@@ -397,7 +406,6 @@ namespace API.Controllers
                         PromotionId = booking.PromotionId,
                         CreatedAt = booking.CreatedAt,
                         UpdatedAt = booking.UpdatedAt
-
                     });
                 }
                 return Ok(dtos);

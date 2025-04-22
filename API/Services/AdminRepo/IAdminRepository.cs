@@ -4,7 +4,7 @@ namespace API.Services.AdminRepo
 {
     public interface IAdminRepository
     {
-        Task<bool> ConfirmHostVerificationAsync(int verificationId);
+        Task<bool> ConfirmHostVerificationAsync(int verificationId,int hostId);
         Task<IEnumerable<HostVerification>> GetAllPendingVerificationsAsync();
 
         Task<bool> BlockUserAsync(int userId, bool isBlocked);
@@ -13,6 +13,7 @@ namespace API.Services.AdminRepo
         Task<IEnumerable<User>> GetAllGuestsAsync();
 
         Task<bool> ApproveHostAsync(int hostId, bool isApproved);
+
         Task<bool> ApprovePropertyAsync(int propertyId, bool isApproved);
         Task<IEnumerable<Property>> GetAllPendingPropertiesAsync();
 

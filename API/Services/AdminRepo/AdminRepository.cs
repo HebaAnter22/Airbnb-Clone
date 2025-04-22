@@ -20,7 +20,7 @@ namespace API.Services.AdminRepo
 
         #region Host Verification Management
 
-        public async Task<bool> ConfirmHostVerificationAsync(int verificationId)
+        public async Task<bool> ConfirmHostVerificationAsync(int verificationId,int hostid)
         {
             var verification = await _context.HostVerifications.FindAsync(verificationId);
             if (verification == null)
@@ -30,7 +30,7 @@ namespace API.Services.AdminRepo
             verification.VerifiedAt = DateTime.UtcNow;
             _context.HostVerifications.Update(verification);
 
-            var host = await _context.HostProfules.FindAsync(verification.Host.HostId);
+            var host = await _context.HostProfules.FindAsync(hostid);
             if (host != null)
                 host.IsVerified = true;
 
@@ -67,17 +67,16 @@ namespace API.Services.AdminRepo
         {
             return await _context.Users
                 .Include(u => u.Host).ThenInclude(h => h.Properties).ThenInclude(p => p.Bookings).ThenInclude(b => b.Review)
-                .Where(u => u.Role == UserRole.Host.ToString())
+                .Where(u => u.Role == UserRole.Host.ToString()) 
                 .ToListAsync();
         }
 
         public async Task<IEnumerable<User>> GetAllGuestsAsync()
         {
             return await _context.Users.Include(u => u.Bookings)
-                .Where(u => u.Role == UserRole.Guest.ToString()) 
+                .Where(u => u.Role == UserRole.Guest.ToString())
                 .ToListAsync();
         }
-
 
         public async Task<HostVerification> GetVerificationByhostsAsync(int hostid)
         {
@@ -101,10 +100,10 @@ namespace API.Services.AdminRepo
 
                 host.IsVerified = true;
                 host.User.AccountStatus = "Active";
-                
+
                 _context.HostProfules.Update(host);
                 await _context.SaveChangesAsync();
-                
+
                 return true;
             }
             catch (Exception ex)
@@ -113,6 +112,7 @@ namespace API.Services.AdminRepo
                 return false;
             }
         }
+
 
         #endregion
 
@@ -129,7 +129,7 @@ namespace API.Services.AdminRepo
                     return false;
                 }
 
-                property.Status = isApproved ? "Active" : "Rejected";
+                property.Status = isApproved ? "Active" : "Suspended";
                 _context.Properties.Update(property);
                 await _context.SaveChangesAsync();
                 Console.WriteLine($"Property with ID {propertyId} updated to status: {property.Status}");
@@ -148,11 +148,12 @@ namespace API.Services.AdminRepo
             if (property == null)
                 return false;
 
-            property.Status = "Suspended"; 
+            property.Status = "Suspended";
             _context.Properties.Update(property);
             await _context.SaveChangesAsync();
             return true;
         }
+
 
         public async Task<IEnumerable<Property>> GetAllPendingPropertiesAsync()
         {
@@ -162,7 +163,6 @@ namespace API.Services.AdminRepo
                 .Where(p => p.Status == "Pending")
                 .ToListAsync();
         }
-
 
         public async Task<IEnumerable<Property>> GetAllApprovedPropertiesAsync()
         {
@@ -205,7 +205,7 @@ namespace API.Services.AdminRepo
 
         #endregion
 
-        
+
 
     }
 }

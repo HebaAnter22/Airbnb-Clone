@@ -21,11 +21,9 @@ namespace API.Data.Configurations
             builder.Property(bp => bp.PayementGateWayResponse).HasColumnName("payment_gateway_response").HasColumnType("NVARCHAR");
 
             // Check Constraints
-            builder.HasCheckConstraint("CK_BookingPayments_Status", "[status] IN ('pending', 'completed', 'failed', 'refunded')");
             builder.HasCheckConstraint("CK_BookingPayments_RefundedAmount", "[refunded_amount] >= 0");
             builder.HasCheckConstraint("CK_BookingPayments_Amount", "[amount] > 0");
             builder.HasCheckConstraint("CK_BookingPayments_RefundedAmount_Amount", "[refunded_amount] <= [amount]");
-            builder.HasCheckConstraint("CK_BookingPayments_TransactionId", "[payment_method_type] IN ('credit_card', 'paypal', 'bank_transfer', 'other')");
 
             // Navigation Property
             builder.HasOne(bp => bp.Booking)

@@ -13,7 +13,8 @@ interface HostVerification {
   hostId: number;
   hostName: string;
   status: string;
-  verificationDocumentUrl: string;
+  verificationDocumentUrl1: string;
+  verificationDocumentUrl2: string;
   submittedAt: Date;
 }
 
@@ -73,12 +74,14 @@ export class VerifinghostComponent implements OnInit {
     });
   }
 
+
   verifyHost(): void {
     this.loading = true;
-    this.adminService.verifyHost(this.hostId).subscribe({
+    this.adminService.verifyHost(this.hostId, true).subscribe({
       next: () => {
         this.snackBar.open('Host verified successfully', 'Close', { duration: 3000 });
         this.router.navigate(['/admin']);
+        this.loading = false;
       },
       error: (err) => {
         this.error = 'Failed to verify host';
@@ -87,15 +90,22 @@ export class VerifinghostComponent implements OnInit {
       }
     });
   }
+  
+
 
   rejectVerification(): void {
-    // This would typically call an API to reject the verification
-    // For now, we'll just navigate back to the admin page
-    this.snackBar.open('Verification rejected', 'Close', { duration: 3000 });
-    this.router.navigate(['/admin']);
-  }
-
-  goBack(): void {
-    this.router.navigate(['/admin']);
+    this.loading = true;
+    this.adminService.rejectHost(this.hostId, false).subscribe({
+      next: () => {
+        this.snackBar.open('Verification rejected', 'Close', { duration: 3000 });
+        this.router.navigate(['/admin']);
+        this.loading = false;
+      },
+      error: (err) => {
+        this.error = 'Failed to reject host verification';
+        this.loading = false;
+        console.error('Error rejecting host verification:', err);
+      }
+    });
   }
 }

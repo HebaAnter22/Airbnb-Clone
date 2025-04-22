@@ -2,7 +2,6 @@
 using API.Models;
 using Microsoft.EntityFrameworkCore;
 using WebApiDotNet.Repos;
-using Microsoft.AspNetCore.Http;
 
 namespace API.Services.HostVerificationRepo
 {
@@ -21,7 +20,7 @@ namespace API.Services.HostVerificationRepo
         {
             return await _context.HostVerifications
                 .Include(v => v.Host)
-                .ThenInclude(h => h.User)
+                .ThenInclude(h => h.User) 
                 .ToListAsync();
         }
 
@@ -42,30 +41,18 @@ namespace API.Services.HostVerificationRepo
                 .FirstOrDefaultAsync();
         }
 
-        public async Task<bool> UpdateVerificationStatusAsync(int verificationId, string newStatus)
-        {
-            var verification = await _context.HostVerifications.FindAsync(verificationId);
-            if (verification == null)
-                return false;
-
-            verification.Status = newStatus;
-            if (newStatus.Equals("verified", StringComparison.OrdinalIgnoreCase))
-                verification.VerifiedAt = DateTime.UtcNow;
-
-            _context.HostVerifications.Update(verification);
-            await _context.SaveChangesAsync();
-            return true;
-        }
-
         public async Task<HostVerification> CreateVerificationWithImagesAsync(int hostId, List<IFormFile> files)
         {
+            if(files == null || !files.Any() || files.Count !=2)
+                throw new ArgumentException("Exactly two images must be provided for verification.");
+
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
                 // Create verification record
                 var verification = new HostVerification
                 {
-                    UserId = hostId,
+                    HostId = hostId,
                     Status = "pending",
                     SubmittedAt = DateTime.UtcNow
                 };
@@ -78,6 +65,8 @@ namespace API.Services.HostVerificationRepo
                 {
                     var uploadPath = Path.Combine(_environment.WebRootPath, "uploads", "hostverifications", verification.Id.ToString());
                     Directory.CreateDirectory(uploadPath);
+
+                    var imageUrls = new List<string>();
 
                     var baseUrl = "https://localhost:7228"; // Should come from configuration
 
@@ -95,11 +84,13 @@ namespace API.Services.HostVerificationRepo
 
                             var relativePath = $"/uploads/hostverifications/{verification.Id}/{fileName}";
                             var fullImageUrl = $"{baseUrl}{relativePath}";
+                            imageUrls.Add(fullImageUrl);
 
-                            // Update verification with the first image URL or maintain a list
-                            verification.DocumentUrl = verification.DocumentUrl ?? fullImageUrl; // Store first image as primary
                         }
                     }
+                    // Update verification with the first image URL or maintain a list
+                    verification.DocumentUrl1 = imageUrls.Count > 0 ? imageUrls[0] : null;
+                    verification.DocumentUrl2 = imageUrls.Count > 1 ? imageUrls[1] : null;
 
                     _context.HostVerifications.Update(verification);
                     await _context.SaveChangesAsync();
@@ -114,5 +105,27 @@ namespace API.Services.HostVerificationRepo
                 throw;
             }
         }
+        public async Task<bool> UpdateVerificationStatusAsync(int verificationId, string newStatus)
+        {
+            var verification = await _context.HostVerifications.FindAsync(verificationId);
+            if (verification == null)
+                return false;
+
+            verification.Status = newStatus;
+            if (newStatus.Equals("verified", StringComparison.OrdinalIgnoreCase))
+                verification.VerifiedAt = DateTime.UtcNow;
+
+            _context.HostVerifications.Update(verification);
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<Models.Host> GetHostByIdAsync(int hostId)
+        {
+            return await _context.HostProfules
+                .Include(h => h.User)
+                .FirstOrDefaultAsync(h => h.HostId == hostId);
+        }
     }
+
 }

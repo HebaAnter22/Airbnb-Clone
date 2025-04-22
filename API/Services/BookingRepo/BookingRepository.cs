@@ -1,10 +1,11 @@
-﻿    using API.Data;
-    using API.DTOs;
-    using API.Models;
-    using API.Services.PromotionRepo;
-    using API.Services.PropertyAvailabilityRepo;
-    using Microsoft.EntityFrameworkCore;
-    using WebApiDotNet.Repos;
+﻿using API.Data;
+using API.DTOs;
+using API.Models;
+using API.Services.PromotionRepo;
+using API.Services.PropertyAvailabilityRepo;
+using Microsoft.EntityFrameworkCore;
+using Stripe;
+using WebApiDotNet.Repos;
 
     namespace API.Services.BookingRepo
     {
@@ -47,8 +48,19 @@
                 return (bookings, totalCount);
             }
 
-            // Get detailed bookings for a property including related data.
-            public async Task<IEnumerable<Booking>> GetPropertyBookingDetails(int propertyId)
+        public async Task<IEnumerable<Booking>> GetAllBookingsAsync(int hostId)
+        {
+            return await _context.Bookings
+                .Include(b => b.Property)
+                    .ThenInclude(p => p.Host)
+                .Include(b => b.Guest)
+                .Include(b => b.Payments)
+                .Where(b => b.Property.HostId == hostId)
+                .ToListAsync();
+        }
+
+        // Get detailed bookings for a property including related data.
+        public async Task<IEnumerable<Booking>> GetPropertyBookingDetails(int propertyId)
             {
                 if (propertyId <= 0)
                     throw new ArgumentException("Property ID must be greater than zero.");
@@ -150,24 +162,13 @@
                 await _context.SaveChangesAsync();
                 return true;
             }
-        #endregion
-        public async Task<IEnumerable<Booking>> GetAllBookingsAsync(int hostId)
-        {
-            return await _context.Bookings
-                .Include(b => b.Property)
-                    .ThenInclude(p => p.Host)
-                .Include(b => b.Guest)
-                .Include(b => b.Payments)
-                .Where(b => b.Property.HostId == hostId)
-                .ToListAsync();
-        }
+            #endregion
+
+            #region Guest Methods
 
 
-        #region Guest Methods
-
-
-        //Check if a property is available for booking within a specified date range. (IMPORTANT)
-        public async Task<bool> IsPropertyAvailableForBookingAsync(int propertyId, DateTime startDate, DateTime endDate)
+            //Check if a property is available for booking within a specified date range. (IMPORTANT)
+            public async Task<bool> IsPropertyAvailableForBookingAsync(int propertyId, DateTime startDate, DateTime endDate)
             {
                 return await _propertyAvailabilityRepo.IsPropertyAvailableAsync(propertyId, startDate, endDate);
             }
@@ -375,7 +376,49 @@
                 }
             }
 
-            public async Task<decimal> GetTotalIncomeForHostAsync(int hostId)
+            public async Task<bool> IsPromotionValidForBookingAsync(int promotionId, int guestId, DateTime bookingStartDate)
+            {
+                var promotion = await _promotionRepo.GetPromotionByIdAsync(promotionId);
+                if (promotion == null || !promotion.IsActive)
+                    return false;
+
+                if (promotion.EndDate < bookingStartDate)
+                    return false;
+
+                if (promotion.UsedCount >= promotion.MaxUses)
+                    return false;
+
+                var isUsed = await _promotionRepo.IsPromotionUsedAsync(promotion.Code, guestId);
+                if (isUsed)
+                    return false;
+
+                return true;
+            }
+
+            public async Task<int> GetPromotionIdByCodeAsync(string promoCode)
+            {
+                var promotion = await _promotionRepo.GetPromotionAsync(promoCode);
+                if (promotion == null)
+                    throw new KeyNotFoundException("Promotion not found.");
+                return promotion.Id;
+            }
+
+            public async Task AddUserUsedPromotionAsync(UserUsedPromotion usedPromotion)
+            {
+                if (usedPromotion == null)
+                    throw new ArgumentNullException(nameof(usedPromotion));
+                var existingRecord = await _context.UserUsedPromotions
+                    .FirstOrDefaultAsync(u => u.BookingId == usedPromotion.BookingId);
+                if (existingRecord != null)
+                {
+                    throw new InvalidOperationException("Promotion already used for this booking.");
+                }
+
+                _context.UserUsedPromotions.Add(usedPromotion);
+                await _context.SaveChangesAsync();
+            }
+
+        public async Task<decimal> GetTotalIncomeForHostAsync(int hostId)
             {
                 var totalIncome = await _context.Bookings.Include(b => b.Property)
                     .Where(b => b.Property.HostId == hostId) 
@@ -394,7 +437,22 @@
 
                 return totalSpent;
             }
-    }
+
+            public async Task<PaymentIntent> CreatePaymentIntentAsync(decimal amount)
+            {
+                var options = new PaymentIntentCreateOptions
+                {
+                    Amount = (long)(amount * 100),
+                    Currency = "usd",
+                    PaymentMethodTypes = new List<string> { "card" },
+                    CaptureMethod = "automatic"
+                };
+
+                var service = new PaymentIntentService();
+                return await service.CreateAsync(options);
+            }
 
     }
+
+}
 

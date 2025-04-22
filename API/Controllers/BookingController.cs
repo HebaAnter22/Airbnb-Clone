@@ -1,11 +1,13 @@
 ﻿using System.Security.Claims;
 using AirBnb.BL.Dtos.BookingDtos;
+using API.DTOs.Promotion;
 using API.Models;
 using API.Services.BookingRepo;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Stripe;
 
 namespace API.Controllers
 {
@@ -31,6 +33,53 @@ namespace API.Controllers
         }
 
         #region Host Methods
+
+
+        [HttpGet("allbookings")]
+        public async Task<IActionResult> GetAllBookings()
+        {
+            try
+            {
+                var hostId = GetCurrentUserId();
+                var bookings = await _bookingRepo.GetAllBookingsAsync(hostId);
+                var dtos = new List<BookingDetailsDTO>();
+                foreach (var booking in bookings)
+                {
+                    var property = await _bookingRepo.getPropertyByIdAsync(booking.PropertyId);
+                    var guest = await _bookingRepo.GetUserBookingetails(booking.Id);
+                    dtos.Add(new BookingDetailsDTO
+                    {
+                        Id = booking.Id,
+                        PropertyId = booking.PropertyId,
+                        PropertyTitle = property.Title,
+                        GuestName = guest.Guest.FirstName + " " + guest.Guest.LastName,
+                        Payments = booking.Payments.Select(p => new PaymentDTO
+                        {
+                            Id = p.Id,
+                            Amount = p.Amount,
+                            PaymentMethodType = p.PaymentMethodType,
+                            Status = p.Status,
+                            CreatedAt = p.CreatedAt
+                        }).ToList(),
+                        GuestId = booking.GuestId,
+                        StartDate = booking.StartDate,
+                        EndDate = booking.EndDate,
+                        Status = booking.Status,
+                        CheckInStatus = booking.CheckInStatus,
+                        CheckOutStatus = booking.CheckOutStatus,
+                        TotalAmount = booking.TotalAmount,
+                        PromotionId = booking.PromotionId,
+                        CreatedAt = booking.CreatedAt,
+                        UpdatedAt = booking.UpdatedAt
+                    });
+                }
+                return Ok(dtos);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"An unexpected error occurred: {ex.Message}");
+            }
+        }
 
         // Get all bookings for a specific property
         [HttpGet("bookingsbypropertyid/{propertyId}")]
@@ -58,7 +107,7 @@ namespace API.Controllers
             return Ok(new { bookings = dtos, totalCount = result.totalCount });
         }
 
-      
+
         // Get detailed bookings for a property.
         [HttpGet("property/details/{propertyId}")]
         [Authorize(Roles = "Host")]
@@ -72,14 +121,24 @@ namespace API.Controllers
                 if (!IsHostAuthorized)
                     return Forbid("You are not authorized to view this booking.");
             }
-            
+
 
             var dtos = bookings.Select(b => new BookingDetailsDTO
             {
                 Id = b.Id,
                 PropertyId = b.PropertyId,
-                PropertyTitle = b.Property.Title,
+                GuestId = b.GuestId,
+                StartDate = b.StartDate,
+                EndDate = b.EndDate,
+                CheckInStatus = b.CheckInStatus,
+                CheckOutStatus = b.CheckOutStatus,
+                Status = b.Status,
+                TotalAmount = b.TotalAmount,
+                PromotionId = b.PromotionId,
+                CreatedAt = b.CreatedAt,
+                UpdatedAt = b.UpdatedAt,
                 GuestName = $"{b.Guest.FirstName} {b.Guest.LastName}",
+                PropertyTitle = b.Property.Title,
                 Payments = b.Payments.Select(p => new PaymentDTO
                 {
                     Id = p.Id,
@@ -87,17 +146,7 @@ namespace API.Controllers
                     PaymentMethodType = p.PaymentMethodType,
                     Status = p.Status,
                     CreatedAt = p.CreatedAt
-                }).ToList(),
-                GuestId = b.GuestId,
-                StartDate = b.StartDate,
-                EndDate = b.EndDate,
-                Status = b.Status,
-                CheckInStatus = b.CheckInStatus,
-                CheckOutStatus = b.CheckOutStatus,
-                TotalAmount = b.TotalAmount,
-                PromotionId = b.PromotionId,
-                CreatedAt = b.CreatedAt,
-                UpdatedAt = b.UpdatedAt
+                }).ToList()
             });
 
             return Ok(dtos);
@@ -106,7 +155,7 @@ namespace API.Controllers
 
         //Get a booking by user ID and property ID.
         [HttpGet("user-properties/{guestId}/{propertyId}")]
-        [Authorize(Roles = "host")]
+        [Authorize(Roles = "Host")]
         public async Task<IActionResult> GetBookingByGuestAndProperty(int guestId, int propertyId)
         {
             try
@@ -122,7 +171,7 @@ namespace API.Controllers
                     if (!IsAuthorized)
                         return Forbid("You are not authorized to view this booking.");
                 }
-                
+
 
                 if (bookings == null)
                     return NotFound("Bookings not found.");
@@ -194,54 +243,6 @@ namespace API.Controllers
             }
         }
 
-
-
-
-        [HttpGet("allbookings")]
-        public async Task<IActionResult> GetAllBookings()
-        {
-            try
-            {
-                var hostId = GetCurrentUserId();
-                var bookings = await _bookingRepo.GetAllBookingsAsync(hostId);
-                var dtos = new List<BookingDetailsDTO>();
-                foreach (var booking in bookings)
-                {
-                    var property = await _bookingRepo.getPropertyByIdAsync(booking.PropertyId);
-                    var guest = await _bookingRepo.GetUserBookingetails(booking.Id);
-                    dtos.Add(new BookingDetailsDTO
-                    {
-                        Id = booking.Id,
-                        PropertyId = booking.PropertyId,
-                        PropertyTitle = property.Title,
-                        GuestName = guest.Guest.FirstName + " " + guest.Guest.LastName,
-                        Payments = booking.Payments.Select(p => new PaymentDTO
-                        {
-                            Id = p.Id,
-                            Amount = p.Amount,
-                            PaymentMethodType = p.PaymentMethodType,
-                            Status = p.Status,
-                            CreatedAt = p.CreatedAt
-                        }).ToList(),
-                        GuestId = booking.GuestId,
-                        StartDate = booking.StartDate,
-                        EndDate = booking.EndDate,
-                        Status = booking.Status,
-                        CheckInStatus = booking.CheckInStatus,
-                        CheckOutStatus = booking.CheckOutStatus,
-                        TotalAmount = booking.TotalAmount,
-                        PromotionId = booking.PromotionId,
-                        CreatedAt = booking.CreatedAt,
-                        UpdatedAt = booking.UpdatedAt
-                    });
-                }
-                return Ok(dtos);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"An unexpected error occurred: {ex.Message}");
-            }
-        }
         #endregion
 
 
@@ -318,7 +319,7 @@ namespace API.Controllers
 
         // Get detailed information about a specific booking
         [HttpGet("{bookingId}/details")]
-        [Authorize(Roles = "guest")]
+        [Authorize(Roles = "Guest")]
         public async Task<IActionResult> GetUserBookingDetails(int bookingId)
         {
             var userId = GetCurrentUserId();
@@ -333,8 +334,18 @@ namespace API.Controllers
             {
                 Id = booking.Id,
                 PropertyId = booking.PropertyId,
-                PropertyTitle = booking.Property.Title,
+                GuestId = booking.GuestId,
+                StartDate = booking.StartDate,
+                EndDate = booking.EndDate,
+                CheckInStatus = booking.CheckInStatus,
+                CheckOutStatus = booking.CheckOutStatus,
+                Status = booking.Status,
+                TotalAmount = booking.TotalAmount,
+                PromotionId = booking.PromotionId,
+                CreatedAt = booking.CreatedAt,
+                UpdatedAt = booking.UpdatedAt,
                 GuestName = $"{booking.Guest.FirstName} {booking.Guest.LastName}",
+                PropertyTitle = booking.Property.Title,
                 Payments = booking.Payments.Select(p => new PaymentDTO
                 {
                     Id = p.Id,
@@ -342,20 +353,91 @@ namespace API.Controllers
                     PaymentMethodType = p.PaymentMethodType,
                     Status = p.Status,
                     CreatedAt = p.CreatedAt
-                }).ToList(),
-                GuestId = booking.GuestId,
-                StartDate = booking.StartDate,
-                EndDate = booking.EndDate,
-                Status = booking.Status,
-                CheckInStatus = booking.CheckInStatus,
-                CheckOutStatus = booking.CheckOutStatus,
-                TotalAmount = booking.TotalAmount,
-                PromotionId = booking.PromotionId,
-                CreatedAt = booking.CreatedAt,
-                UpdatedAt = booking.UpdatedAt
+                }).ToList()
             };
 
             return Ok(dto);
+        }
+
+        [HttpPost("{bookingId}/apply-promotion")]
+        [Authorize(Roles = "Guest")]
+        public async Task<IActionResult> ApplyPromotion(int bookingId, [FromBody] ApplyPromotionDto input)
+        {
+            try
+            {
+                var booking = await _bookingRepo.GetByIdAsync(bookingId);
+                if (booking == null)
+                    return NotFound("Booking not found.");
+
+                var guestId = GetCurrentUserId();
+                if (booking.GuestId != guestId)
+                    return Forbid("You are not authorized to apply a promotion to this booking.");
+
+                var promotionid = await _bookingRepo.GetPromotionIdByCodeAsync(input.PromoCode);
+                if (booking.PromotionId == promotionid)
+                    return BadRequest("A promotion has already been applied to this booking.");
+
+                var isPromotionValid = await _bookingRepo.IsPromotionValidForBookingAsync(promotionid, guestId, booking.StartDate);
+                if (!isPromotionValid)
+                    return BadRequest("The promotion is invalid or cannot be applied.");
+
+                var promotion = await _bookingRepo.GetPromotionByIdAsync(promotionid);
+                if (promotion == null)
+                    return BadRequest("Invalid promotion ID.");
+
+                var originalPrice = booking.TotalAmount;
+                var discountedPrice = originalPrice;
+
+                if (promotion.DiscountType == "fixed")
+                    discountedPrice -= promotion.Amount;
+                else if (promotion.DiscountType == "percentage")
+                    discountedPrice -= (originalPrice * promotion.Amount / 100);
+
+                discountedPrice = Math.Max(discountedPrice, 0);
+
+                booking.TotalAmount = discountedPrice;
+                booking.PromotionId = promotion.Id;
+                booking.UpdatedAt = DateTime.UtcNow;
+
+                await _bookingRepo.UpdateAsync(booking);
+
+                var usedPromotion = new UserUsedPromotion
+                {
+                    PromotionId = promotion.Id,
+                    BookingId = booking.Id,
+                    UserId = guestId,
+                    DiscountedAmount = originalPrice - discountedPrice,
+                    UsedAt = DateTime.UtcNow
+                };
+
+                await _bookingRepo.AddUserUsedPromotionAsync(usedPromotion);
+
+                var dto = new BookingOutputDTO
+                {
+                    Id = booking.Id,
+                    PropertyId = booking.PropertyId,
+                    GuestId = booking.GuestId,
+                    StartDate = booking.StartDate,
+                    EndDate = booking.EndDate,
+                    CheckInStatus = booking.CheckInStatus,
+                    CheckOutStatus = booking.CheckOutStatus,
+                    Status = booking.Status,
+                    TotalAmount = booking.TotalAmount,
+                    PromotionId = booking.PromotionId,
+                    CreatedAt = booking.CreatedAt,
+                    UpdatedAt = booking.UpdatedAt
+                };
+
+                return Ok(dto);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"An unexpected error occurred: {ex.Message}");
+            }
         }
 
 
@@ -376,8 +458,8 @@ namespace API.Controllers
                 return BadRequest("Booking dates must be in the future.");
 
             var lastavailableDate = await _bookingRepo.GetLastAvailableDateForPropertyAsync(input.PropertyId);
-            
-            if (lastavailableDate==null ||  input.StartDate > lastavailableDate || input.EndDate > lastavailableDate.Value.AddDays(1))
+
+            if (lastavailableDate == null || input.StartDate > lastavailableDate || input.EndDate > lastavailableDate.Value.AddDays(1))
                 return BadRequest("Booking dates exceed the property's availability.");
 
 
@@ -399,13 +481,17 @@ namespace API.Controllers
                 if (!isAvailable)
                     return BadRequest("The property is not available for the selected dates.");
 
-                var stayDuration = (input.EndDate - input.StartDate).TotalDays + 1;
-                var basePrice = (property.Result.PricePerNight + property.Result.CleaningFee + property.Result.ServiceFee)  * (decimal)stayDuration;
-
+                var stayDuration = (input.EndDate - input.StartDate).TotalDays;
+                var basePrice = (property.Result.PricePerNight + property.Result.CleaningFee + property.Result.ServiceFee) * (decimal)stayDuration;
+                var promotion = await _bookingRepo.GetPromotionByIdAsync(input.PromotionId);
                 decimal discountedPrice = (decimal)basePrice;
+
                 if (input.PromotionId > 0)
                 {
-                    var promotion = await _bookingRepo.GetPromotionByIdAsync(input.PromotionId);
+                    var isPromotionValid = await _bookingRepo.IsPromotionValidForBookingAsync(input.PromotionId, guestId, input.StartDate);
+                    if (!isPromotionValid)
+                        return BadRequest("The promotion is invalid or cannot be applied.");
+
                     if (promotion == null)
                         return BadRequest("Invalid promotion ID.");
 
@@ -420,6 +506,7 @@ namespace API.Controllers
                     }
 
                     discountedPrice = Math.Max(discountedPrice, 0);
+
                 }
 
                 var booking = new Booking
@@ -435,12 +522,23 @@ namespace API.Controllers
                     UpdatedAt = DateTime.UtcNow
                 };
 
-                if(property.Result.InstantBook== true)
+
+                if (property.Result.InstantBook == true)
                 {
                     booking.Status = BookingStatus.Confirmed.ToString();
                 }
 
                 await _bookingRepo.CreateBookingAndUpdateAvailabilityAsync(booking);
+                var usedPromotion = new UserUsedPromotion
+                {
+                    PromotionId = promotion.Id,
+                    UserId = guestId,
+                    BookingId = booking.Id,
+                    DiscountedAmount = (decimal)(basePrice - discountedPrice),
+                    UsedAt = DateTime.UtcNow
+                };
+                await _bookingRepo.AddUserUsedPromotionAsync(usedPromotion);
+
 
                 var dto = new BookingOutputDTO
                 {
@@ -474,7 +572,7 @@ namespace API.Controllers
 
         // Update an existing booking.
         [HttpPut("{id}")]
-        [Authorize (Roles ="guest")] 
+        [Authorize(Roles = "Guest")]
         public async Task<IActionResult> UpdateBooking(int id, [FromBody] BookingInputDTO input)
         {
             if (!ModelState.IsValid)
@@ -578,7 +676,7 @@ namespace API.Controllers
 
         // Delete a booking.
         [HttpDelete("{id}")]
-        [Authorize(Roles = "guest")] 
+        [Authorize(Roles = "Guest")]
         public async Task<IActionResult> DeleteBooking(int id)
         {
             try
@@ -608,5 +706,71 @@ namespace API.Controllers
 
         #endregion
 
+        [HttpPost("create-payment-intent")]
+        [Authorize(Roles = "Guest")]
+        public async Task<IActionResult> CreatePaymentIntent([FromBody] int bookingId)
+        {
+            try
+            {
+                var booking = await _bookingRepo.GetByIdAsync(bookingId);
+                if (booking == null)
+                    return NotFound("Booking not found.");
+                var paymentIntent = await _bookingRepo.CreatePaymentIntentAsync(booking.TotalAmount);
+                return Ok(new { clientSecret = paymentIntent.ClientSecret, Id = paymentIntent.Id });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"An unexpected error occurred: {ex.Message}");
+            }
+        }
+
+
+        //[HttpPost("create-payment-intent")]
+        //[Authorize(Roles = "Guest")]
+        //public async Task<IActionResult> CreatePaymentIntent([FromBody] int bookingId)
+        //{
+        //    try
+        //    {
+        //        var booking = await _bookingRepo.GetByIdAsync(bookingId);
+        //        if (booking == null)
+        //            return NotFound("Booking not found.");
+
+        //        // Calculate the final amount after applying the promotion
+        //        var finalAmount = booking.TotalAmount;
+        //        if (booking.PromotionId != 0)
+        //        {
+        //            var promotion = await _bookingRepo.GetPromotionByIdAsync(booking.PromotionId);
+        //            if (promotion != null)
+        //            {
+        //                if (promotion.DiscountType == "fixed")
+        //                    finalAmount -= promotion.Amount;
+        //                else if (promotion.DiscountType == "percentage")
+        //                    finalAmount -= (booking.TotalAmount * promotion.Amount / 100);
+
+        //                finalAmount = Math.Max(finalAmount, 0); // Ensure the amount is not negative
+        //            }
+        //        }
+
+        //        // Create the payment intent with the discounted amount
+        //        var paymentIntentService = new PaymentIntentService();
+        //        var paymentIntent = await paymentIntentService.CreateAsync(new PaymentIntentCreateOptions
+        //        {
+        //            Amount = (long)(finalAmount * 100), // Convert to cents
+        //            Currency = "usd",
+        //            PaymentMethodTypes = new List<string> { "card" },
+        //            Metadata = new Dictionary<string, string>
+        //    {
+        //        { "bookingId", bookingId.ToString() },
+        //        { "promotionId", booking.PromotionId.ToString() ?? "none" }
+        //    }
+        //        });
+
+        //        return Ok(new { clientSecret = paymentIntent.ClientSecret, Id = paymentIntent.Id });
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return StatusCode(500, $"An unexpected error occurred: {ex.Message}");
+        //    }
+        //}
     }
 }
