@@ -596,6 +596,7 @@ namespace API.Services
                 .Include(p => p.Amenities)
                 .Include(p => p.Host)
                     .ThenInclude(h => h.User)
+                    //.Where(h => h.Status == "Active" && h.ve)
                 .Include(p => p.Bookings)
                     .ThenInclude(b => b.Review)
                 .ToListAsync();
