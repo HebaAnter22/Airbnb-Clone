@@ -1,4 +1,5 @@
 ﻿using API.DTOs.Amenity;
+using API.DTOs.Review;
 
 namespace API.DTOs.property
 {

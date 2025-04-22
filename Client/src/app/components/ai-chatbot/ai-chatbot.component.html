@@ -1,0 +1,39 @@
+<div class="chatbot-container">
+  <!-- Floating Chat Icon -->
+  <button class="chatbot-icon" (click)="toggleChat()" aria-label="Open AI Chatbot">
+    <span class="material-icons">smart_toy</span>
+  </button>
+
+  <!-- Chat Window -->
+  <div class="chat-window" [class.hidden]="!isChatOpen">
+    <div class="chat-header">
+      <h3>AI Assistant</h3>
+      <button class="close-btn" (click)="toggleChat()" aria-label="Close Chat">
+        <span class="material-icons">close</span>
+      </button>
+    </div>
+    <div class="chat-messages" #chatMessages>
+      <div *ngFor="let message of messages" class="message" [class.user-message]="message.sender === 'You'" [class.ai-message]="message.sender === 'Assistant'">
+        <div class="message-bubble">
+          <div class="message-sender">{{ message.sender }}</div>
+          <div class="message-content" [innerHTML]="formatMessage(message.content)"></div>
+          <div class="message-timestamp">{{ message.timestamp | date:'shortTime' }}</div>
+        </div>
+      </div>
+      <div *ngIf="isLoading" class="loading-indicator">
+        <div class="dot-flashing"></div>
+      </div>
+    </div>
+    <div class="chat-input">
+      <textarea [(ngModel)]="userInput" (keyup.enter)="$event.preventDefault(); onEnterPress($event)" placeholder="Type your message..." rows="2" [disabled]="isLoading"></textarea>
+      <div class="button-group">
+        <button class="clear-btn" (click)="clearChat()">
+          <span class="material-icons">delete_outline</span>
+        </button>
+        <button class="send-btn" (click)="sendMessage()" [disabled]="isLoading || userInput.trim() === ''">
+          <span class="material-icons">send</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div> 

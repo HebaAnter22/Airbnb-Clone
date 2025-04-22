@@ -5,6 +5,7 @@ using API.Middleware;
 using API.Services;
 using API.Services.AmenityRepo;
 using API.Services.BookingRepo;
+using API.Services.AIRepo;
 using API.Services.PromotionRepo;
 using API.Services.PropertyAvailabilityRepo;
 using API.Services.PropertyCategoryRepo;
@@ -125,8 +126,9 @@ namespace API
             builder.Services.AddScoped<IAdminRepository, AdminRepository>();
             builder.Services.AddScoped<IHostVerificationRepository, HostVerificationRepository>();
 
-
-
+            // Add AI Services
+            builder.Services.Configure<AIConfiguration>(builder.Configuration.GetSection("OpenAI"));
+            builder.Services.AddScoped<IOpenAIService, OpenAIService>();
             builder.Services.AddAutoMapper(typeof(Program));
 
 
