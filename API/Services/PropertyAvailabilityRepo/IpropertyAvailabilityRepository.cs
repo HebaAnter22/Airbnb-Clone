@@ -7,5 +7,7 @@ namespace API.Services.PropertyAvailabilityRepo
     {
         Task<bool> IsPropertyAvailableAsync(int propertyId, DateTime startDate, DateTime endDate);
         Task UpdateAvailabilityAsync(int propertyId, DateTime startDate, DateTime endDate, bool isAvailable);
+
+        Task<List<PropertyAvailability>> GetPropertyAvailabilityAsync(int propertyId);
     }
 }

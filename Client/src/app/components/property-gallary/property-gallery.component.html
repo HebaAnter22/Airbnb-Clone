@@ -6,7 +6,9 @@
     </header>
     
     <div *ngIf="loading" class="loading">
-      Loading images...
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
     </div>
     
     <div *ngIf="error" class="error">

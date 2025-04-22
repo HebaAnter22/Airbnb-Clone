@@ -2,11 +2,13 @@
 import { Component, HostListener, Output, EventEmitter } from '@angular/core';
 import { SearchBarComponent } from '../search-bar/search-bar.component';
 import { NavbarComponent } from '../navbar/navbar.component';
-import { Route } from '@angular/router';
+import { Route, Router } from '@angular/router';
+import { AuthService } from '../../../services/auth.service';
+import { NgIf } from '@angular/common';
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [SearchBarComponent,NavbarComponent],
+  imports: [SearchBarComponent,NavbarComponent,NgIf],
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.css']
 })
@@ -14,7 +16,27 @@ export class HeaderComponent {
   isSearchModalOpen: boolean = false;
   modalMode: string | null = null;
   isScrolled: boolean = false;
+  isGuest: boolean = false; 
+  constructor(
+    private authSerivce:AuthService,
+    private router: Router
+  ) {
+    // Check if the user is a guest
+    this.isGuest = this.authSerivce.isUserAGuest();
 
+  }
+switchToHosting() {
+  this.authSerivce.switchToHosting().subscribe({
+    next: (response) => {
+      this.isGuest = false; // Update local flag
+      this.router.navigate(['/host-dashboard']); // Redirect to host dashboard
+    },
+    error: (err) => {
+      console.error('Failed to switch to host', err);
+      // Optional: Show a user-friendly error message
+    }
+  });
+}
   @Output() scrollStateChanged = new EventEmitter<boolean>();
 
   @HostListener('window:scroll', ['$event'])

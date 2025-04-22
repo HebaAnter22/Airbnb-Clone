@@ -6,12 +6,14 @@ import { CommonModule, NgIf, NgForOf, DatePipe, NgClass } from '@angular/common'
 import { ProfileService } from '../../services/profile.service';
 import { GoogleMap, GoogleMapsModule } from "@angular/google-maps";
 import * as L from 'leaflet';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-property-details',
   standalone: true,
-  imports: [CommonModule, NgIf, NgForOf, DatePipe, NgClass,GoogleMapsModule],
+  imports: [CommonModule, NgIf, NgForOf, DatePipe, NgClass,GoogleMapsModule,FormsModule],
   templateUrl: './property-details.component.html',
+  
   styleUrls: ['./property-details.component.scss']
 })
 export class PropertyDetailsComponent implements OnInit  {
@@ -21,18 +23,34 @@ export class PropertyDetailsComponent implements OnInit  {
   error: string | null = null;
   mainImage: string | null = null;
   secondaryImages: string[] = [];
+  hostRating :number = 4.5;
+  // Add to your component class
+isGuestDropdownOpen = false;
   checkInDate: string = '5/9/2025';
   checkOutDate: string = '5/23/2025';
   guests: number = 1;
+  
   showAll = false;
   isDescriptionModalOpen = false;
   showFullDescription = false;
   maxDescriptionLength = 300; // Characters to show before truncating
   hostProfile: any = null;
-
-//   center: google.maps.LatLngLiteral = {lat: 22, lng: 72}; // Default values
-// markerLatLong: google.maps.LatLngLiteral[] = [{lat: 22, lng: 72}]; // Default values
-// mapOptions: google.maps.MapOptions = {
+  availabilityData: { [date: string]: boolean } = {};
+  maxGuests: number = 10; // Maximum allowed guests
+  userLat: number | null = null;
+  userLng: number | null = null;
+  distance: string = "Getting location...";
+  isPromoCodeSectionOpen = false;
+  promoCode = '';
+  promoCodeLoading = false;
+  promoCodeApplied = false;
+  promoCodeError: string | null = null;
+  promotion: any = null;
+  
+  
+  //   center: google.maps.LatLngLiteral = {lat: 22, lng: 72}; // Default values
+  // markerLatLong: google.maps.LatLngLiteral[] = [{lat: 22, lng: 72}]; // Default values
+  // mapOptions: google.maps.MapOptions = {
 //   disableDefaultUI: false,
 //   fullscreenControl: false,
 //   zoomControl: true,
@@ -73,17 +91,11 @@ export class PropertyDetailsComponent implements OnInit  {
 
 
 
-
-
-
-
-
-
 private map: L.Map | null = null;
-  private marker: L.Marker | null = null;
-  // Default coordinates (can be the same as your Google Maps defaults)
-  private defaultLat: number = 22;
-  private defaultLng: number = 72;
+private marker: L.Marker | null = null;
+// Default coordinates (can be the same as your Google Maps defaults)
+private defaultLat: number = 22;
+private defaultLng: number = 72;
 
 
 
@@ -97,7 +109,7 @@ private map: L.Map | null = null;
 
 
 
-  isHostBioModalOpen = false;
+isHostBioModalOpen = false;
 
 coHosts = [
   { name: 'Anas', image: '/assets/co-host-placeholder.jpg' } // Replace with actual co-host data
@@ -113,18 +125,21 @@ coHosts = [
     private route: ActivatedRoute,
     private propertyService: CreatePropertyService,
     private profileService:ProfileService,
-    private router :Router
+    private router :Router,
+    
   ) { }
   
-
-
-
-
-
+  
+  
+  
+  
+  
   ngOnInit(): void {
     this.propertyId = +this.route.snapshot.paramMap.get('id')!;
     this.loadPropertyDetails();
     this.checkWishlistStatus();
+    
+    this.getUserLocation(); 
     // Initialize date selection
     const checkIn = new Date(this.checkInDate);
     const checkOut = new Date(this.checkOutDate);
@@ -137,6 +152,244 @@ coHosts = [
     this.generateCalendarMonths();
   }
 
+  togglePromoCodeSection(): void {
+    this.isPromoCodeSectionOpen = !this.isPromoCodeSectionOpen;
+  }
+  
+  applyPromoCode(): void {
+    if (!this.promoCode || this.promoCodeLoading || this.promoCodeApplied) {
+      return;
+    }
+    
+    this.promoCodeLoading = true;
+    this.promoCodeError = null;
+    
+    this.propertyService.getPromoCodeDetails(this.promoCode).subscribe({
+      next: (response) => {
+        this.promoCodeLoading = false;
+        
+        // Check if promotion is valid
+        if (!response || !response.isActive) {
+          this.promoCodeError = 'This promo code is not valid or has expired';
+          return;
+        }
+        
+        // Check if promotion has reached max usage
+        if (response.maxUses > 0 && response.usedCount >= response.maxUses) {
+          this.promoCodeError = 'This promo code has reached its maximum usage limit';
+          return;
+        }
+        
+        // Check if promotion has expired
+        const now = new Date();
+        const endDate = new Date(response.endDate);
+        if (endDate < now) {
+          this.promoCodeError = 'This promo code has expired';
+          return;
+        }
+        
+        // Apply promotion
+        this.promotion = response;
+        this.promoCodeApplied = true;
+      },
+      error: (error) => {
+        this.promoCodeLoading = false;
+        this.promoCodeError = 'Invalid promo code';
+        console.error('Error validating promo code:', error);
+      }
+    });
+  }
+  
+  removePromoCode(): void {
+    this.promoCode = '';
+    this.promoCodeApplied = false;
+    this.promoCodeError = null;
+    this.promotion = null;
+  }
+  
+  getDiscountText(): string {
+    if (!this.promotion) {
+      return '';
+    }
+    
+    if (this.promotion.discountType === 'fixed') {
+      return `${this.formatPrice(this.promotion.amount)} off`;
+    } else {
+      return `${this.promotion.amount}% off`;
+    }
+  }
+  
+  getDiscountAmount(): number {
+    if (!this.promoCodeApplied || !this.promotion) {
+      return 0;
+    }
+    
+    const subtotal = this.getSubtotalPrice();
+    
+    if (this.promotion.discountType === 'fixed') {
+      return Math.min(subtotal, this.promotion.amount);
+    } else {
+      // Percentage discount
+      return subtotal * (this.promotion.amount / 100);
+    }
+  }
+  
+  getSubtotalPrice(): number {
+    if (!this.property) return 0;
+    
+    // Calculate nights from check-in to check-out
+    const checkIn = new Date(this.checkInDate);
+    const checkOut = new Date(this.checkOutDate);
+    const nights = Math.round((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24));
+    
+    return (this.property.pricePerNight + this.property.cleaningFee + this.property.serviceFee) * nights;
+  }
+  
+  
+  // Update your existing getTotalPrice method
+  getTotalPrice(): number {
+    const subtotal = this.getSubtotalPrice();
+    const discount = this.getDiscountAmount();
+    
+    return subtotal - discount;
+  }
+  reserve(): void {
+    // Check if dates are selected
+    if (!this.checkInDate || !this.checkOutDate) {
+      alert('Please select check-in and check-out dates');
+      return;
+    }
+    const startDate = new Date(this.checkInDate);
+    startDate.setHours(12, 0, 0, 0);
+    
+    const endDate = new Date(this.checkOutDate);
+    endDate.setHours(12, 0, 0, 0);
+    
+    // Create booking object
+    const bookingData: any = {
+      propertyId: this.propertyId,
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString()
+    };
+    
+    // Add promotion ID if a code has been applied
+    if (this.promoCodeApplied && this.promotion) {
+      bookingData.promotionId = this.promotion.id;
+    }
+    else{
+      bookingData.promotionId=0
+    }
+    
+    console.log(bookingData)
+    // Call API to create booking
+    this.propertyService.createBooking(bookingData).subscribe({
+      next: (response) => {
+
+        // Navigate to booking confirmation page
+        if(this.promoCode && this.promoCodeApplied){
+          this.propertyService.updatePromoCode(this.promoCode).subscribe({
+            next: (response) => {
+              console.log('Promo code updated successfully:', response);
+            },
+            error: (error) => {
+              console.error('Error updating promo code:', error);
+            }
+          });
+        }
+        this.router.navigate(['/bookings']);
+      },
+      error: (error) => {
+        console.error('Error creating booking:', error);
+        // Display error message
+        if (error.error && typeof error.error === 'string') {
+          alert(`Booking failed: ${error.error}`);
+        } else if (error.error && error.error.message) {
+          alert(`Booking failed: ${error.error.message}`);
+        } else {
+          alert('Failed to create booking. Please try again later.');
+        }
+      }
+    });
+  }
+
+  
+  
+    // Update your calculateDistance method:
+  calculateDistance(): void {
+    if (this.userLat && this.userLng && this.property?.latitude && this.property?.longitude) {
+      try {
+        const lat1 = this.userLat;
+        const lon1 = this.userLng;
+        const lat2 = parseFloat(this.property.latitude);
+        const lon2 = parseFloat(this.property.longitude);
+  
+        if (isNaN(lat2) || isNaN(lon2)) {
+          throw new Error('Invalid property coordinates');
+        }
+  
+        // Haversine formula
+        const R = 6371; // Earth radius in km
+        const dLat = this.toRad(lat2 - lat1);
+        const dLon = this.toRad(lon2 - lon1);
+        const a = 
+          Math.sin(dLat/2) * Math.sin(dLat/2) +
+          Math.cos(this.toRad(lat1)) * Math.cos(this.toRad(lat2)) * 
+          Math.sin(dLon/2) * Math.sin(dLon/2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        const distance = R * c;
+  
+        // Update the distance text
+        this.distance = distance < 1 
+          ? `${Math.round(distance * 1000)} meters away` 
+          : `${distance.toFixed(1)} km away`;
+      } catch (error) {
+        console.error('Distance calculation error:', error);
+        this.distance = "Distance unavailable";
+      }
+    } else {
+      this.distance = "Getting location...";
+    }
+  }
+  
+  // Update your getUserLocation method:
+  getUserLocation(): void {
+    console.log('Getting user location...');
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          console.log('Got user position:', position);
+          this.userLat = position.coords.latitude;
+          this.userLng = position.coords.longitude;
+          this.distance = "Calculating distance...";
+          
+          // Calculate distance if property is loaded, otherwise it will happen when property loads
+          if (this.property) {
+            this.calculateDistance();
+          }
+        },
+        (error) => {
+          console.error('Error getting user location:', error);
+          this.distance = `Location access error: ${error.message}`;
+        },
+        { 
+          timeout: 10000,
+          enableHighAccuracy: true,
+          maximumAge: 0 // Don't use cached position
+        }
+      );
+    } else {
+      console.error('Geolocation not supported');
+      this.distance = "Geolocation not supported";
+    }
+  }
+  
+  
+  // In your loadPropertyDetails method, add this after setting this.property = data:
+  
+  
+    toRad(value: number): number {
+      return value * Math.PI / 180;
+    }
 
   checkWishlistStatus(): void {
     this.profileService.isPropertyInWishlist(this.propertyId).subscribe({
@@ -397,14 +650,22 @@ coHosts = [
     this.propertyService.getPropertyById(this.propertyId).subscribe({
       next: (data) => {
         this.property = data;
-        console.log('Property details:', this.property);
         this.loading = false;
-
+        this.maxGuests = this.property.maxGuests; // Set your maximum allowed guests
+        if (this.userLat && this.userLng) {
+          this.calculateDistance();
+        } else {
+          // If user location isn't available yet, try to get it
+          this.getUserLocation();
+        }
      
              this.updateMapLocation();
 
         // Organize images
         if (this.property.images && this.property.images.length > 0) {
+
+
+          
           // Find primary image or use first one
           const primaryImage = this.property.images.find((img: any) => img.isPrimary);
           this.mainImage = primaryImage ?
@@ -418,12 +679,48 @@ coHosts = [
         }
         if (this.property && this.property.hostId) {
           this.loadHostProfile(this.property.hostId);
+
+        
         }
+
+        this.loadAvailabilityDate(this.propertyId)
       },
       error: (err) => {
         this.error = 'Failed to load property details';
         this.loading = false;
         console.error(err);
+      }
+    });
+  }
+
+  getHostTotalReviewsAndRating(hostId: number): void {
+    this.profileService.getUserReviews(hostId.toString()).subscribe({
+      next: (data) => {
+        
+        this.hostRating = data.reduce((acc: number, review: any) => acc + review.rating, 0) / data.length || 0;
+        this.hostProfile.totalReviews = data.length || 0;
+      },
+      error: (err) => {
+        console.error('Failed to load host reviews and rating:', err);
+      }
+    });
+  }
+  loadAvailabilityDate(propertyId: number): void {
+    this.propertyService.getPropertyAvailability(propertyId).subscribe({
+      next: (data: any[]) => {
+        // Convert array of availability objects to a map of date -> isAvailable
+        this.availabilityData = {};
+        data.forEach(item => {
+          // Convert date string to YYYY-MM-DD format for consistent comparison
+          const dateStr = new Date(item.date).toISOString().split('T')[0];
+          this.availabilityData[dateStr] = item.isAvailable;
+        });
+        
+        // Initialize calendar with valid dates after loading availability data
+        this.initializeCalendarAndDates();
+      },
+      error: (err) => {
+        console.error('Failed to load availability dates:', err);
       }
     });
   }
@@ -436,12 +733,14 @@ coHosts = [
     this.profileService.getHostProfile(hostId.toString()).subscribe({
       next: (data) => {
         this.hostProfile = data;
-        console.log('Host profile:', this.hostProfile);
+        
+        this.getHostTotalReviewsAndRating(this.hostProfile.hostId);
       },
       error: (err) => {
         console.error('Failed to load host profile:', err);
       }
     });
+
   }
 
 
@@ -460,7 +759,7 @@ coHosts = [
   isSuperhost(): boolean {
     // Logic to determine if host is a superhost
     // This could be based on rating, review count, etc.
-    return this.hostProfile && this.hostProfile.rating >= 4.5 && this.hostProfile.totalReviews >= 3;
+    return this.hostProfile && this.hostRating >= 4.5;
   }
   
 
@@ -545,10 +844,47 @@ coHosts = [
     return `https://localhost:7228${imageUrl}`;
   }
  
-  reserve(): void {
-    // Implement reservation logic
-    console.log('Reservation requested');
-    // You could navigate to a checkout page or open a modal
+  reserve2(): void {
+    // Check if dates are selected
+    if (!this.checkInDate || !this.checkOutDate) {
+      alert('Please select check-in and check-out dates');
+      return;
+    }
+    const startDate = new Date(this.checkInDate);
+  startDate.setHours(12, 0, 0, 0);
+  
+  const endDate = new Date(this.checkOutDate);
+  endDate.setHours(12, 0, 0, 0);
+  
+    // Create booking object
+    const bookingData = {
+      propertyId: this.propertyId,
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString(),
+      promotionId: 0 // Default value, you can modify this if you implement promotions
+    };
+  
+    // Call API to create booking
+    this.propertyService.createBooking(bookingData).subscribe({
+      next: (response) => {
+        // Navigate to booking confirmation page
+        if(this.promoCode && this.promoCodeApplied){
+        this.propertyService.updatePromoCode(this.promoCode)
+        }
+        this.router.navigate(['/bookings', response.id]);
+      },
+      error: (error) => {
+        console.error('Error creating booking:', error);
+        // Display error message
+        if (error.error && typeof error.error === 'string') {
+          alert(`Booking failed: ${error.error}`);
+        } else if (error.error && error.error.message) {
+          alert(`Booking failed: ${error.error.message}`);
+        } else {
+          alert('Failed to create booking. Please try again later.');
+        }
+      }
+    });
   }
  
   formatPrice(price: number): string {
@@ -558,7 +894,7 @@ coHosts = [
     }).format(price);
   }
  
-  getTotalPrice(): number {
+  getTotalPrice2(): number {
     if (!this.property) return 0;
    
     // Calculate nights from check-in to check-out
@@ -566,7 +902,7 @@ coHosts = [
     const checkOut = new Date(this.checkOutDate);
     const nights = Math.round((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24));
    
-    return this.property.pricePerNight * nights;
+    return (this.property.pricePerNight+this.property.cleaningFee+this.property.serviceFee) * nights;
   }
   
   // Get reviewer's initial for the avatar placeholder
@@ -591,28 +927,83 @@ coHosts = [
     document.body.style.overflow = 'hidden';
   }
   
-  closeCalendar(): void {
+  closeCalendar(forceClear: boolean = false): void {
+    // Check if only one date is selected (incomplete range)
+    if ( (this.selectedDates.start && !this.selectedDates.end)) {
+      // If only check-in is selected but no check-out, reset dates
+      this.clearDates();
+    }
+    
+    // Close the calendar
     this.showCalendar = false;
     this.currentDateSelection = null;
     document.body.style.overflow = '';
   }
   
   clearDates(): void {
-  // Set start date to today
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  this.selectedDates.start = today;
-  this.checkInDate = this.formatDateForDisplay(today);
-  
-  // Set end date to tomorrow
-  const tomorrow = new Date(today);
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  this.selectedDates.end = tomorrow;
-  this.checkOutDate = this.formatDateForDisplay(tomorrow);
-  
-  // Update the calendar
-  this.generateCalendarMonths();
-}
+    // Find the first available date from today
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    let firstAvailableDate = new Date(today);
+    while (this.isDateDisabled(firstAvailableDate)) {
+      firstAvailableDate.setDate(firstAvailableDate.getDate() + 1);
+    }
+    
+    // Set start date to first available date
+    this.selectedDates.start = firstAvailableDate;
+    this.checkInDate = this.formatDateForDisplay(firstAvailableDate);
+    
+    // Find the next available date after check-in
+    let nextAvailableDate = new Date(firstAvailableDate);
+    nextAvailableDate.setDate(nextAvailableDate.getDate() + 1);
+    
+    while (this.isDateDisabled(nextAvailableDate)) {
+      nextAvailableDate.setDate(nextAvailableDate.getDate() + 1);
+    }
+    
+    // Set end date to the next available date
+    this.selectedDates.end = nextAvailableDate;
+    this.checkOutDate = this.formatDateForDisplay(nextAvailableDate);
+    
+    // Update the calendar
+    this.generateCalendarMonths();
+  }
+
+  initializeCalendarAndDates(): void {
+    // Only run this if we have availability data
+    if (Object.keys(this.availabilityData).length === 0) {
+      return;
+    }
+    
+    // Check if current dates are valid
+    const checkInDate = new Date(this.checkInDate);
+    const checkOutDate = new Date(this.checkOutDate);
+    
+    let checkInValid = !this.isDateDisabled(checkInDate);
+    let checkOutValid = !this.isDateDisabled(checkOutDate);
+    
+    // Check if range is valid (no unavailable dates in between)
+    let rangeValid = true;
+    if (checkInValid && checkOutValid) {
+      for (let d = new Date(checkInDate); d <= checkOutDate; d.setDate(d.getDate() + 1)) {
+        if (this.isDateDisabled(d)) {
+          rangeValid = false;
+          break;
+        }
+      }
+    }
+    
+    // If current selection isn't valid, clear and find first valid dates
+    if (!checkInValid || !checkOutValid || !rangeValid) {
+      this.clearDates();
+    } else {
+      // Set selected dates from current check-in/check-out
+      this.selectedDates.start = checkInDate;
+      this.selectedDates.end = checkOutDate;
+      this.generateCalendarMonths();
+    }
+  }
   
   selectDate(date: Date): void {
     if (this.isDateDisabled(date)) {
@@ -630,25 +1021,39 @@ coHosts = [
         this.checkOutDate = '';
       }
       
-      // If selecting check-in and already have an end date, move to select checkout
-      if (this.currentDateSelection === 'checkIn' && this.selectedDates.end) {
-        this.currentDateSelection = 'checkOut';
-      } else {
-        this.currentDateSelection = 'checkOut';
-      }
+      this.currentDateSelection = 'checkOut';
     } else if (this.currentDateSelection === 'checkOut') {
       // If selecting check-out date
-      if (date < this.selectedDates.start!) {
-        // If selected date is before check-in, update check-in and set checkout to null
-        this.selectedDates.end = this.selectedDates.start;
-        this.checkOutDate = this.formatDateForDisplay(this.selectedDates.end);
-        this.selectedDates.start = date;
-        this.checkInDate = this.formatDateForDisplay(date);
-      } else {
+      if (date >= this.selectedDates.start!) {
+        // Check if any date in the range is unavailable
+        let rangeHasUnavailableDates = false;
+        const startDate = new Date(this.selectedDates.start!);
+        const endDate = new Date(date);
+        
+        // Loop through each day in the range
+        for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+          if (this.isDateDisabled(d)) {
+            rangeHasUnavailableDates = true;
+            break;
+          }
+        }
+        
+        if (rangeHasUnavailableDates) {
+          // Don't allow selection of a range with unavailable dates
+          return;
+        }
+        
         this.selectedDates.end = date;
         this.checkOutDate = this.formatDateForDisplay(date);
         // Close calendar after selecting both dates
-        this.closeCalendar();
+        this.closeCalendar(false); // Pass false to not force clearing
+      } else {
+        // If selecting a date before check-in date, make it the new check-in date
+        this.selectedDates.start = date;
+        this.checkInDate = this.formatDateForDisplay(date);
+        this.selectedDates.end = null;
+        this.checkOutDate = '';
+        this.currentDateSelection = 'checkOut';
       }
     }
     
@@ -725,9 +1130,6 @@ coHosts = [
   }
   
   createDayObject(date: Date): { date: Date, isSelected: boolean, isInRange: boolean, isDisabled: boolean } {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    
     const isSelected = 
       (this.selectedDates.start && this.isSameDay(date, this.selectedDates.start)) || 
       (this.selectedDates.end && this.isSameDay(date, this.selectedDates.end));
@@ -738,8 +1140,8 @@ coHosts = [
       date > this.selectedDates.start && 
       date < this.selectedDates.end;
     
-    // Disable dates in the past
-    const isDisabled = date < today;
+    // Use our updated isDateDisabled method
+    const isDisabled = this.isDateDisabled(date);
     
     return {
       date,
@@ -769,17 +1171,85 @@ coHosts = [
   }
   
   isDateDisabled(date: Date): boolean {
+    // Check if date is in the past
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    return date < today;
+    if (date < today) {
+      return true;
+    }
+
+    // Check if date is outside the range of availability data
+
+     const availabilityDates = Object.keys(this.availabilityData);
+    if (availabilityDates.length > 0) {
+        const lastAvailableDateStr = availabilityDates[availabilityDates.length - 1];
+        const lastAvailableDate = new Date(lastAvailableDateStr);
+        lastAvailableDate.setHours(0, 0, 0, 0);
+        
+        if (date > lastAvailableDate) {
+            return true; // Disable dates beyond the last available date
+        }
+    }
+    // Check availability data
+    const dateStr = date.toISOString().split('T')[0];
+    
+    // If we have availability data for this date and it's explicitly marked as not available
+    return this.availabilityData[dateStr] === false;
   }
-  
   getDaysInRange(): number {
     if (!this.selectedDates.start || !this.selectedDates.end) {
       return 0;
     }
     
     const diffTime = Math.abs(this.selectedDates.end.getTime() - this.selectedDates.start.getTime());
-    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return Math.round(diffTime / (1000 * 60 * 60 * 24));
   }
+
+
+  
+
+
+// Add to your component class
+
+toggleGuestDropdown(event: Event): void {
+  event.stopPropagation(); // Prevent event bubbling
+  this.isGuestDropdownOpen = !this.isGuestDropdownOpen;
+  
+  // Add click outside listener when dropdown is open
+  if (this.isGuestDropdownOpen) {
+    setTimeout(() => {
+      document.addEventListener('click', this.onDocumentClick);
+    });
+  }
+}
+
+// Use arrow function to maintain 'this' context
+onDocumentClick = (event: MouseEvent): void => {
+  const dropdownEl = document.querySelector('.guests-dropdown');
+  if (dropdownEl && !dropdownEl.contains(event.target as Node)) {
+    this.closeGuestDropdown();
+  }
+}
+
+closeGuestDropdown(): void {
+  this.isGuestDropdownOpen = false;
+  document.removeEventListener('click', this.onDocumentClick);
+}
+
+updateGuestCount(change: number): void {
+  const newCount = this.guests + change;
+  if (newCount >= 1 && newCount <= this.maxGuests) {
+    this.guests = newCount;
+  }
+}
+
+
+// Clean up on component destruction
+ngOnDestroy(): void {
+  document.removeEventListener('click', this.onDocumentClick);
+}
+
+
+
+
 }

@@ -16,7 +16,10 @@ namespace API.Services
         Task<Favourite> AddToFavouritesAsync(Favourite dto);
         Task<bool> IsPropertyInFavoritesAsync(int userId, int propertyId);
         Task<List<object>> GetUserFavoritesAsync(int userId);
+        Task<Review> addReview(ReviewRequestDto review);
+        Task<IEnumerable<Review>> GetUserReviewsAsync(int userId);
 
+        Task<bool> emailExists(string email);
 
 
 

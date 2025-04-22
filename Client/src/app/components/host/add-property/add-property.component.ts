@@ -339,7 +339,7 @@ export class AddPropertyComponent implements OnInit {
       }
       
       this.snackBar.open('Property created successfully!', 'Close', { duration: 3000 });
-      this.router.navigate(['/properties']);
+      this.router.navigate(['/property/' + createdProperty.id]);
     } catch (error) {
       console.error('Error creating property:', error);
       this.snackBar.open('Error creating property', 'Close', { duration: 3000 });

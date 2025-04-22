@@ -15,11 +15,20 @@
         
         <div class="form-group">
           <label>Password</label>
-          <input 
-            type="password" 
-            formControlName="password" 
-            class="form-control" 
-            placeholder="Enter your password">
+          <div class="password-input-container">
+            <input
+              [type]="showPassword ? 'text' : 'password'"
+              formControlName="password"
+              class="form-control"
+              placeholder="Enter your password">
+            <button 
+              type="button" 
+              class="password-toggle-btn" 
+              (click)="togglePasswordVisibility()"
+              [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'">
+              <i class="fa" [ngClass]="showPassword ? 'fa-eye-slash' : 'fa-eye'"></i>
+            </button>
+          </div>
         </div>
         
         <button type="submit" class="btn-primary" [disabled]="!loginForm.valid">Continue</button>

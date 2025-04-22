@@ -1,0 +1,233 @@
+<!-- verification.component.html -->
+<div class="verification-container">
+  
+  <a
+    class="back-button"
+    (click)="goToProfilePage()"
+  >
+    ← Back to Profile
+  </a>
+  <h1>Verify your account</h1>
+  
+  <!-- Loading Overlay -->
+  <div *ngIf="isLoading" class="loading-overlay">
+    <div class="spinner"></div>
+  </div>
+  
+  <!-- Overview/Main Screen -->
+  <div *ngIf="currentStep === 'overview'" class="verification-overview">
+    <h2>Key details to take care of</h2>
+    
+    <div class="verification-item" (click)="navigateTo('email')">
+      <div class="verification-content">
+        <div class="verification-title">
+          <span>Verify your email</span>
+          <span class="status-icon" *ngIf="emailVerified">✓</span>
+          <span class="status-icon error" *ngIf="!emailVerified">!</span>
+        </div>
+        <div class="verification-description" *ngIf="!emailVerified">
+          We'll send you important notifications about your account.
+        </div>
+        <div class="verification-description success" *ngIf="emailVerified">
+          Email verified
+        </div>
+      </div>
+      <div class="chevron">›</div>
+    </div>
+    
+    <!-- <div class="verification-item" (click)="navigateTo('phone')">
+      <div class="verification-content">
+        <div class="verification-title">
+          <span>Confirm your phone number</span>
+          <span class="status-icon" *ngIf="phoneVerified">✓</span>
+          <span class="status-icon error" *ngIf="!phoneVerified">!</span>
+        </div>
+        <div class="verification-description" *ngIf="!phoneVerified">
+          We'll call or text to confirm your number. Standard messaging rates apply.
+        </div>
+        <div class="verification-description success" *ngIf="phoneVerified">
+          Phone number verified
+        </div>
+      </div>
+      <div class="chevron">›</div>
+    </div> -->
+    
+    <div class="verification-item" (click)="navigateTo('id')">
+      <div class="verification-content">
+        <div class="verification-title">
+          <span>Verify your identity</span>
+          <span class="status-icon" *ngIf="idVerified">✓</span>
+          <span class="status-icon error" *ngIf="!idVerified">!</span>
+        </div>
+        <div class="verification-description" *ngIf="!idVerified">
+          Upload a photo ID to confirm your identity.
+        </div>
+        <div class="verification-description success" *ngIf="idVerified">
+          Identity verified
+        </div>
+      </div>
+      <div class="chevron">›</div>
+    </div>
+  </div>
+  
+  <!-- Email Verification Screen -->
+  <div *ngIf="currentStep === 'email'" class="verification-details">
+    <button class="back-button" (click)="navigateTo('overview')">← Back</button>
+    
+    <h2>Verify your email address</h2>
+    <p>We'll send you a verification link to confirm your email address.</p>
+    
+    <div *ngIf="errorMessage" class="error-message">
+      {{ errorMessage }}
+    </div>
+    
+    <div class="form-group">
+      <label for="email">Email address</label>
+      <input type="email" id="email" [(ngModel)]="email" placeholder="Enter your email address">
+    </div>
+    
+    <button class="primary-button" (click)="verifyEmail()" [disabled]="isLoading">
+      Send verification email
+    </button>
+  </div>
+  
+  <!-- Email Sent Screen -->
+  <div *ngIf="currentStep === 'email-sent'" class="verification-details">
+    <button class="back-button" (click)="navigateTo('email')">← Back</button>
+    
+    <div class="email-sent">
+      <div class="email-sent-icon">✉️</div>
+      <h2>Verification email sent</h2>
+      <p>We've sent a verification link to <strong>{{ email }}</strong>. Please check your inbox and click the link to verify your email address.</p>
+      
+      <div *ngIf="errorMessage" class="error-message">
+        {{ errorMessage }}
+      </div>
+      
+      <div class="verification-options">
+        <p>
+          <button class="text-button" (click)="checkEmailVerification()">
+            I've verified my email
+          </button>
+        </p>
+        <p>
+          Didn't receive the email? 
+          <button class="text-button" (click)="resendVerificationEmail()">
+            Resend email
+          </button>
+        </p>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Phone Verification Screens -->
+  <!-- <div *ngIf="currentStep === 'phone'" class="verification-details">
+    <button class="back-button" (click)="navigateTo('overview')">← Back</button>
+    
+    <h2>Which number can guests use to contact you?</h2>
+    <p>We'll send you booking requests, reminders, and other notifications. This number should be able to receive texts or calls.</p>
+    
+    <div *ngIf="errorMessage" class="error-message">
+      {{ errorMessage }}
+    </div>
+    
+    <div class="form-group">
+      <label for="country-code">Country code</label>
+      <select id="country-code" [(ngModel)]="countryCode">
+        <option *ngFor="let country of countryCodes" [value]="country.code">{{ country.name }}</option>
+      </select>
+    </div>
+    
+    <div class="form-group">
+      <label for="phone-number">Phone number</label>
+      <input type="tel" id="phone-number" [(ngModel)]="phoneNumber" placeholder="Enter your phone number">
+    </div>
+    
+    <p class="small-text">We'll call or text you to confirm your number. Standard message and data rates apply.</p>
+    
+    <button class="primary-button" (click)="requestPhoneVerification()" [disabled]="isLoading">Continue</button>
+  </div> -->
+  
+  <div *ngIf="currentStep === 'phone-verify'" class="verification-details">
+    <button class="back-button" (click)="currentStep = 'phone'">← Back</button>
+    
+    <h2>Which number can guests use to contact you?</h2>
+    <p>Enter the 4-digit code we just sent to {{ countryCode }} {{ phoneNumber }}:</p>
+    
+    <div *ngIf="errorMessage" class="error-message">
+      {{ errorMessage }}
+    </div>
+    
+    <div class="form-group verification-code-input">
+      <input type="text" maxlength="4" [(ngModel)]="verificationCode" placeholder="- - - -">
+    </div>
+    
+    <button class="primary-button" (click)="submitVerificationCode()" [disabled]="isLoading">Continue</button>
+    
+    <div class="verification-options">
+      <p>Didn't get a text? <button class="text-button" (click)="resendVerificationCode()">Send again</button></p>
+      <p><button class="text-button" (click)="requestCall()">Call me instead</button></p>
+    </div>
+  </div>
+  
+  <!-- ID Verification Screen -->
+  <div *ngIf="currentStep === 'id'" class="verification-details">
+    <button class="back-button" (click)="navigateTo('overview')">← Back</button>
+    
+    <h2>Verify your identity</h2>
+    <p>Upload photos of your government-issued ID to help us confirm your identity.</p>
+    
+    <div *ngIf="errorMessage" class="error-message">
+      {{ errorMessage }}
+    </div>
+    
+    <div class="id-verification-section">
+      <div class="id-upload">
+        <h3>Front of ID</h3>
+        <div class="upload-area" [class.uploaded]="idFrontImage">
+          <input type="file" id="id-front" accept="image/*" (change)="onIdFrontSelected($event)" hidden>
+          <label for="id-front">
+            <div *ngIf="!idFrontImage" class="upload-placeholder">
+              <span class="upload-icon">+</span>
+              <span>Upload front</span>
+            </div>
+            <div *ngIf="idFrontImage" class="file-uploaded">
+              <span>✓ {{ idFrontImage?.name }}</span>
+            </div>
+          </label>
+        </div>
+        <!-- Image preview for front of ID -->
+        <div *ngIf="idFrontPreviewUrl" class="image-preview">
+          <img [src]="idFrontPreviewUrl" alt="Front of ID preview">
+        </div>
+      </div>
+      
+      <div class="id-upload">
+        <h3>Back of ID</h3>
+        <div class="upload-area" [class.uploaded]="idBackImage">
+          <input type="file" id="id-back" accept="image/*" (change)="onIdBackSelected($event)" hidden>
+          <label for="id-back">
+            <div *ngIf="!idBackImage" class="upload-placeholder">
+              <span class="upload-icon">+</span>
+              <span>Upload back</span>
+            </div>
+            <div *ngIf="idBackImage" class="file-uploaded">
+              <span>✓ {{ idBackImage?.name }}</span>
+            </div>
+          </label>
+        </div>
+        <!-- Image preview for back of ID -->
+        <div *ngIf="idBackPreviewUrl" class="image-preview">
+          <img [src]="idBackPreviewUrl" alt="Back of ID preview">
+        </div>
+      </div>
+    </div>
+    
+    <div class="privacy-notice">
+      <h3>Your privacy</h3>
+      <p>We aim to keep the data you share during this process private, safe, and secure. Learn more in our Privacy Policy.</p>
+    </div>
+    
+    <button class="primary-button" (click)="submitIdVerification()" [disabled]="isLoading">Submit</button>
+  </div>
+</div>

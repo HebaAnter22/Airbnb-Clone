@@ -6,6 +6,8 @@ namespace API.Services.PromotionRepo
 {
     public interface IPromotionRepository:IGenericRepository<Promotion>
     {
-        
+
+        Task<Promotion> GetPromotionAsync(string promoCode);
+      
     }
 }

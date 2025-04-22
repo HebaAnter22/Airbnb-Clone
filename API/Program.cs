@@ -116,6 +116,8 @@ namespace API
             builder.Services.AddScoped<IPropertyService, PropertyService>();
             builder.Services.AddScoped<IPropertyCategoryService, PropertyCategoryService>();
             builder.Services.AddScoped<IPromotionRepository, PromotionRepository>();
+            builder.Services.AddScoped<IBookingRepository, BookingRepository>();
+            builder.Services.AddScoped<IPropertyAvailabilityRepository, PropertyAvailabilityRepository>();
 
 
 

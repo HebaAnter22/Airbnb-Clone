@@ -26,6 +26,18 @@ namespace API.Services.PropertyAvailabilityRepo
             return !unavailableDates;
         }
 
+        public async Task<List<PropertyAvailability>> GetPropertyAvailabilityAsync(int propertyId)
+        {
+            var availability = await _context.PropertyAvailabilities
+                .Where(pa => pa.PropertyId == propertyId)
+                .ToListAsync();
+            if (availability == null || !availability.Any())
+            {
+                throw new Exception("No availability found for this property.");
+            }
+            // Return the availability data
+            return availability;
+        }
         public async Task UpdateAvailabilityAsync(int propertyId, DateTime startDate, DateTime endDate, bool isAvailable)
         {
             var datesToUpdate = await _context.PropertyAvailabilities

@@ -17,6 +17,8 @@ export class LoginComponent {
   loginForm: FormGroup;
   errorMessage: string = '';
   
+  showPassword: boolean = false;
+
   constructor(
     private authService: AuthService,
     private router: Router,
@@ -36,6 +38,10 @@ export class LoginComponent {
   goToRegister() {
     this.router.navigate(['/register']);
   }
+  
+togglePasswordVisibility(): void {
+  this.showPassword = !this.showPassword;
+}
  
   onSubmit() {
     if (this.loginForm.valid) {
@@ -43,7 +49,7 @@ export class LoginComponent {
       this.authService.login(email, password)
         .subscribe({
           next: () => {
-            this.router.navigate(['/dashboard']);
+            this.router.navigate(['/home']);
           },
           error: (err) => {
             console.error('Login error:', err); // Log the full error for debugging

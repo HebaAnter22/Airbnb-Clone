@@ -29,6 +29,7 @@ export class EditProfileComponent implements OnInit {
   profileImageUrl: string = '';
   isUploading: boolean = false;
   uploadProgress: number = 0;
+  isGuestUser: boolean = false;
 
   constructor(
     private fb: FormBuilder,
@@ -45,7 +46,7 @@ export class EditProfileComponent implements OnInit {
       myWork: [''],
       myFavoriteSong: [''],
       pets: [''],
-      whereIWasBorn: [''], // This will now be a date value
+      whereIWasBorn: [''], // This will be a date value
       whereIWentToSchool: [''],
       timeSpent: [''],
       funFact: [''],
@@ -69,8 +70,9 @@ export class EditProfileComponent implements OnInit {
     this.profileService.getUserProfileForEdit(this.userId).subscribe({
       next: (user) => {
         this.user = user;
-        console.log('User profile:', user); // Log the user data for debugging
-
+        // Check if user is a Guest
+        this.isGuestUser = user.role === 'Guest';
+        
         this.profileImageUrl = user.profilePictureUrl
           ? `${this.apiBaseUrl}/${user.profilePictureUrl}`
           : '';
@@ -96,11 +98,35 @@ export class EditProfileComponent implements OnInit {
           whereILive: user.livesIn || '',
           specialAbout: user.specialAbout || ''
         });
+        
+        // If user is a Guest, disable form controls that they shouldn't edit
+        if (this.isGuestUser) {
+          this.disableNonGuestFields();
+        }
       },
       error: (error) => {
         console.error('Error fetching user profile', error);
       }
     });
+  }
+  
+  disableNonGuestFields(): void {
+    // Disable all fields except firstName, lastName, and whereIWasBorn (date of birth)
+    this.profileForm.get('email')?.disable();
+    this.profileForm.get('aboutMe')?.disable();
+    this.profileForm.get('whereIveAlwaysWantedToGo')?.disable();
+    this.profileForm.get('myWork')?.disable();
+    this.profileForm.get('myFavoriteSong')?.disable();
+    this.profileForm.get('pets')?.disable();
+    this.profileForm.get('whereIWentToSchool')?.disable();
+    this.profileForm.get('timeSpent')?.disable();
+    this.profileForm.get('funFact')?.disable();
+    this.profileForm.get('uselessSkill')?.disable();
+    this.profileForm.get('languages')?.disable();
+    this.profileForm.get('biography')?.disable();
+    this.profileForm.get('obsessedWith')?.disable();
+    this.profileForm.get('whereILive')?.disable();
+    this.profileForm.get('specialAbout')?.disable();
   }
 
   // Format date as YYYY-MM-DD for HTML date input
@@ -149,23 +175,38 @@ export class EditProfileComponent implements OnInit {
         ? new Date(this.profileForm.value.whereIWasBorn)
         : null;
       
-      const profileData = {
-        Id: this.userId,
-        FirstName: this.profileForm.value.firstName,
-        LastName: this.profileForm.value.lastName,
-        DateOfBirth: dateOfBirth,
-        ProfilePictureUrl: this.profileImageUrl.split(this.apiBaseUrl)[1] || '',
-        AboutMe: this.profileForm.value.aboutMe,
-        Work: this.profileForm.value.myWork,
-        Education: this.profileForm.value.whereIWentToSchool,
-        Languages: this.profileForm.value.languages,
-        LivesIn: this.profileForm.value.whereILive,
-        DreamDestination: this.profileForm.value.whereIveAlwaysWantedToGo,
-        FunFact: this.profileForm.value.funFact,
-        Pets: this.profileForm.value.pets,
-        ObsessedWith: this.profileForm.value.obsessedWith,
-        SpecialAbout: this.profileForm.value.specialAbout,
-      };
+      // Create profile data object based on user role
+      let profileData;
+      
+      if (this.isGuestUser) {
+        // For Guest users, only update allowed fields
+        profileData = {
+          Id: this.userId,
+          FirstName: this.profileForm.value.firstName,
+          LastName: this.profileForm.value.lastName,
+          DateOfBirth: dateOfBirth,
+          ProfilePictureUrl: this.profileImageUrl.split(this.apiBaseUrl)[1] || ''
+        };
+      } else {
+        // For other users, update all fields
+        profileData = {
+          Id: this.userId,
+          FirstName: this.profileForm.value.firstName,
+          LastName: this.profileForm.value.lastName,
+          DateOfBirth: dateOfBirth,
+          ProfilePictureUrl: this.profileImageUrl.split(this.apiBaseUrl)[1] || '',
+          AboutMe: this.profileForm.value.aboutMe,
+          Work: this.profileForm.value.myWork,
+          Education: this.profileForm.value.whereIWentToSchool,
+          Languages: this.profileForm.value.languages,
+          LivesIn: this.profileForm.value.whereILive,
+          DreamDestination: this.profileForm.value.whereIveAlwaysWantedToGo,
+          FunFact: this.profileForm.value.funFact,
+          Pets: this.profileForm.value.pets,
+          ObsessedWith: this.profileForm.value.obsessedWith,
+          SpecialAbout: this.profileForm.value.specialAbout,
+        };
+      }
 
       this.profileService.updateProfile(profileData).subscribe({
         next: () => {

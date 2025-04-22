@@ -1,9 +1,15 @@
 <div class="profile-container">
-  <div *ngIf="isLoading" class="loading">Loading profile...</div>
+  <div *ngIf="isLoading" class="loading">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+  </div>
+  
   
   <div *ngIf="errorMessage" class="error-message">
     {{ errorMessage }}
   </div>
+
 
   <div *ngIf="userProfile && hostProfile && !isLoading" class="profile-layout">
     <!-- Left sidebar (fixed) -->
@@ -79,7 +85,7 @@
         
       </div>
 
-      <div class="host-stats">
+      <div class="host-stats" *ngIf="hostProfile.rating>0">
         <div class="stat-item">
           <h3>{{ hostProfile.totalReviews }}</h3>
           <span>Reviews</span>
@@ -94,15 +100,28 @@
         </div>
       </div>
 
-      <div class="verified-info">
+      <div class="verified-info" >
         <h3>{{ userProfile.firstName }}'s confirmed information</h3>
         <ul>
-          <li>✓ Identity</li>
-          <li>✓ Email address</li>
-          <li><span *ngIf="userProfile.phoneNumber">✓</span>
-            <span *ngIf="!userProfile.phoneNumber">✖</span> Phone number</li>
+          <li>
+            <span *ngIf="idVerified">
+              <i class="fa-regular fa-circle-check"></i>
+            </span>
+            <span *ngIf="!idVerified">
+              <i class="fa-regular fa-circle-xmark"></i></span>Identity</li>
+          <li>
+            <span *ngIf="emailVerified">
+              <i class="fa-regular fa-circle-check"></i>
+            </span>
+            <span *ngIf="!emailVerified">
+              <i class="fa-regular fa-circle-xmark"></i></span>Email address</li>
+          <!-- <li><span *ngIf="userProfile.phoneNumber">✓</span>
+            <span *ngIf="!userProfile.phoneNumber">
+              <i class="fa-regular fa-circle-xmark"></i></span> Phone number</li> -->
         </ul>
-        <a href="#" class="learn-more">Learn about identity verification</a>
+        <a  class="learn-more" (click)="goToVerificationPage()">
+          Verify your information
+        </a>
       </div>
 
       <div class="host-listings" *ngIf="hostProfile.properties && hostProfile.properties.length > 0">
@@ -119,22 +138,50 @@
     <div class="profile-content">
       <div class="profile-tabs">
         <button [class.active]="activeTab === 'about'" (click)="setActiveTab('about')">About</button>
-        <button [class.active]="activeTab === 'reviews'" (click)="setActiveTab('reviews')">Reviews</button>
+        <button [class.active]="activeTab === 'reviews'" (click)="setActiveTab('reviews') " *ngIf="userProfile.role=='Host'">Reviews</button>
       </div>
 
       <div *ngIf="activeTab === 'about'" class="about-section">
         <h2>About {{ userProfile.firstName }}</h2>
 
-        <div *ngIf="shouldShowCreateProfile() && isCurrentUserProfile" class="empty-profile-prompt">
+
+
+
+
+        
+
+        <div *ngIf="  shouldShowCreateProfile() && isCurrentUserProfile" class="empty-profile-prompt">
           <div class="empty-profile-message">
             <h3>Your profile is looking empty!</h3>
             <p>Add information to help guests get to know you better</p>
             <button class="create-profile-button" (click)="goToEditProfile()">
-              Create Your Profile
+              Complete Your Profile
             </button>
           </div>
         </div>
       
+        <!-- <div *ngIf="userProfile.role=='Guest'"  class="about-content"
+        >
+          <div class="about-item"
+            *ngIf="userProfile.firstName && userProfile.lastName">
+            <div class="icon">
+              <i class="fa fa-user" aria-hidden="true"></i>
+            </div>
+            <div class="about-info">
+              <span>Full name : {{ userProfile.firstName}} {{ userProfile.lastName}} </span>
+            </div>
+          </div>
+          <div class="about-item"
+            *ngIf="userProfile.dateOfBirth !='0001-01-01T00:00:00' ">
+            <div class="icon">
+              <i class="fa fa-user" aria-hidden="true"></i>
+            </div>
+            <div class="about-info">
+              <span>Born in : {{ userProfile.dateOfBirth}}  </span>
+            </div>
+          </div>
+        </div> -->
+
         
         <div *ngIf="!shouldShowCreateProfile() || !isCurrentUserProfile"  class="about-content"
         >
@@ -284,7 +331,7 @@
 
 
 
-        <div class="reviews-slider-section" *ngIf="activeTab === 'about'">
+        <div class="reviews-slider-section" *ngIf="activeTab === 'about' && userProfile.role=='Host'">
           <h2>{{userProfile.firstName}}'s Reviews</h2>
           
           <div class="reviews-slider">
@@ -321,18 +368,18 @@
         <!-- Listings Slider Section -->
   
 
-  <div class="listings-section">
+  <div class="listings-section"  *ngIf="userProfile.role=='Host'">
     <div class="section-header">
       <h2>{{ userProfile.firstName }}'s Listings</h2>
-      <a *ngIf="Listings.length > 4" href="#" class="view-all">View all {{ Listings.length }} listings</a>
+      <!-- <a *ngIf="Listings.length > 4" href="#" class="view-all">View all {{ Listings.length }} listings</a> -->
     </div>
   
     <div class="listings-slider">
-      <div class="listing-card" *ngFor="let property of Listings.slice(0, 4)">
+      <div class="listing-card" *ngFor="let property of Listings">
         <div class="property-image">
          
 
-               <img [src]="property.images[0]?.imageUrl ? (backendBaseUrl + property.images[0]?.imageUrl) : 'assets/default-avatar.jpg'" alt="Profile picture"
+               <img [src]="property.images[0]?.imageUrl ? (  property.images[0]?.imageUrl) : 'assets/default-avatar.jpg'" alt="listing picture"
                (click)="goToPropertyPage(property.id)">
 
         </div>

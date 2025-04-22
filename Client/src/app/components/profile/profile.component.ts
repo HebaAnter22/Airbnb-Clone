@@ -15,10 +15,10 @@ import { HttpClient } from '@angular/common/http';
 })
 export class ProfileComponent implements OnInit {
   isCurrentUserProfile: boolean = false;
-  backendBaseUrl = 'https://localhost:7228';
+ backendBaseUrl = 'https://localhost:7228';
   userProfile: any;
   hostProfile: any;
-  reviews: any[] = [] ;
+  reviews: any[] = [];
   isLoading = true;
   errorMessage = '';
   activeTab: string = 'about';
@@ -26,7 +26,8 @@ export class ProfileComponent implements OnInit {
   selectedFile: File | null = null;
   uploadProgress: number = 0;
   isUploading: boolean = false;
-
+  emailVerified: boolean = false;
+  idVerified: boolean = false;
   Listings: any[] = [];
 
   constructor(
@@ -46,12 +47,27 @@ export class ProfileComponent implements OnInit {
     this.loadUserProfile(profileUserId);
     this.loadUserReviews(profileUserId);
     this.loadUserListings(profileUserId);
+    this.assignVerificationStatus();
+  }
+  assignVerificationStatus(): void {
+    this.authService.checkEmailVerificationStatus().subscribe({
+      next: (isVerified: boolean) => {
+        this.emailVerified = isVerified;
+      },
+      error: (err:any) => {
+        console.error('Error checking email verification status:', err);
+      }
+    });
+  }
+  goToVerificationPage(): void {
+    this.router.navigate(['/verification']);
   }
 
   goToEditProfile(): void {
     this.router.navigate(['/editProfile', this.userProfile.id]);
   }
-  loadUserListings(userId:string): void {
+  
+  loadUserListings(userId: string): void {
     this.profileService.getUserListings(userId).subscribe({
       next: (listings: any[]) => {
         this.Listings = listings.map(listing => ({
@@ -66,14 +82,21 @@ export class ProfileComponent implements OnInit {
     });
   }
 
-  
-  loadUserReviews(userId:string): void {
+  loadUserReviews(userId: string): void {
     this.profileService.getUserReviews(userId).subscribe({
-      next: (reviews:any[]) => {
+      next: (reviews: any[]) => {
         this.reviews = reviews;
       },
       error: (err) => {
         console.error('Reviews load error:', err);
+      },
+      complete: () => {
+        // If we've loaded reviews but still don't have a host profile,
+        // calculate rating for the guest profile
+        if (this.hostProfile) {
+          this.hostProfile.rating = this.calculateUserRatingFromReviews();
+          this.hostProfile.totalReviews = this.reviews.length;
+        }
       }
     });
   }
@@ -96,25 +119,27 @@ export class ProfileComponent implements OnInit {
     return emptyCount > 7;
   }
   
-
   getProfileImageUrl(): string {
     if (this.userProfile?.profilePictureUrl) {
-      
       return this.backendBaseUrl + this.userProfile.profilePictureUrl;
     }
-    return 'assets/default-avatar.jpg';
+    return 'assets/images/default.png'; // Default image if none is set
   }
   
-  loadUserProfile(userId:string): void {
+  loadUserProfile(userId: string): void {
     this.profileService.getUserProfile(userId).subscribe({
       next: (profile) => {
         this.userProfile = profile;
+        console.log('User Profile:', this.userProfile);
         
-        if(this.userProfile.role=='Host'){
-        this.loadHostProfile(userId);
+        if (this.userProfile.role === 'Host') {
+          this.loadHostProfile(userId);
+        } else {
+          // Create a default hostProfile for guests
+          this.router.navigate(['**']);
+          this.createDefaultHostProfile();
+          this.isLoading = false;
         }
-        this.isLoading = false;
-
       },
       error: (err) => {
         this.errorMessage = 'Failed to load profile';
@@ -124,10 +149,31 @@ export class ProfileComponent implements OnInit {
     });
   }
   
-
-
-
-
+  // Create a default host profile structure for guests
+  createDefaultHostProfile(): void {
+    this.hostProfile = {
+      rating: 0,
+      totalReviews: 0,
+      aboutMe: '',
+      work: '',
+      education: '',
+      languages: '',
+      dreamDestination: '',
+      specialAbout: '',
+      livesIn: '',
+      funFact: '',
+      obsessedWith: '',
+      pets: '',
+      isVerified: false,
+      properties: []
+    };
+    
+    // Once reviews are loaded, update the rating
+    if (this.reviews.length > 0) {
+      this.hostProfile.rating = this.calculateUserRatingFromReviews();
+      this.hostProfile.totalReviews = this.reviews.length;
+    }
+  }
 
   onFileSelected(event: any): void {
     const file: File = event.target.files[0];
@@ -170,17 +216,11 @@ export class ProfileComponent implements OnInit {
     });
   }
 
-
-
-
-  loadHostProfile(userId:string): void {
+  loadHostProfile(userId: string): void {
     this.profileService.getHostProfile(userId).subscribe({
       next: (host) => {
         this.hostProfile = host;
         // Set default values for any missing profile data
-        this.hostProfile.rating = this.calculateUserRatingFromReviews();
-        this.hostProfile.totalReviews = this.reviews.length;
-
         if (!this.hostProfile.rating) this.hostProfile.rating = 0;
         if (!this.hostProfile.totalReviews) this.hostProfile.totalReviews = 0;
         if (!this.hostProfile.aboutMe) this.hostProfile.aboutMe = '';
@@ -188,36 +228,44 @@ export class ProfileComponent implements OnInit {
         if (!this.hostProfile.education) this.hostProfile.education = '';
         if (!this.hostProfile.languages) this.hostProfile.languages = '';
         
+        // Update with review data if available
+        if (this.reviews.length > 0) {
+          this.hostProfile.rating = this.calculateUserRatingFromReviews();
+          this.hostProfile.totalReviews = this.reviews.length;
+        }
+        
         this.isLoading = false;
       },
       error: (err) => {
+        // If hostProfile fails to load, create a default one
         console.error('Host profile load error:', err);
+        this.createDefaultHostProfile();
         this.isLoading = false;
       }
     });
   }
+  
   calculateUserRatingFromReviews(): number {
+    if (this.reviews.length === 0) return 0;
     const totalRating = this.reviews.reduce((acc, review) => acc + review.rating, 0);
-
     return totalRating / this.reviews.length;
   }
   
   getHostingYears(): number {
-    if (!this.hostProfile?.startDate) return 2; // Default value
+    if (!this.hostProfile?.startDate) return 1; // Default value for guests or new hosts
     const startDate = new Date(this.hostProfile.startDate);
     const currentDate = new Date();
     return currentDate.getFullYear() - startDate.getFullYear();
   }
   
   setActiveTab(tab: string): void {
-    //scroll up
     window.scrollTo(0, 0);
     this.activeTab = tab;
   }
+  
   goToPropertyPage(listingId: string): void {
     this.router.navigate(['/property', listingId]);
   }
-
 
   logout(): void {
     this.authService.logout();

@@ -18,7 +18,8 @@ import { EditProfileComponent } from './components/edit-profile/edit-profile.com
 import { PropertyDetailsComponent } from './components/property-details/property-details.component';
 import { PropertyGalleryComponent } from './components/property-gallary/property-gallery.component';
 import { WishlistComponent } from './components/wishlist/wishlist.component';
-import { HostVerificationComponent } from './components/host-verification/host-verification.component';
+import { BookingComponent } from './components/bookings/bookings.component';
+import { VerificationComponent } from './components/verifications/verifications.component';
 
 
 
@@ -55,7 +56,7 @@ export const routes: Routes = [
     },
 
     { path: 'property/:id', component: PropertyDetailsComponent },
-    { path: 'profile/:id', component: ProfileComponent, canActivate: [authGuard] },
+    { path: 'profile/:id', component: ProfileComponent },
     {
       path: 'property/:id/gallery',
       component: PropertyGalleryComponent
@@ -65,10 +66,9 @@ export const routes: Routes = [
       component: WishlistComponent,
       canActivate: [authGuard] // If you have an auth guard
     },
-    {
-      path: 'verification', 
-      component: HostVerificationComponent, // Assuming HostComponent handles the verification process
-    },
+    {path: 'bookings', component: BookingComponent, canActivate: [authGuard]},
+    { path: 'verification', component: VerificationComponent, canActivate: [authGuard] },
+   
     { path: 'editProfile/:id', component: EditProfileComponent, canActivate: [authGuard] },
 
     { path: 'forbidden', component: ForbiddenComponent },

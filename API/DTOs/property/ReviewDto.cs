@@ -10,3 +10,10 @@
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 }
+public class ReviewRequestDto
+{
+    public int BookingId { get; set; }
+    public int ReviewerId { get; set; }
+    public int Rating { get; set; }
+    public string Comment { get; set; }
+}

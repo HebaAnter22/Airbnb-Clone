@@ -1,7 +1,7 @@
 // src/app/components/auth/auth.service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable, Subject, catchError, map, of, throwError } from 'rxjs';
+import { BehaviorSubject, Observable, Subject, catchError, map, of, tap, throwError } from 'rxjs';
 import { Router } from '@angular/router';
 import { User, TokenResponse } from '../models/user.model';
 import { SocialAuthService, SocialUser } from "@abacritt/angularx-social-login";
@@ -37,6 +37,38 @@ export class AuthService {
     this.socialAuthService.signIn(GoogleLoginProvider.PROVIDER_ID);
 }
 
+// auth.service.ts
+switchToHosting(): Observable<TokenResponse> {
+  return this.http.post<TokenResponse>(`${this.baseUrl}switch-to-host`, {}).pipe(
+    tap((response) => {
+      // Decode the new token and update user state
+      const decoded = this.decodeToken(response.accessToken);
+      const updatedUser: User = {
+        email: decoded.unique_name,
+        role: decoded.role,
+        accessToken: response.accessToken,
+        refreshToken: response.refreshToken,
+        firstName: this.currentUserValue?.firstName, // Preserve existing fields
+        lastName: this.currentUserValue?.lastName,
+        imageUrl: this.currentUserValue?.imageUrl,
+      };
+      
+      // Update localStorage and BehaviorSubject
+      localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+      this.currentUserSubject.next(updatedUser);
+    }),
+    catchError((err) => {
+      console.error('Role switch failed', err);
+      return throwError(() => err);
+    })
+  );
+}
+
+
+isUserAGuest(): boolean {
+  const user = this.currentUserSubject.value;
+  return user ? user.role === 'Guest' : false;
+}
 private handleGoogleLogin(googleUser: SocialUser): void {
     this.http.post(`${this.baseUrl}google-auth`, {
         email: googleUser.email,
@@ -95,6 +127,18 @@ public get userId(): string | null {
   }
 
 
+
+   checkEmailVerificationStatus():
+   
+  Observable<boolean> {
+    return this.http.get<{isEmailVerified: boolean}>(`https://localhost:7228/api/Profile/user/email-verification-status`).pipe(
+      map(response => response.isEmailVerified),
+      catchError(error => {
+        console.error('Error checking email verification status:', error);
+        return of(false); // Return false in case of error
+      })
+    );
+  }
 
 
 

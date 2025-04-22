@@ -39,7 +39,7 @@
         <div class="property-header">
           <h2>Entire villa in {{ property.city }}, {{ property.country }}</h2>
           <div class="property-meta">
-            {{ property.maxGuests }} guests · {{ property.bedrooms }} bedrooms · {{ property.bedrooms }} beds · {{ property.bathrooms }} baths
+            {{ property.maxGuests }} max guests · {{ property.bedrooms }} bedrooms · {{ property.bedrooms }} beds · {{ property.bathrooms }} baths
           </div>
           <div class="property-rating" *ngIf="property.reviewCount > 0">
             <span class="rating">
@@ -72,10 +72,10 @@
         <!-- Location Info -->
         <div class="location-info">
           <div class="location-icon">
-            <i class="fa fa-map-marker"></i>
-          </div>
+            <i class="fa fa-street-view" aria-hidden="true"></i>
+                    </div>
           <div class="location-details">
-            <p>30-min drive to Brijuni National Park</p>
+            <p>{{distance}} From {{property?.address}}</p>
           </div>
         </div>
   
@@ -327,7 +327,7 @@
       <!-- Right Column: Booking Details -->
       <div class="booking-card">
         <div class="booking-price">
-          <h2>{{ formatPrice(property.pricePerNight) }}</h2>
+          <h2>{{ formatPrice(property?.pricePerNight+property.cleaningFee+property.serviceFee)}}</h2>
           <span class="per-night">per night</span>
         </div>
   
@@ -359,20 +359,96 @@
     
     <div class="guests-dropdown">
       <label>GUESTS</label>
-      <div class="guest-selector">
-        <span>{{ guests }} guest</span>
+      <div class="guest-selector" (click)="toggleGuestDropdown($event)">
+        <span>{{ guests }} {{ guests === 1 ? 'guest' : 'guests' }}</span>
         <i class="fas fa-chevron-down"></i>
+      </div>
+      
+      <!-- Dropdown menu -->
+      <div class="guest-dropdown-menu" *ngIf="isGuestDropdownOpen">
+        <div class="guest-type">
+          <div class="guest-label">
+            <div class="guest-title">Guests</div>
+            <div class="guest-subtitle"></div>
+          </div>
+          <div class="guest-counter">
+            <button 
+              class="counter-btn" 
+              [ngClass]="{'disabled': guests <= 1}" 
+              (click)="updateGuestCount(-1)">
+              <i class="fas fa-minus"></i>
+            </button>
+            <span class="guest-count">{{ guests }}</span>
+            <button 
+              class="counter-btn" 
+              [ngClass]="{'disabled': guests >= maxGuests}" 
+              (click)="updateGuestCount(1)">
+              <i class="fas fa-plus"></i>
+            </button>
+          </div>
+        </div>
+        <div class="dropdown-footer">
+          <button class="close-dropdown" (click)="closeGuestDropdown()">Close</button>
+        </div>
+      </div>
+    </div>
+    <div class="promo-code-section">
+      <div class="promo-code-header" (click)="togglePromoCodeSection()">
+        <span>Have a promo code?</span>
+        <i class="fas" [ngClass]="isPromoCodeSectionOpen ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+      </div>
+      
+      <div class="promo-code-content" *ngIf="isPromoCodeSectionOpen">
+        <div class="promo-input-container" [ngClass]="{'success': promoCodeApplied, 'error': promoCodeError}">
+          <input 
+            type="text" 
+            placeholder="Enter promo code" 
+            [(ngModel)]="promoCode" 
+            [disabled]="promoCodeApplied"
+            class="promo-input">
+          <button 
+            class="promo-apply-btn" 
+            [ngClass]="{'applied': promoCodeApplied}" 
+            [disabled]="!promoCode || promoCodeLoading || promoCodeApplied"
+            (click)="applyPromoCode()">
+            <span *ngIf="!promoCodeLoading && !promoCodeApplied">Apply</span>
+            <span *ngIf="promoCodeLoading"><i class="fas fa-spinner fa-spin"></i></span>
+            <span *ngIf="promoCodeApplied"><i class="fas fa-check"></i> Applied</span>
+          </button>
+        </div>
+        
+        <div *ngIf="promoCodeError" class="promo-error-message">
+          {{ promoCodeError }}
+        </div>
+        
+        <div *ngIf="promoCodeApplied" class="promo-success">
+          <div class="promo-badge">
+            <i class="fas fa-tag"></i>
+            <span>{{ promotion.code }}</span>
+          </div>
+          <div class="promo-info">
+            <div class="discount-info">
+              {{ getDiscountText() }}
+            </div>
+            <button class="remove-promo" (click)="removePromoCode()">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
     
-    <button class="btn-reserve" (click)="reserve()">Reserve</button>
-    
-    <div class="no-charge-yet">You won't be charged yet</div>
-    
+    <!-- Update price details to include discount row -->
     <div class="price-details">
       <div class="price-row">
-        <span>{{ formatPrice(property?.pricePerNight) }} x {{ getDaysInRange() }} nights</span>
-        <span>{{ formatPrice(property?.pricePerNight * getDaysInRange()) }}</span>
+        <span>{{ formatPrice(property?.pricePerNight+property.cleaningFee+property.serviceFee) }} x {{ getDaysInRange() }} nights</span>
+        <span>{{ formatPrice(getSubtotalPrice()) }}</span>
+      </div>
+      
+      <!-- Add discount row when promo is applied -->
+      <div class="price-row discount-row" *ngIf="promoCodeApplied">
+        <span>Discount ({{ promotion.code }})</span>
+        <span class="discount-amount">-{{ formatPrice(getDiscountAmount()) }}</span>
       </div>
     </div>
     
@@ -380,9 +456,19 @@
       <span>Total</span>
       <span>{{ formatPrice(getTotalPrice()) }}</span>
     </div>
+    <button class="btn-reserve" (click)="reserve()">Reserve</button>
+    
+    <div class="no-charge-yet">You won't be charged yet</div>
+    
+   
+<!--     
+    <div class="total-price">
+      <span>Total</span>
+      <span>{{ formatPrice(getTotalPrice()) }}</span>
+    </div> -->
   
   <!-- Calendar Modal -->
-  <div *ngIf="showCalendar" class="calendar-modal-overlay" (click)="closeCalendar()">
+  <div *ngIf="showCalendar" class="calendar-modal-overlay" (click)="closeCalendar(true)">
     <div class="calendar-modal" (click)="$event.stopPropagation()">
       <div class="calendar-header">
         <div class="selected-dates">
@@ -463,7 +549,7 @@
       
       <div class="calendar-footer">
         <button class="clear-btn" (click)="clearDates()">Clear dates</button>
-        <button class="close-btn" (click)="closeCalendar()">Close</button>
+        <button class="close-btn" (click)="closeCalendar(true)">Close</button>
       </div>
     </div>
   </div>
@@ -588,7 +674,7 @@
             <div class="stat-label">Reviews</div>
           </div>
           <div class="stat-item">
-            <div class="stat-value">{{ hostProfile?.rating?.toFixed(2) || 0 }}★</div>
+            <div class="stat-value">{{ hostRating.toFixed(2) || 0 }}★</div>
             <div class="stat-label">Rating</div>
           </div>
           <div class="stat-item">
@@ -694,7 +780,9 @@
   </div>
   
   <div class="loading" *ngIf="loading">
-    <p>Loading property details...</p>
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
   </div>
   
   <div class="error" *ngIf="error">

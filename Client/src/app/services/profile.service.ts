@@ -61,6 +61,7 @@ export class ProfileService {
     return this.http.get<any[]>(`${this.apiUrl}/host/reviews/${userId}`);
   }
   
+  
   uploadProfilePicture(file: File): Observable<any> {
     const formData = new FormData();
     formData.append('file', file);
@@ -93,7 +94,6 @@ export class ProfileService {
 
 
   updateProfile( profileData: any): Observable<any> {
-    console.log('Profile data to update:', profileData); // Log the profile data
     return this.http.put(`${this.apiUrl}/editProfile`, profileData);
   }
 }

@@ -83,7 +83,7 @@ namespace API.Services
                 user.FirstName = userDto.FirstName;
                 user.LastName = userDto.LastName;
                 user.Role = userDto.Role;
-                user.ProfilePictureUrl = "/uploads/profile-pictures/default.png";
+                user.ProfilePictureUrl = "/uploads/profile-pictures/default-profile.jpg";
                 
                 _context.Users.Add(user);
                 await _context.SaveChangesAsync();
@@ -205,7 +205,7 @@ namespace API.Services
                     Email = email,
                     FirstName = firstName,
                     LastName = lastName,
-                    Role = "Guest",
+                    Role = "guest",
                     PasswordHash = "" // No password for Google users
                 };
                 
@@ -215,6 +215,32 @@ namespace API.Services
       
             }
                 return user;
+        }
+
+        public async Task<Models.Host> CreateHost(int id)
+        {
+            var host = new Models.Host
+            {
+                HostId = id,
+                StartDate = DateTime.UtcNow,
+                AboutMe = "",
+                Work = "",
+                Rating = 0,
+                TotalReviews = 0,
+                Education = "",
+                Languages = "",
+                IsVerified = false,
+                LivesIn = "",
+                DreamDestination = "",
+                FunFact = "",
+                Pets = "",
+                ObsessedWith = "",
+                SpecialAbout = "",
+             
+            };
+            _context.HostProfules.Add(host);
+            await _context.SaveChangesAsync();
+            return host;
         }
 
 

@@ -201,7 +201,7 @@ namespace API.Controllers
         #region Guest Methods
         // Get all bookings made by a specific user (paginated).
         [HttpGet("userBookings")]
-        [Authorize(Roles = "guest")]
+        [Authorize(Roles = "Guest")]
         public async Task<IActionResult> GetAllUserBooking(int page = 1, int pageSize = 10)
         {
             var userId = GetCurrentUserId();
@@ -312,7 +312,7 @@ namespace API.Controllers
 
 
         [HttpPost]
-        [Authorize(Roles = "guest")]
+        [Authorize(Roles = "Guest")]
         public async Task<IActionResult> CreateBooking([FromBody] BookingInputDTO input)
         {
             if (!ModelState.IsValid)
@@ -530,7 +530,7 @@ namespace API.Controllers
 
         // Delete a booking.
         [HttpDelete("{id}")]
-        [Authorize(Roles = "guest")] 
+        [Authorize(Roles = "Guest")] 
         public async Task<IActionResult> DeleteBooking(int id)
         {
             try

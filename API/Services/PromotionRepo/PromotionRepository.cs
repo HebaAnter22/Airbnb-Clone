@@ -1,6 +1,7 @@
 ﻿using API.Data;
 using API.Models;
 using WebApiDotNet.Repos;
+using Microsoft.EntityFrameworkCore;
 
 namespace API.Services.PromotionRepo
 {
@@ -11,6 +12,17 @@ namespace API.Services.PromotionRepo
         {
             _context = context;
         }
-        
+        public async Task<Promotion> GetPromotionAsync(string promoCode)
+        {
+            var promotion = await _context.Promotions
+                .Where(p => p.Code == promoCode)
+                .FirstOrDefaultAsync();
+            if (promotion == null)
+            {
+                return null;
+            }
+            return promotion;
+        }
+
     }
 }
