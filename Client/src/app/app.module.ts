@@ -1,9 +1,13 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
+import { FormsModule } from '@angular/forms'; // Import FormsModule
 import { HttpClientModule } from '@angular/common/http';
 import { AppComponent } from './app.component';
 import { SocialLoginModule, SocialAuthServiceConfig, GoogleLoginProvider } from '@abacritt/angularx-social-login';
 import { environment } from '../environments/environment';
+import { MatCardModule } from '@angular/material/card';
+import { MatButtonModule } from '@angular/material/button';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 @NgModule({
   declarations: [
@@ -12,7 +16,11 @@ import { environment } from '../environments/environment';
   imports: [
     BrowserModule,
     HttpClientModule,
-    SocialLoginModule
+    SocialLoginModule,
+    FormsModule, // Add FormsModule here
+    MatCardModule,
+    MatButtonModule,
+    MatProgressSpinnerModule
   ],
   providers: [
     {
@@ -30,4 +38,4 @@ import { environment } from '../environments/environment';
   ],
   bootstrap: [AppComponent]
 })
-export class AppModule { } 
+export class AppModule { }

@@ -14,6 +14,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Authentication.Google;
 using System.Web;
+using API.DTOs.Auth;
 
 namespace API.Controllers
 {
@@ -240,6 +241,52 @@ namespace API.Controllers
             // Return tokens to the frontend
             return Redirect($"http://localhost:4200/login?access_token={tokenResponse.AccessToken}&refresh_token={tokenResponse.RefreshToken}");
         }
+
+
+        [HttpPost("switch-to-host")]
+        [Authorize(Roles = "Guest")]
+        public async Task<IActionResult> SwitchToHost()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var user = await _authService.GetUserById(userId);
+            if (user == null)
+            {
+                return NotFound("User not found");
+            }
+            user.Role = "Host";
+            
+            var updatedUser =  await _authService.UpdateUser(user);
+            if (updatedUser == null)
+            {
+                return BadRequest("Failed to update user role");
+            }
+
+            var host =await _authService.CreateHost(user.Id);
+            if (host == null)
+            {
+                return BadRequest("Failed to create host profile");
+            }
+
+            // Generate tokens
+            var tokenResponse = await _authService.CreateTokenResponse(user);
+            if (tokenResponse == null)
+            {
+                return BadRequest("Failed to generate tokens");
+            }
+            // Return tokens to the frontend
+            return Ok(tokenResponse);
+
+
+
+
+            //return Ok(new
+            //            {
+            //                user.Email,
+            //                user.PasswordHash,
+            //            }
+            //    );
+        }
+
 
     }
 

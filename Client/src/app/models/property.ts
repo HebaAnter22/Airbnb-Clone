@@ -6,11 +6,10 @@ export interface PropertyImageDto {
 }
 
 export interface Amenity {
-  amenityId: number;
+  id: number;
   name: string;
-  description?: string;
-  iconUrl: string;
   category: string;
+  iconUrl: string;
 }
 
 export interface PropertyDto {
@@ -20,6 +19,7 @@ export interface PropertyDto {
   description: string;
   propertyType: string;
   address: string;
+  categoryId: number;
   city: string;
   country?: string;  // Made optional
   latitude?: number;
@@ -48,6 +48,8 @@ export interface PropertyDto {
   // UI-only fields
   viewCount?: number;
   dates?: string;
+  currentImageIndex?: number; // Optional property for carousel functionality
+  instantBook?: boolean; // Added instantBook property
 }
 
 export interface PropertyCategory {

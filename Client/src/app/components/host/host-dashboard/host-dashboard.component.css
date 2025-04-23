@@ -1,0 +1,374 @@
+.host-dashboard {
+  min-height: 100vh;
+  background-color: #f8f9fa;
+}
+
+.header-logo {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+  
+.airbnb-icon {
+    width: 30px;
+    height: 30px;
+    margin-right: 8px;
+    transition: all 0.3s ease;
+}
+
+/* Top Navigation Bar */
+.top-nav {
+  background-color: #ffffff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+}
+
+.nav-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 20px;
+  height: 70px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Brand Section */
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo {
+  height: 40px;
+  width: auto;
+}
+
+.brand-name {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #333;
+}
+
+/* Navigation Links */
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.nav-item {
+  position: relative;
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 15px;
+  color: #666;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  border-radius: 8px;
+  position: relative;
+  overflow: hidden;
+}
+
+.nav-link:hover {
+  color: #ff5a5f;
+  background-color: #f7f7f7;
+  transform: translateY(-1px);
+}
+
+.nav-link.active {
+  color: #ff5a5f;
+  font-weight: 500;
+  background-color: #fff0f0;
+}
+
+.nav-link::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background-color: #ff5a5f;
+  transform: scaleX(0);
+  transition: transform 0.3s ease;
+}
+
+.nav-link:hover::before {
+  transform: scaleX(1);
+}
+
+.nav-link i {
+  font-size: 1.1rem;
+}
+
+/* User Profile Dropdown */
+.user-profile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  padding: 8px;
+  transition: all 0.3s ease;
+  border-radius: 12px;
+  background-color: transparent;
+}
+
+.user-profile:hover {
+  transform: translateY(-2px);
+  background-color: #f7f7f7;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.profile-icon {
+  font-size: 32px;
+  color: #666;
+  background-color: #f0f0f0;
+  border-radius: 50%;
+  padding: 8px;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.user-profile:hover .profile-icon {
+  color: #ff5a5f;
+  background-color: #fff0f0;
+  border-color: #ff5a5f;
+  transform: scale(1.05);
+}
+
+.user-name {
+  font-size: 0.85rem;
+  color: #333;
+  text-align: center;
+  white-space: nowrap;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.user-profile:hover .user-name {
+  color: #ff5a5f;
+  font-weight: 500;
+}
+
+/* Profile Dropdown Menu */
+.dropdown-menu {
+  margin-top: 10px;
+  border-radius: 12px;
+  border: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  min-width: 200px;
+  padding: 8px;
+}
+
+.dropdown-menu .dropdown-item {
+  border-radius: 8px;
+  padding: 10px 15px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+  color: #333;
+}
+
+.dropdown-menu .dropdown-item:hover {
+  background-color: #f8f9fa;
+  transform: translateX(5px);
+}
+
+.dropdown-menu .dropdown-item.text-danger:hover {
+  background-color: #fff5f5;
+}
+
+.dropdown-menu .dropdown-item .material-icons {
+  font-size: 20px;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dropdown-menu .dropdown-item:active {
+  background-color: #ff5a5f;
+  color: white;
+}
+
+.dropdown-menu .dropdown-item.text-danger:active {
+  background-color: #dc3545;
+}
+
+/* Main Content Area */
+.main-content {
+  margin-top: 90px;
+  padding: 30px;
+  max-width: 1400px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.content-section {
+  background-color: #ffffff;
+  border-radius: 8px;
+  padding: 25px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.content-section h2 {
+  margin-bottom: 20px;
+  color: #333;
+  font-size: 1.5rem;
+}
+
+/* Payouts Section Styles */
+.payouts-container {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.payout-summary {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.payout-card {
+  flex: 1;
+  min-width: 250px;
+  background-color: #f8f9fa;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+}
+
+.payout-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.payout-card h3 {
+  font-size: 1.1rem;
+  color: #666;
+  margin-bottom: 15px;
+}
+
+.payout-card .amount {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+.payout-card .date {
+  font-size: 0.9rem;
+  color: #888;
+  margin-bottom: 20px;
+}
+
+.payout-card button {
+  width: 100%;
+  padding: 10px;
+  background-color: #ff5a5f;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.payout-card button:hover {
+  background-color: #ff4248;
+}
+
+.payout-history {
+  background-color: #f8f9fa;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.payout-history h3 {
+  font-size: 1.2rem;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 0;
+  color: #888;
+}
+
+.empty-state i {
+  font-size: 3rem;
+  margin-bottom: 15px;
+  color: #ccc;
+}
+
+.empty-state p {
+  font-size: 1.1rem;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .nav-container {
+    padding: 0 15px;
+  }
+
+  .nav-link {
+    padding: 8px 12px;
+  }
+}
+
+@media (max-width: 768px) {
+  .brand-name {
+    display: none;
+  }
+
+  .nav-links {
+    gap: 10px;
+  }
+
+  .nav-link span {
+    display: none;
+  }
+
+  .nav-link i {
+    font-size: 1.2rem;
+  }
+
+  .user-name {
+    display: block;
+    font-size: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .main-content {
+    padding: 15px;
+  }
+
+  .content-section {
+    padding: 15px;
+  }
+} 

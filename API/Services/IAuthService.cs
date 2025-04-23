@@ -16,6 +16,7 @@ namespace API.Services
         Task<User> CreateUser(User user);
 
         Task<User?> GetOrCreateGoogleUser(string email, string firstName, string lastName);
+         Task<Models.Host> CreateHost(int id);
 
 
 

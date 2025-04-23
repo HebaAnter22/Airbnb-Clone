@@ -11,11 +11,18 @@
       </div>
       <!-- Search bar in the center -->
       <div class="header-center">
-        <app-search-bar [isHeaderScrolled]="isScrolled"></app-search-bar>
+        <app-search-bar 
+          [isHeaderScrolled]="isScrolled"
+          (searchPerformed)="onSearch($event)">
+        </app-search-bar>
       </div>
+
+
 
       <!-- "Airbnb your home" button on the right -->
       <div class="header-right">
+        <a class="host-button" *ngIf="isGuest" (click)="switchToHosting()" >Switch to hosting</a>
+
         <a class="host-button" href="/login">Airbnb your home
         </a>
         <!-- User profile icon with dropdown menu -->

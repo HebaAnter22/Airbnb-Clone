@@ -33,14 +33,8 @@ public class PropertyProfile : Profile
             .ForMember(dest => dest.MaxGuests, opt => opt.MapFrom(src => src.MaxGuests ?? 1))
             .ForMember(dest => dest.Currency, opt => opt.MapFrom(src => src.Currency ?? "USD"))
             .ForMember(dest => dest.InstantBook, opt => opt.MapFrom(src => src.InstantBook ?? false))
+                .ForMember(dest => dest.Amenities, opt => opt.Ignore()) // Add this line to ignore amenities during mapping
             .ForMember(dest => dest.CancellationPolicyId, opt => opt.MapFrom(src => src.CancellationPolicyId ?? 1));
-
-        CreateMap<PropertyUpdateDto, Property>()
-            .ForMember(dest => dest.CheckInTime, opt => opt.MapFrom(src =>
-                !string.IsNullOrEmpty(src.CheckInTime) ? TimeSpan.Parse(src.CheckInTime) : (TimeSpan?)null))
-            .ForMember(dest => dest.CheckOutTime, opt => opt.MapFrom(src =>
-                !string.IsNullOrEmpty(src.CheckOutTime) ? TimeSpan.Parse(src.CheckOutTime) : (TimeSpan?)null))
-            .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
 
         CreateMap<PropertyImage, PropertyImageDto>();
         CreateMap<Amenity, AmenityDto>();

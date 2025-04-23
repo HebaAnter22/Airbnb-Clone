@@ -54,6 +54,42 @@ export class CreatePropertyService {
     const decoded = this.authService.decodeToken(user.accessToken);
     return Promise.resolve(parseInt(decoded.nameid));
   }
+  getPromoCodeDetails(promoCode: string): Observable<any> {
+    return this.http.get<any>(`${this.API_URL}/Promotion`, { params: { promoCode } }).pipe(
+      map(response => {
+        return response;
+      }),
+      catchError((error) => {
+        console.error('Error fetching promo code details:', error);
+        return throwError(() => error);
+      })
+    );
+  }
+
+  updatePromoCode(promoCode: string): Observable<any> {
+    return this.http.put<any>(`${this.API_URL}/Promotion/Use`,
+      null,   { params: { promoCode } }
+    ).pipe(
+      catchError((error) => {
+        console.error('Error validating promo code:', error);
+        return throwError(() => error);
+      })
+    );
+  }
+
+
+
+// In your property-crud.service.ts
+getPropertyAvailability(propertyId: number): Observable<any[]> {
+  return this.http.get<any[]>(`${this.API_URL}/availability/${propertyId}`);
+}
+// Add this to your CreatePropertyService
+createBooking(bookingData: any): Observable<any> {
+  return this.http.post<any>(`${this.API_URL}/booking`, bookingData);
+}
+
+
+
 
   addProperty(property: PropertyCreateDto): Observable<PropertyDto> {
     console.log('Sending property data to server:', JSON.stringify(property, null, 2));

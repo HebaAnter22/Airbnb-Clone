@@ -1,0 +1,451 @@
+<div class="admin-container">
+  <!-- Sidebar Toggle Button -->
+  <div class="sidebar-toggle" (click)="toggleSidebar()">
+    <i class="fas" [class.fa-bars]="isSidebarCollapsed" [class.fa-times]="!isSidebarCollapsed"></i>
+  </div>
+
+  <!-- Sidebar -->
+  <div class="sidebar" [class.collapsed]="isSidebarCollapsed">
+    <!-- Logo Section -->
+    <div class="admin-profile">
+      <span class="material-icons profile-icon">person</span>
+      <h5 class="admin-name" *ngIf="!isSidebarCollapsed">{{adminName}}</h5>
+    </div>
+
+    <nav class="sidebar-nav">
+      <!-- Hosts Section -->
+      <div class="nav-section">
+        <div class="nav-item" (click)="toggleHostSection()" [class.active]="isHostDropdownOpen || currentSection.startsWith('all-hosts') || currentSection.startsWith('verified-hosts') || currentSection.startsWith('unverified-hosts')" data-tooltip="Hosts">
+          <i class="fas fa-users"></i>
+          <span *ngIf="!isSidebarCollapsed">Hosts</span>
+          <i class="fas" [class.fa-chevron-down]="!isHostDropdownOpen" [class.fa-chevron-up]="isHostDropdownOpen" style="margin-left: auto;" *ngIf="!isSidebarCollapsed"></i>
+        </div>
+        <div class="nav-submenu" [class.show]="isHostDropdownOpen && !isSidebarCollapsed">
+          <div class="nav-item" (click)="setCurrentSection('all-hosts')" [class.active]="currentSection === 'all-hosts'" data-tooltip="All Hosts">
+            <i class="fas fa-list"></i>
+            <span *ngIf="!isSidebarCollapsed">All Hosts</span>
+          </div>
+          <div class="nav-item" (click)="setCurrentSection('verified-hosts')" [class.active]="currentSection === 'verified-hosts'" data-tooltip="Verified Hosts">
+            <i class="fas fa-check-circle"></i>
+            <span *ngIf="!isSidebarCollapsed">Verified Hosts</span>
+          </div>
+          <div class="nav-item" (click)="setCurrentSection('unverified-hosts')" [class.active]="currentSection === 'unverified-hosts'" data-tooltip="Unverified Hosts">
+            <i class="fas fa-exclamation-circle"></i>
+            <span *ngIf="!isSidebarCollapsed">Unverified Hosts</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Properties Section -->
+      <div class="nav-section">
+        <div class="nav-item" (click)="togglePropertySection()" [class.active]="isPropertyDropdownOpen || currentSection.startsWith('unverified-properties') || currentSection.startsWith('verified-properties')" data-tooltip="Properties">
+          <i class="fas fa-home"></i>
+          <span *ngIf="!isSidebarCollapsed">Properties</span>
+          <i class="fas" [class.fa-chevron-down]="!isPropertyDropdownOpen" [class.fa-chevron-up]="isPropertyDropdownOpen" style="margin-left: auto;" *ngIf="!isSidebarCollapsed"></i>
+        </div>
+        <div class="nav-submenu" [class.show]="isPropertyDropdownOpen && !isSidebarCollapsed">
+          <div class="nav-item" (click)="setCurrentSection('unverified-properties')" [class.active]="currentSection === 'unverified-properties'" data-tooltip="Unverified Properties">
+            <i class="fas fa-exclamation-circle"></i>
+            <span *ngIf="!isSidebarCollapsed">Unverified</span>
+          </div>
+          <div class="nav-item" (click)="setCurrentSection('verified-properties')" [class.active]="currentSection === 'verified-properties'" data-tooltip="Verified Properties">
+            <i class="fas fa-check-circle"></i>
+            <span *ngIf="!isSidebarCollapsed">Verified</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Guests Section -->
+      <div class="nav-section">
+        <div class="nav-item" (click)="toggleGuestSection()" [class.active]="isGuestDropdownOpen || currentSection.startsWith('all-guests') || currentSection.startsWith('active-guests') || currentSection.startsWith('blocked-guests')" data-tooltip="Guests">
+          <i class="fas fa-user-friends"></i>
+          <span *ngIf="!isSidebarCollapsed">Guests</span>
+          <i class="fas" [class.fa-chevron-down]="!isGuestDropdownOpen" [class.fa-chevron-up]="isGuestDropdownOpen" style="margin-left: auto;" *ngIf="!isSidebarCollapsed"></i>
+        </div>
+        <div class="nav-submenu" [class.show]="isGuestDropdownOpen && !isSidebarCollapsed">
+          <div class="nav-item" (click)="setCurrentSection('all-guests')" [class.active]="currentSection === 'all-guests'" data-tooltip="All Guests">
+            <i class="fas fa-list"></i>
+            <span *ngIf="!isSidebarCollapsed">All Guests</span>
+          </div>
+          <div class="nav-item" (click)="setCurrentSection('active-guests')" [class.active]="currentSection === 'active-guests'" data-tooltip="Active Guests">
+            <i class="fas fa-check-circle"></i>
+            <span *ngIf="!isSidebarCollapsed">Active Guests</span>
+          </div>
+          <div class="nav-item" (click)="setCurrentSection('blocked-guests')" [class.active]="currentSection === 'blocked-guests'" data-tooltip="Blocked Guests">
+            <i class="fas fa-ban"></i>
+            <span *ngIf="!isSidebarCollapsed">Blocked Guests</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Analytics Section -->
+      <div class="nav-section">
+        <div class="nav-item" (click)="toggleAnalyticsSection()" [class.active]="isAnalyticsDropdownOpen || currentSection === 'Users' || currentSection === 'Properties'" data-tooltip="Analytics">
+          <i class="fas fa-chart-bar"></i>
+          <span *ngIf="!isSidebarCollapsed">Analytics</span>
+          <i class="fas" [class.fa-chevron-down]="!isAnalyticsDropdownOpen" [class.fa-chevron-up]="isAnalyticsDropdownOpen" style="margin-left: auto;" *ngIf="!isSidebarCollapsed"></i>
+        </div>
+        <div class="nav-submenu" [class.show]="isAnalyticsDropdownOpen && !isSidebarCollapsed">
+          <div class="nav-item" (click)="setCurrentSection('Users')" [class.active]="currentSection === 'Users'" data-tooltip="Users">
+            <i class="fas fa-user"></i>
+            <span *ngIf="!isSidebarCollapsed">Users</span>
+          </div>
+          <div class="nav-item" (click)="setCurrentSection('Properties')" [class.active]="currentSection === 'Properties'" data-tooltip="Properties">
+            <i class="fas fa-home"></i>
+            <span *ngIf="!isSidebarCollapsed">Properties</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Account Details -->
+      <div class="nav-item" (click)="setCurrentSection('account')" [class.active]="currentSection === 'account'" data-tooltip="Account Details">
+        <i class="fas fa-user-circle"></i>
+        <span *ngIf="!isSidebarCollapsed">Account Details</span>
+      </div>
+    </nav>
+
+    <!-- Logout Button -->
+    <div class="logout-section">
+      <button class="logout-button" (click)="logout()">
+        <i class="fas fa-sign-out-alt"></i>
+        <span *ngIf="!isSidebarCollapsed">Logout</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content" [class.expanded]="isSidebarCollapsed">
+    <!-- Loading and Error States -->
+    <div *ngIf="loading" class="loading-spinner">
+      Loading...
+    </div>
+    <div *ngIf="error" class="error-message">
+      {{ error }}
+    </div>
+
+    <!-- Host Management -->
+    <div *ngIf="currentSection === 'all-hosts' || currentSection === 'verified-hosts' || currentSection === 'unverified-hosts'" class="content-section">
+      <h2>{{ currentSection === 'all-hosts' ? 'All Hosts' : currentSection === 'verified-hosts' ? 'Verified Hosts' : 'Unverified Hosts' }}</h2>
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Phone</th>
+              <th>Properties</th>
+              <th>Total Income</th>
+              <th>Rating</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let host of hosts">
+              <td>{{ host?.firstName }} {{ host?.lastName }}</td>
+              <td>{{ host?.email }}</td>
+              <td>{{ host?.phoneNumber }}</td>
+              <td>{{ host?.propertiesCount ?? 0 }}</td>
+              <td>${{ host?.totalIncome ?? 0 }}</td>
+              <td>{{ host?.Rating ?? 0 }}/5 ({{ host?.totalReviews ?? 0 }})</td>
+              <td>
+                <span [class]="'status-badge ' + (host?.isVerified ? 'status-verified' : 'status-unverified')">
+                  {{ host?.isVerified ? 'Verified' : 'Unverified' }}
+                </span>
+              </td>
+              <td>
+                <div class="action-buttons">
+                  <button *ngIf="!host?.isVerified" class="verify-btn" (click)="verifyHost(host?.id ?? 0)">
+                    View Verification
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Property Management -->
+    <div *ngIf="currentSection === 'unverified-properties' || currentSection === 'verified-properties'" class="content-section">
+      <h2>{{ currentSection === 'unverified-properties' ? 'Unverified Properties' : 'Verified Properties' }}</h2>
+      <div *ngIf="currentSection === 'unverified-properties'" class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Host</th>
+              <th>Location</th>
+              <th>Price/Night</th>
+              <th>Type</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let property of pendingProperties">
+              <td>{{ property?.title }}</td>
+              <td>{{ property?.hostName }}</td>
+              <td>{{ property?.city }}, {{ property?.country }}</td>
+              <td>${{ property?.pricePerNight ?? 0 }}</td>
+              <td>{{ property?.propertyType }}</td>
+              <td>
+                <span class="status-badge status-pending">Pending</span>
+              </td>
+              <td>
+                <div class="action-buttons">
+                  <button class="approve-btn" (click)="approveProperty(property?.id ?? 0, true)">Approve</button>
+                  <button class="reject-btn" (click)="approveProperty(property?.id ?? 0, false)">Reject</button>
+                </div>
+              </td>
+            </tr>
+            <tr *ngIf="pendingProperties.length === 0">
+              <td colspan="7" class="no-data">No unverified properties found</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div *ngIf="currentSection === 'verified-properties'" class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Host</th>
+              <th>Location</th>
+              <th>Price/Night</th>
+              <th>Type</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let property of approvedProperties">
+              <td>{{ property?.title }}</td>
+              <td>{{ property?.hostName }}</td>
+              <td>{{ property?.city }}, {{ property?.country }}</td>
+              <td>${{ property?.pricePerNight ?? 0 }}</td>
+              <td>{{ property?.propertyType }}</td>
+              <td>
+                <span [class]="'status-badge ' + (property?.status === 'Active' ? 'status-verified' : 'status-suspended')">
+                  {{ property?.status }}
+                </span>
+              </td>
+              <td>
+                <button *ngIf="property?.status === 'Active'" class="actions suspend-btn" (click)="suspendProperty(property?.id ?? 0, true)">
+                  Suspend
+                </button>
+                <button *ngIf="property?.status === 'Suspended'" class="activate-btn" (click)="suspendProperty(property?.id ?? 0, false)">
+                  Activate
+                </button>
+              </td>
+            </tr>
+            <tr *ngIf="approvedProperties.length === 0">
+              <td colspan="7" class="no-data">No verified properties found</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Guest Management -->
+    <div *ngIf="currentSection === 'all-guests' || currentSection === 'active-guests' || currentSection === 'blocked-guests'" class="content-section">
+      <h2>{{ currentSection === 'all-guests' ? 'All Guests' : currentSection === 'active-guests' ? 'Active Guests' : 'Blocked Guests' }}</h2>
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Profile</th>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Phone</th>
+              <th>Bookings</th>
+              <th>Total Spent</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let guest of guests">
+              <td>
+                <img [src]="guest?.profilePictureUrl || 'assets/images/default-avatar.png'" alt="Guest profile" class="profile-picture-small">
+              </td>
+              <td>{{ guest?.firstName }} {{ guest?.lastName }}</td>
+              <td>{{ guest?.email }}</td>
+              <td>{{ guest?.phoneNumber }}</td>
+              <td>{{ guest?.bookingsCount ?? 0 }}</td>
+              <td>${{ guest?.totalSpent ?? 0 }}</td>
+              <td>{{ guest?.accountStatus }}</td>
+              <td>
+                <button [class]="guest?.accountStatus === 'Blocked' ? 'unblock-btn' : 'block-btn'" (click)="blockUser(guest?.id ?? 0, guest?.accountStatus !== 'Blocked')">
+                  {{ guest?.accountStatus === 'Blocked' ? 'Unblock' : 'Block' }}
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Users Analytics Section -->
+    <div *ngIf="currentSection === 'Users'" class="content-section">
+      <h2>Users Analytics</h2>
+      <div class="analytics-container">
+        <div class="summary-cards">
+          <div class="card">
+            <span class="card-icon"><i class="fas fa-users"></i></span>
+            <h3>Total Guests</h3>
+            <p>{{ analytics?.guestsCount }}</p>
+          </div>
+          <div class="card">
+            <span class="card-icon"><i class="fas fa-user-tie"></i></span>
+            <h3>Total Hosts</h3>
+            <p>{{ analytics?.hostsCount }}</p>
+          </div>
+          <div class="card">
+            <span class="card-icon"><i class="fas fa-dollar-sign"></i></span>
+            <h3>Top Paid Guest</h3>
+            <p>
+              <span *ngIf="analytics?.topPaidGuests?.length">
+                {{ analytics?.topPaidGuests[0]?.firstName }} {{ analytics?.topPaidGuests[0]?.lastName }}
+                <span class="highlight">(${{ analytics?.topPaidGuests[0]?.totalSpent }})</span>
+              </span>
+              <span *ngIf="!analytics?.topPaidGuests?.length">N/A</span>
+            </p>
+          </div>
+        </div>
+        <div class="top-items-section">
+          <div class="top-item">
+            <h3>Top 3 Booking Guests</h3>
+            <ul>
+              <li *ngFor="let guest of analytics?.topBookingGuests">
+                {{ guest?.firstName }} {{ guest?.lastName }} ({{ guest?.bookingsCount }} bookings)
+              </li>
+              <li *ngIf="!analytics?.topBookingGuests?.length">No data available</li>
+            </ul>
+          </div>
+          <div class="top-item">
+            <h3>Top 3 Rated Hosts</h3>
+            <ul>
+              <li *ngFor="let host of analytics?.topRatedHosts">
+                {{ host?.firstName }} {{ host?.lastName }} (Rating: {{ host?.rating }}/5, Properties: {{ host?.propertiesCount }})
+              </li>
+              <li *ngIf="!analytics?.topRatedHosts?.length">No data available</li>
+            </ul>
+          </div>
+          <div class="top-item">
+            <h3>Top 3 Paid Guests</h3>
+            <ul>
+              <li *ngFor="let guest of analytics?.topPaidGuests">
+                {{ guest?.firstName }} {{ guest?.lastName }} (${{ guest?.totalSpent }})
+              </li>
+              <li *ngIf="!analytics?.topPaidGuests?.length">No data available</li>
+            </ul>
+          </div>
+        </div>
+        <div class="charts-section">
+          <div class="chart">
+            <h3>Guests Analytics</h3>
+            <canvas #guestsAnalyticsChart></canvas>
+          </div>
+          <div class="chart">
+            <h3>Hosts Analytics</h3>
+            <canvas #hostsAnalyticsChart></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+<!-- Properties Analytics Section -->
+<div *ngIf="currentSection === 'Properties'" class="content-section">
+  <h2>Properties Analytics</h2>
+  <div class="analytics-container">
+    <div class="summary-cards">
+      <div class="card">
+        <span class="card-icon"><i class="fas fa-home"></i></span>
+        <h3>Total Properties</h3>
+        <p>{{ analytics?.propertiesCount }}</p>
+      </div>
+      <div class="card">
+        <span class="card-icon"><i class="fas fa-star"></i></span>
+        <h3>Top Rated Property</h3>
+        <p>
+          <span *ngIf="analytics?.topRatedProperties?.length">
+            <!-- <img [src]="analytics?.topRatedProperties[0]?.getPropertyImage()|| 'assets/images/default-property.jpg'" alt="Top Rated Property" class="property-image"> -->
+            <span class="highlight">({{ analytics?.topRatedProperties[0]?.averageRating | number:'1.1-2' }}/5)</span>
+          </span>
+          <span *ngIf="!analytics?.topRatedProperties?.length">N/A</span>
+        </p>
+      </div>
+      <div class="card">
+        <span class="card-icon"><i class="fas fa-fire"></i></span>
+        <h3>Most Booked Property</h3>
+        <p>
+          <span *ngIf="analytics?.topBookedProperties?.length">
+            <img [src]="analytics?.topBookedProperties[0]?.images[0] || 'assets/images/default-property.jpg'" alt="Most Booked Property" class="property-image">
+            <br>
+            <!-- <span class="highlight">({{ analytics?.topBookedProperties[0]?.title }})</span> -->
+            <br>
+
+            <span class="highlight">({{ analytics?.topBookedProperties[0]?.bookingsCount }} bookings)</span>
+          </span>
+          <span *ngIf="!analytics?.topBookedProperties?.length">N/A</span>
+        </p>
+      </div>
+    </div>
+    <!-- Filter by Country -->
+    <div class="filter-section">
+      <label for="countryFilter">Filter Properties by Country:</label>
+      <select id="countryFilter" [(ngModel)]="selectedCountry" (change)="filterPropertiesByCountry()">
+        <option value="">All Countries</option>
+        <option *ngFor="let country of countries" [value]="country">{{ country }}</option>
+      </select>
+    </div>
+    <div class="top-items-section">
+      <div class="top-item">
+        <h3>Top 3 Rated Properties</h3>
+        <ul>
+          <li *ngFor="let property of analytics?.topRatedProperties">
+            <img [src]="property?.images[0] || 'assets/images/default-property.jpg'" alt="{{ property?.title }}" class="property-image-small">
+            <span class="property-details">
+              (Rating: {{ property?.averageRating | number:'1.1-2' }}/5, {{ property?.city }}, {{ property?.country || 'Unknown' }})
+            </span>
+          </li>
+          <li *ngIf="!analytics?.topRatedProperties?.length">No data available</li>
+        </ul>
+      </div>
+      <div class="top-item">
+        <h3>Top 3 Booked Properties</h3>
+        <ul>
+          <li *ngFor="let property of analytics?.topBookedProperties">
+            <img [src]="property?.images[0] || 'assets/images/default-property.jpg'" alt="{{ property?.title }}" class="property-image-small">
+            <span class="property-details">
+              ({{ property?.bookingsCount }} bookings, {{ property?.city }}, {{ property?.country || 'Unknown' }})
+            </span>
+          </li>
+          <li *ngIf="!analytics?.topBookedProperties?.length">No data available</li>
+        </ul>
+      </div>
+      <div class="top-item">
+        <h3>Top Rated Properties by Country</h3>
+        <ul>
+          <li *ngFor="let country of countries | slice:0:5">
+            {{ country }} (Avg Rating: {{ analytics?.topRatedPropertiesByCountry[country]?.avgRating | number:'1.1-2' }}, {{ analytics?.propertiesByCountry[country] }} properties)
+          </li>
+          <li *ngIf="!countries?.length">No data available</li>
+        </ul>
+      </div>
+    </div>
+    <div class="charts-section">
+      <div class="chart">
+        <canvas #propertiesAnalyticsChart></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+    <!-- Account Details -->
+    <div *ngIf="currentSection === 'account'" class="content-section">
+      <app-profile></app-profile>
+    </div>
+  </div>
+</div>

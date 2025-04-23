@@ -16,6 +16,7 @@ import { GoogleSigninButtonModule } from '@abacritt/angularx-social-login';
 export class RegisterComponent {
   registerForm: FormGroup;
   errorMessage: string = '';
+  showPassword: boolean = false;
 
   constructor(
     private authService: AuthService,
@@ -40,6 +41,10 @@ export class RegisterComponent {
       ? { passwordMismatch: true } 
       : null;
   };
+  
+togglePasswordVisibility(): void {
+  this.showPassword = !this.showPassword;
+}
 
   goToLogin() {
     this.router.navigate(['/login']);

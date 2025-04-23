@@ -252,6 +252,97 @@ namespace API.Controllers
         }
 
 
+        [HttpPost("guest/review")]
+        [Authorize]
+        public async Task<IActionResult> AddReview([FromBody] ReviewRequestDto reviewDto)
+        {
 
+            var currentUserId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+            if (currentUserId == null)
+            {
+                return Unauthorized("User not found");
+            }
+           
+            reviewDto.ReviewerId = currentUserId;
+
+            var res = await _profileService.addReview(reviewDto);
+            return Ok(res);
+        }
+
+        [HttpGet("guest/reviews")]
+        [Authorize]
+        public async Task<IActionResult> GetUserReviews()
+        {
+
+            var currentUserId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+            if (currentUserId == null)
+            {
+                return Unauthorized("User not found");
+            }
+            var reviews = await _profileService.GetUserReviewsAsync(currentUserId);
+            return Ok(reviews);
+        }
+        [HttpGet("user/email-verification-status")]
+        [Authorize]
+        public async Task<IActionResult> GetUserEmailVerificationStatus()
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized("User not found");
+            }
+            var user = await _profileService.GetUserByIdAsync(userId);
+            if (user == null)
+            {
+                return NotFound("User not found");
+            }
+            return Ok(new { IsEmailVerified = user.EmailVerified });
+        }
+        [HttpPut("user/update-email")]
+        [Authorize]
+        public async Task<IActionResult> UpdateUserEmail([FromBody] EmailUpdateDto request)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized("User not found");
+            }
+            var user = await _profileService.GetUserByIdAsync(userId);
+            if (user == null)
+            {
+                return NotFound("User not found");
+            }
+            user.Email = request.NewEmail;
+            //check if newemail already exist
+            var existingUser = await _profileService.emailExists(request.NewEmail);
+
+            if (existingUser)
+            {
+                return BadRequest("Email already exists");
+            }
+
+
+            await _profileService.UpdateUserAsync(user);
+            return Ok(new { Message = "Email updated successfully" });
+        }
+        [HttpPut("user/verify-email")]
+        [Authorize]
+        public async Task<IActionResult> VerifyUserEmail(EmailVerificationDto dto)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized("User not found");
+            }
+            var user = await _profileService.GetUserByIdAsync(userId);
+            if (user == null)
+            {
+                return NotFound("User not found");
+            }
+            
+            user.EmailVerified = dto.IsVerified;
+            await _profileService.UpdateUserAsync(user);
+            return Ok(new { Message = "Email verified successfully" });
+        }
     }
 }

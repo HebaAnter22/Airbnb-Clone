@@ -47,6 +47,14 @@ namespace API.Services
             _context.Users.Update(user);
             await _context.SaveChangesAsync();
         }
+        public async Task<bool> emailExists(string email)
+        {
+
+            var user = await _context.Users
+                .FirstOrDefaultAsync(u => u.Email == email);
+            return user != null;
+
+        }
 
 
         public async Task<IEnumerable<HostReviewDto>> GetHostReviewsAsync(int hostId)
@@ -115,6 +123,7 @@ namespace API.Services
             {
                 FirstName = user.FirstName,
                 LastName = user.LastName,
+                role = user.Role,
                 Email = user.Email,
                 DateOfBirth = user.DateOfBirth,
                 ProfilePictureUrl = user.ProfilePictureUrl,
@@ -270,6 +279,28 @@ namespace API.Services
         {
             return await _context.Favourites
                 .AnyAsync(f => f.UserId == userId && f.PropertyId == propertyId);
+        }
+        public async Task<Review> addReview(ReviewRequestDto review)
+        {
+            var newReview = new Review
+            {
+                BookingId = review.BookingId,
+                ReviewerId = review.ReviewerId,
+                Rating = review.Rating,
+                Comment = review.Comment,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+            await _context.Reviews.AddAsync(newReview);
+            await _context.SaveChangesAsync();
+            return newReview;
+        }
+        public Task<IEnumerable<Review>> GetUserReviewsAsync(int userId)
+        {
+            var reviews = _context.Reviews
+                .Where(r => r.ReviewerId == userId)
+                ;
+            return Task.FromResult(reviews.AsEnumerable());
         }
     }
 }

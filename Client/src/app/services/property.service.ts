@@ -26,4 +26,54 @@ export class PropertyService {
     );
   }
 
+  searchProperties(params: {
+    title?: string;
+    country?: string;
+    minNights?: number;
+    maxNights?: number;
+    startDate?: Date;
+    endDate?: Date;
+    maxGuests?: number;
+  }): Observable<PropertyDto[]> {
+    const queryParams = new URLSearchParams();
+    
+    if (params.title) {
+      queryParams.append('title', params.title);
+    }
+    
+    if (params.country) {
+      queryParams.append('country', params.country);
+    }
+    
+    if (params.minNights) {
+      queryParams.append('minNights', params.minNights.toString());
+    }
+    
+    if (params.maxNights) {
+      queryParams.append('maxNights', params.maxNights.toString());
+    }
+    
+    if (params.startDate) {
+      queryParams.append('startDate', params.startDate.toISOString());
+    }
+    
+    if (params.endDate) {
+      queryParams.append('endDate', params.endDate.toISOString());
+    }
+    
+    if (params.maxGuests) {
+      queryParams.append('maxGuests', params.maxGuests.toString());
+    }
+
+    console.log('Search URL:', `${this.API_URL}/NewSearch?${queryParams.toString()}`);
+
+    return this.http.get<PropertyDto[]>(`${this.API_URL}/NewSearch?${queryParams.toString()}`).pipe(
+      map(properties => properties.map(p => ({
+        ...p,
+        rating: p.averageRating || 0,
+        isGuestFavorite: p.isGuestFavorite || false,
+        viewCount: p.viewCount || Math.floor(Math.random() * 100)
+      })))
+    );
+  }
 }

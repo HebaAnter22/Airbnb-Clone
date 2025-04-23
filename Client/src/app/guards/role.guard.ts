@@ -10,7 +10,6 @@ import { AuthService } from '../services/auth.service';
     canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): boolean {
       const currentUser = this.authService.currentUserValue;
       const requiredRole = route.data['role'];
-      console.log('RoleGuard - Current Role:', currentUser?.role, 'Required Role:', requiredRole);
       
       if (currentUser && currentUser.role === requiredRole) {
         return true;

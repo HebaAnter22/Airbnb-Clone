@@ -339,7 +339,7 @@ export class AddPropertyComponent implements OnInit {
       }
       
       this.snackBar.open('Property created successfully!', 'Close', { duration: 3000 });
-      this.router.navigate(['/properties']);
+      this.router.navigate(['/property/' + createdProperty.id]);
     } catch (error) {
       console.error('Error creating property:', error);
       this.snackBar.open('Error creating property', 'Close', { duration: 3000 });
@@ -437,7 +437,7 @@ export class AddPropertyComponent implements OnInit {
       console.log('Mapped amenities:', this.amenities);
       if (this.amenities.length > 0) {
         console.log('First amenity:', this.amenities[0]);
-        console.log('First amenity ID:', this.amenities[0].amenityId);
+        console.log('First amenity ID:', this.amenities[0].id);
         console.log('First amenity keys:', Object.keys(this.amenities[0]));
       }
       

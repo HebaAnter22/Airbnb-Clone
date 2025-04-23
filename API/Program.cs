@@ -5,6 +5,7 @@ using API.Middleware;
 using API.Services;
 using API.Services.AmenityRepo;
 using API.Services.BookingRepo;
+using API.Services.AIRepo;
 using API.Services.PromotionRepo;
 using API.Services.PropertyAvailabilityRepo;
 using API.Services.PropertyCategoryRepo;
@@ -17,6 +18,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Microsoft.Extensions.FileProviders;
+using API.Services.AdminRepo;
+using API.Services.HostVerificationRepo;
 
 namespace API
 {
@@ -116,9 +119,16 @@ namespace API
             builder.Services.AddScoped<IPropertyService, PropertyService>();
             builder.Services.AddScoped<IPropertyCategoryService, PropertyCategoryService>();
             builder.Services.AddScoped<IPromotionRepository, PromotionRepository>();
+            builder.Services.AddScoped<IHostVerificationRepository, HostVerificationRepository>();
 
+            builder.Services.AddScoped<IBookingRepository, BookingRepository>();
+            builder.Services.AddScoped<IPropertyAvailabilityRepository, PropertyAvailabilityRepository>();
+            builder.Services.AddScoped<IAdminRepository, AdminRepository>();
+            builder.Services.AddScoped<IHostVerificationRepository, HostVerificationRepository>();
 
-
+            // Add AI Services
+            builder.Services.Configure<AIConfiguration>(builder.Configuration.GetSection("OpenAI"));
+            builder.Services.AddScoped<IOpenAIService, OpenAIService>();
             builder.Services.AddAutoMapper(typeof(Program));
 
 

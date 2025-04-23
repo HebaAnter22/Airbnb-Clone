@@ -19,5 +19,6 @@ namespace API.Services
         Task<bool> UpdatePropertyAmenitiesAsync(int propertyId, List<int> amenityIds, int hostId);
         Task<bool> DeletePropertyImageAsync(int propertyId, int imageId, int hostId);
         Task<List<PropertyDto>> SearchPropertiesAsync(string title = null, string country = null, int? minNights = null, int? maxNights = null, DateTime? startDate = null, DateTime? endDate = null, int? maxGuests = null);
+
     }
 }

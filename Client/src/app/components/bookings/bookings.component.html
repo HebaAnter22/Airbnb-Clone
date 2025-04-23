@@ -1,0 +1,150 @@
+<!-- booking.component.html -->
+<div class="container">
+    <div class="mb-10">
+      <h1>Bookings</h1>
+      <p>Upcoming and past stays</p>
+    </div>
+  
+    <div *ngIf="loading" class="text-center my-10">
+      <div class="spinner-border text-primary" role="status"></div>
+    </div>
+  
+    <div *ngIf="error" class="alert alert-danger">
+      {{ error }}
+    </div>
+  
+    <div *ngIf="!loading && bookings.length === 0" class="text-center my-10">
+      <p class="text-gray-500">You don't have any trips yet.</p>
+      <a routerLink="/explore" class="btn btn-primary mt-4">Explore Airbnb</a>
+    </div>
+  
+    <div *ngIf="!loading && bookings.length > 0" class="grid">
+      <div *ngFor="let booking of bookings" class="booking-card">
+        <!-- Cancel Button -->
+        <button *ngIf="!isPastBooking(booking)" (click)="cancelBooking(booking.id)" class="cancel-btn">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+          Cancel
+        </button>
+        
+        <!-- Show Add Review button only for past bookings without reviews -->
+        <button *ngIf="isPastBooking(booking) && !hasReview(booking)" (click)="addReview(booking)" class="review-btn">
+          <i class="fa fa-star mr-1"></i>
+          Review
+        </button>
+        
+        <!-- Show Review badge if already reviewed -->
+        <div *ngIf="isPastBooking(booking) && hasReview(booking)" class="reviewed-badge">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+          Reviewed
+        </div>
+  
+        <!-- Property Image -->
+        <div class="relative">
+          <img *ngIf="getFirstImageUrl(booking)" (click)="goToPropertyPage(booking)" [src]="getFirstImageUrl(booking)">
+          <div *ngIf="!booking.property?.images?.length" class="w-full h-full bg-gray-200 flex items-center justify-center">
+            <span class="text-gray-400">No photo</span>
+          </div>
+        </div>
+        
+        <!-- Booking Details -->
+        <div class="mt-3">
+          <h3 *ngIf="booking.property">
+            {{ booking.property.title }}
+          </h3>
+          <div *ngIf="booking.property" class="text-sm text-gray-700">
+            {{ formatLocation(booking.property) }}
+          </div>
+          <div class="text-sm text-gray-600">
+            {{ formatDateRange(booking.startDate, booking.endDate) }}
+          </div>
+          <div class="mt-1 text-gray-900 font-semibold">
+            ${{ booking.totalAmount.toFixed(2) }}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Review Modal -->
+  <div class="review-modal" *ngIf="showReviewModal">
+    <div class="review-modal-content">
+      <!-- Close button -->
+      <button class="close-modal" (click)="closeReviewModal()">
+
+        <i class="fa fa-times" aria-hidden="true"></i>
+      </button>
+  
+      <!-- Modal Content -->
+      <div class="review-content">
+        <!-- Emoji based on rating -->
+        <div class="emoji-container">
+          <span *ngIf="reviewRating === 1">😕</span>
+          <span *ngIf="reviewRating === 2">🙂</span>
+          <span *ngIf="reviewRating === 3">😊</span>
+          <span *ngIf="reviewRating === 4">👍</span>
+          <span *ngIf="reviewRating === 5">❤️</span>
+        </div>
+  
+        <!-- Rating description text -->
+        <h2 class="rating-text">
+          <span *ngIf="reviewRating === 1">Not great</span>
+          <span *ngIf="reviewRating === 2">Okay</span>
+          <span *ngIf="reviewRating === 3">Good</span>
+          <span *ngIf="reviewRating === 4">Great</span>
+          <span *ngIf="reviewRating === 5">Amazing</span>
+        </h2>
+  
+        <!-- Star Rating -->
+        <div class="star-rating">
+          <button *ngFor="let star of [1,2,3,4,5]" 
+                  (click)="setRating(star)" 
+                  class="star-btn"
+                  [class.active]="star <= reviewRating">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="star-icon" fill="currentColor">
+              <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+            </svg>
+          </button>
+        </div>
+  
+        <!-- Review Text Area -->
+        <div class="review-comment-container">
+          <textarea 
+            [(ngModel)]="reviewComment" 
+            placeholder="Tell us about your stay"
+            class="review-comment-input"></textarea>
+        </div>
+  
+        <!-- Submit Button -->
+        <button 
+          class="submit-review-btn" 
+          [disabled]="!reviewRating || !reviewComment.trim()" 
+          (click)="submitReview()">
+          Submit review
+        </button>
+      </div>
+    </div>
+  </div>
+  <!-- Toast Notification -->
+<div *ngIf="showToast" class="toast-container">
+    <div class="toast" [ngClass]="{'toast-success': toastType === 'success', 'toast-error': toastType === 'error'}">
+      <div class="toast-content">
+        <div class="toast-icon">
+          <svg *ngIf="toastType === 'success'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+          </svg>
+          <svg *ngIf="toastType === 'error'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="15" y1="9" x2="9" y2="15"></line>
+            <line x1="9" y1="9" x2="15" y2="15"></line>
+          </svg>
+        </div>
+        <div class="toast-message">{{ toastMessage }}</div>
+      </div>
+    </div>
+  </div>
+  

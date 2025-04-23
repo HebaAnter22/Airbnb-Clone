@@ -7,6 +7,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
 import { DOCUMENT } from '@angular/common';
+import { PropertyService } from '../../../services/property.service';
 
 @Component({
   selector: 'app-search-bar',
@@ -56,6 +57,7 @@ export class SearchBarComponent implements OnInit, AfterViewInit {
   @ViewChild(MatAutocompleteTrigger) autocompleteTrigger!: MatAutocompleteTrigger;
 
   constructor(
+    private propertyService: PropertyService,
     private renderer: Renderer2,
     @Inject(DOCUMENT) private document: Document
   ) {}
@@ -256,15 +258,54 @@ export class SearchBarComponent implements OnInit, AfterViewInit {
   }
 
   onSearch(): void {
-    this.searchPerformed.emit({
-      destination: this.destination,
-      checkIn: this.checkIn,
-      checkOut: this.checkOut,
-      guests: this.guests,
-    });
-    if (this.isMobile) {
-      this.closeSearchModal();
+    // Validate search parameters
+    if (!this.destination) {
+      console.log('Search failed: No destination provided');
+      return;
     }
+
+    const searchParams = {
+      country: this.destination,
+      maxGuests: this.guests.adults + this.guests.children
+    } as any;
+
+    // Only add dates if they are not null
+    if (this.checkIn) {
+      searchParams.startDate = this.checkIn;
+    }
+    if (this.checkOut) {
+      searchParams.endDate = this.checkOut;
+    }
+
+    console.log('Search Parameters:', searchParams);
+
+    // Call the property service to search
+    this.propertyService.searchProperties(searchParams).subscribe({
+      next: (properties) => {
+        console.log('Search Results:', properties);
+        // Emit the search results
+        this.searchPerformed.emit({
+          destination: this.destination,
+          checkIn: this.checkIn,
+          checkOut: this.checkOut,
+          guests: this.guests,
+          properties: properties
+        });
+        
+        // Close the search modal on mobile
+        if (this.isMobile) {
+          this.closeSearchModal();
+        }
+      },
+      error: (error) => {
+        console.error('Search failed:', error);
+        console.error('Error details:', {
+          status: error.status,
+          message: error.message,
+          error: error.error
+        });
+      }
+    });
   }
 
   @HostListener('document:click', ['$event'])

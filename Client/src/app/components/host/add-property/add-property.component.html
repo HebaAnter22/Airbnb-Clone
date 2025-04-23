@@ -170,8 +170,8 @@
             <div class="amenities-grid">
                 <div *ngFor="let amenity of amenities" 
                      class="amenity-item" 
-                     [class.selected]="isAmenitySelected(amenity.amenityId)"
-                     (click)="toggleAmenity(amenity.amenityId); $event.stopPropagation()">
+                     [class.selected]="isAmenitySelected(amenity.id)"
+                     (click)="toggleAmenity(amenity.id); $event.stopPropagation()">
                     <div class="amenity-icon">
                         <mat-icon>{{ amenity.iconUrl || 'check_circle' }}</mat-icon>
                     </div>
