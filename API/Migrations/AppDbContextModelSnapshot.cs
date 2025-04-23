@@ -197,10 +197,6 @@ namespace API.Migrations
                             t.HasCheckConstraint("CK_BookingPayments_RefundedAmount", "[refunded_amount] >= 0");
 
                             t.HasCheckConstraint("CK_BookingPayments_RefundedAmount_Amount", "[refunded_amount] <= [amount]");
-
-                            t.HasCheckConstraint("CK_BookingPayments_Status", "[status] IN ('pending', 'completed', 'failed', 'refunded')");
-
-                            t.HasCheckConstraint("CK_BookingPayments_TransactionId", "[payment_method_type] IN ('credit_card', 'paypal', 'bank_transfer', 'other')");
                         });
                 });
 
@@ -406,10 +402,13 @@ namespace API.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("DocumentUrl")
+                    b.Property<string>("DocumentUrl1")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("HostId")
+                    b.Property<string>("DocumentUrl2")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("HostId")
                         .HasColumnType("int");
 
                     b.Property<string>("Status")
@@ -420,9 +419,6 @@ namespace API.Migrations
 
                     b.Property<string>("Type")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
 
                     b.Property<DateTime?>("VerifiedAt")
                         .HasColumnType("datetime2");
@@ -856,9 +852,6 @@ namespace API.Migrations
                         .HasColumnName("created_at")
                         .HasDefaultValueSql("SYSDATETIME()");
 
-                    b.Property<int?>("PropertyId")
-                        .HasColumnType("int");
-
                     b.Property<int>("Rating")
                         .HasColumnType("int")
                         .HasColumnName("rating");
@@ -875,8 +868,6 @@ namespace API.Migrations
 
                     b.HasIndex("BookingId")
                         .IsUnique();
-
-                    b.HasIndex("PropertyId");
 
                     b.HasIndex("ReviewerId");
 
@@ -981,7 +972,7 @@ namespace API.Migrations
                         {
                             t.HasCheckConstraint("CK_Users_AccountStatus", "[account_status] IN ('active', 'pending', 'blocked')");
 
-                            t.HasCheckConstraint("CK_Users_Role", "[role] IN ('guest', 'host', 'admin')");
+                            t.HasCheckConstraint("CK_Users_Role", "[role] IN ('Guest', 'Host', 'Admin')");
                         });
                 });
 
@@ -1242,7 +1233,9 @@ namespace API.Migrations
                 {
                     b.HasOne("API.Models.Host", "Host")
                         .WithMany("Verifications")
-                        .HasForeignKey("HostId");
+                        .HasForeignKey("HostId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Host");
                 });
@@ -1320,10 +1313,6 @@ namespace API.Migrations
                         .HasForeignKey("API.Models.Review", "BookingId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.HasOne("API.Models.Property", null)
-                        .WithMany("Reviews")
-                        .HasForeignKey("PropertyId");
 
                     b.HasOne("API.Models.User", "Reviewer")
                         .WithMany("Reviews")
@@ -1420,8 +1409,6 @@ namespace API.Migrations
                     b.Navigation("Favourites");
 
                     b.Navigation("PropertyImages");
-
-                    b.Navigation("Reviews");
                 });
 
             modelBuilder.Entity("API.Models.PropertyCategory", b =>

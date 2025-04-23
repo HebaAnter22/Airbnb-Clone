@@ -1,0 +1,79 @@
+<div class="verification-container">
+  <div class="verification-header">
+    <button class="back-button" (click)="goBack()">
+      <mat-icon>arrow_back</mat-icon>
+      Back to Admin Dashboard
+    </button>
+    <h1>Host Verification</h1>
+  </div>
+
+  <div class="loading-container" *ngIf="loading">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Loading verification data...</p>
+  </div>
+
+  <div class="error-container" *ngIf="error">
+    <mat-icon class="error-icon">error</mat-icon>
+    <p>{{ error }}</p>
+    <button mat-raised-button color="primary" (click)="goBack()">Go Back</button>
+  </div>
+
+  <div class="verification-content" *ngIf="!loading && !error && hostVerification">
+    <mat-card class="verification-card">
+      <mat-card-header>
+        <mat-card-title>Host Verification Details</mat-card-title>
+      </mat-card-header>
+      
+      <mat-card-content>
+        <div class="verification-info">
+          <div class="info-item">
+            <mat-icon>person</mat-icon>
+            <div class="info-text">
+              <span class="label">Host Name:</span>
+              <span class="value">{{ hostVerification.hostName }}</span>
+            </div>
+          </div>
+          
+          <div class="info-item">
+            <mat-icon>schedule</mat-icon>
+            <div class="info-text">
+              <span class="label">Submitted:</span>
+              <span class="value">{{ hostVerification.submittedAt | date:'medium' }}</span>
+            </div>
+          </div>
+          
+          <div class="info-item">
+            <mat-icon>verified_user</mat-icon>
+            <div class="info-text">
+              <span class="label">Status:</span>
+              <span class="value status-badge" [ngClass]="'status-' + hostVerification.status.toLowerCase()">
+                {{ hostVerification.status }}
+              </span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="verification-document">
+          <h3>Verification Document</h3>
+          <div class="document-preview">
+            <img [src]="hostVerification.verificationDocumentUrl1" alt="Verification Document" class="document-image">
+          </div>
+          <div class="document-preview">
+            <img [src]="hostVerification.verificationDocumentUrl2" alt="Verification Document" class="document-image">
+          </div>
+        </div>
+      </mat-card-content>
+      
+      <mat-card-actions>
+        <button mat-raised-button color="primary" (click)="verifyHost()" [disabled]="hostVerification.status === 'Verified'">
+          <mat-icon>check_circle</mat-icon>
+          Verify Host
+        </button>
+        <button mat-raised-button color="warn" (click)="rejectVerification()" [disabled]="hostVerification.status === 'Rejected'">
+          <mat-icon>cancel</mat-icon>
+          Reject Verification
+        </button>
+      </mat-card-actions>
+    </mat-card>
+  </div>
+</div>

@@ -27,7 +27,7 @@ namespace API.Data.Configurations
             builder.Property(u => u.UpdatedAt).HasColumnName("updated_at").HasColumnType("datetime");
 
             builder.HasCheckConstraint("CK_Users_AccountStatus", "[account_status] IN ('active', 'pending', 'blocked')");
-            builder.HasCheckConstraint("CK_Users_Role", "[role] IN ('guest', 'host', 'admin')");
+            builder.HasCheckConstraint("CK_Users_Role", "[role] IN ('Guest', 'Host', 'Admin')");
 
 
 

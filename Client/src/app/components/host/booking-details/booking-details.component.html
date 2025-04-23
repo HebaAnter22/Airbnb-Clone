@@ -1,0 +1,103 @@
+<div class="container py-4">
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-spinner">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p class="mt-3">Loading booking details...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error" class="error-message">
+    {{ error }}
+  </div>
+
+  <!-- Content -->
+  <div *ngIf="!loading && !error && bookingDetails" class="booking-content">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h1 class="mb-0">Booking Details</h1>
+      <button mat-raised-button color="primary" (click)="goBack()">
+        <mat-icon>arrow_back</mat-icon> Back to Bookings
+      </button>
+    </div>
+    
+    <!-- Property Information Card -->
+    <mat-card class="booking-card">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon class="mr-2">home</mat-icon>
+          Property Information
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <p><strong>Property Title:</strong> {{ bookingDetails.propertyTitle }}</p>
+        <p><strong>Property ID:</strong> {{ bookingDetails.propertyId }}</p>
+        <p><strong>Total Amount:</strong> ${{ bookingDetails.totalAmount }}</p>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Guest Information Card -->
+    <mat-card class="booking-card">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon class="mr-2">person</mat-icon>
+          Guest Information
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <p><strong>Guest Name:</strong> {{ bookingDetails.guestName }}</p>
+        <p><strong>Guest ID:</strong> {{ bookingDetails.guestId }}</p>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Booking Information Card -->
+    <mat-card class="booking-card">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon class="mr-2">event</mat-icon>
+          Booking Information
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <p><strong>Start Date:</strong> {{ bookingDetails.startDate | date }}</p>
+        <p><strong>End Date:</strong> {{ bookingDetails.endDate | date }}</p>
+        <p><strong>Check-in Status:</strong> {{ bookingDetails.checkInStatus }}</p>
+        <p><strong>Check-out Status:</strong> {{ bookingDetails.checkOutStatus }}</p>
+        <p><strong>Status:</strong> 
+          <span [class]="'status-' + bookingDetails.status.toLowerCase()">
+            {{ bookingDetails.status }}
+          </span>
+        </p>
+        <p><strong>Created At:</strong> {{ bookingDetails.createdAt | date }}</p>
+        <p><strong>Updated At:</strong> {{ bookingDetails.updatedAt | date }}</p>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Action Buttons Card -->
+    <mat-card class="booking-card" *ngIf="bookingDetails.status.toLowerCase() === 'pending'">
+      <mat-card-content>
+        <div class="pending-actions">
+          <p class="status-message">This booking is pending confirmation</p>
+          <button mat-raised-button color="warn" (click)="confirmBooking()">
+            <mat-icon>check_circle</mat-icon> Confirm Booking
+          </button>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="booking-card" *ngIf="bookingDetails.status.toLowerCase() === 'confirmed'">
+      <mat-card-content>
+        <div class="confirmed-actions">
+          <p class="status-message">This booking has been confirmed</p>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="booking-card" *ngIf="bookingDetails.status.toLowerCase() === 'cancelled'">
+      <mat-card-content>
+        <div class="cancelled-actions">
+          <p class="status-message">This booking has been cancelled</p>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div> 

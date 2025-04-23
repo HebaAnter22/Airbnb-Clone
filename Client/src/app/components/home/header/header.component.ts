@@ -38,6 +38,7 @@ switchToHosting() {
   });
 }
   @Output() scrollStateChanged = new EventEmitter<boolean>();
+  @Output() searchPerformed = new EventEmitter<any>();
 
   @HostListener('window:scroll', ['$event'])
   onScroll() {
@@ -68,6 +69,11 @@ switchToHosting() {
     console.log('Closing modal');
     this.isSearchModalOpen = false;
     this.modalMode = null;
+  }
+
+  onSearch(searchParams: any) {
+    console.log('Search params in header:', searchParams);
+    this.searchPerformed.emit(searchParams);
   }
 
   dropdownClicked() {

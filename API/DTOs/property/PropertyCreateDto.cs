@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using API.DTOs.Amenity;
 
 namespace API.DTOs
 {
@@ -85,6 +86,9 @@ namespace API.DTOs
 
         [Required]
         public int? CancellationPolicyId { get; set; }
+
+        [Required]
+        public List<int> Amenities { get; set; } = new List<int>();
 
         [Required]
         public List<PropertyImageCreateDto> Images { get; set; } = new List<PropertyImageCreateDto>();

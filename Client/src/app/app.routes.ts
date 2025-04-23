@@ -15,20 +15,26 @@ import { AddPropertyComponent } from './components/host/add-property/add-propert
 import { HostPropertiesComponent } from './components/host/host-proprties/host-properties.component';
 import { EditPropertyComponent } from './components/host/edit-property/edit-property.component';
 import { EditProfileComponent } from './components/edit-profile/edit-profile.component';
-import { PropertyDetailsComponent } from './components/property-details/property-details.component';
+import { PropertyDetailsComponent } from './components/host/property-details/property-details.component';
 import { PropertyGalleryComponent } from './components/property-gallary/property-gallery.component';
 import { WishlistComponent } from './components/wishlist/wishlist.component';
 import { BookingComponent } from './components/bookings/bookings.component';
 import { VerificationComponent } from './components/verifications/verifications.component';
+import { HostVerificationComponent } from './components/host-verification/host-verification.component';
+import { AdminComponent } from './components/admin/admin.component';
+import { HostDashboardComponent } from './components/host/host-dashboard/host-dashboard.component';
+import { BookingDetailsComponent } from './components/host/booking-details/booking-details.component';
+import { PropertyBookingDetailsComponent } from './components/host/property-booking-details/property-booking-details.component';
+import { VerifinghostComponent } from './components/admin/verifinghost/verifinghost.component';
 
 
 
 export const routes: Routes = [
   {path: 'home', component: PropertyListingsComponent},
   {path: '', redirectTo: 'home', pathMatch: 'full'},
-  {path: 'become-a-host', component: AddPropertyComponent,
-  // canActivate: [authGuard], 
-  // data: { role: 'Host' }
+  {path: 'host/add-property', component: AddPropertyComponent,
+  canActivate: [authGuard], 
+  data: { role: 'Host' },
   },
   { path: 'login', component: LoginComponent },
   { path: 'register', component: RegisterComponent },
@@ -39,20 +45,36 @@ export const routes: Routes = [
   },
   { 
       path: 'host', 
-      component: HostComponent,
+      component: HostDashboardComponent,
+      canActivate: [authGuard, roleGuard],
+      data: { role: 'Host' }
+    },
+    // {
+    //   path: 'host/properties',
+    //   component: HostPropertiesComponent,
+    //   canActivate: [authGuard, roleGuard],
+    //   data: { role: 'Host' }
+    // },
+    {path: 'host/edit/:id',
+      component: EditPropertyComponent,
       canActivate: [authGuard, roleGuard],
       data: { role: 'Host' }
     },
     {
-      path: 'host/properties',
-      component: HostPropertiesComponent,
+      path: 'host/bookings/:id',
+      component: PropertyBookingDetailsComponent,
       canActivate: [authGuard, roleGuard],
       data: { role: 'Host' }
     },
-    {path: 'host/properties/edit/:id',
-      component: EditPropertyComponent,
+    {
+      path: 'Booking/details/:id',
+      component: PropertyBookingDetailsComponent,
       canActivate: [authGuard, roleGuard],
       data: { role: 'Host' }
+    },
+    {path: 'booking/:bookingId',
+      component: BookingDetailsComponent,
+      canActivate: [authGuard]
     },
 
     { path: 'property/:id', component: PropertyDetailsComponent },
@@ -70,7 +92,17 @@ export const routes: Routes = [
     { path: 'verification', component: VerificationComponent, canActivate: [authGuard] },
    
     { path: 'editProfile/:id', component: EditProfileComponent, canActivate: [authGuard] },
-
+{
+  path: 'admin',
+  component: AdminComponent,
+  // canActivate: [ roleGuard],
+},
+{
+  path: 'admin/verifinghost/:id',
+  component: VerifinghostComponent,
+  // canActivate: [authGuard, roleGuard],
+  // data: { role: 'Admin' }
+},
     { path: 'forbidden', component: ForbiddenComponent },
     
   { path: '**',component:NotFoundComponent }

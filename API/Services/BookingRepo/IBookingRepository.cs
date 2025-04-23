@@ -1,5 +1,6 @@
 ﻿using API.DTOs;
 using API.Models;
+using Stripe;
 using WebApiDotNet.Repos;
 
 namespace API.Services.BookingRepo
@@ -17,7 +18,7 @@ namespace API.Services.BookingRepo
         Task CreateBookingAndUpdateAvailabilityAsync(Booking booking);
         Task UpdateBookingAndUpdateAvailabilityAsync(Booking booking, DateTime oldStartDate, DateTime oldEndDate);
         Task DeleteBookingAndUpdateAvailabilityAsync(int id);
-
+        Task<IEnumerable<Booking>> GetAllBookingsAsync(int hostId);
         Task<DateTime?> GetLastAvailableDateForPropertyAsync(int propertyId);
         Task<bool> IsBookingOwnedByHostAsync(int bookingId, int hostId);
         Task<bool> UpdateBookingStatusAsync(int bookingId, string newStatus);
@@ -26,5 +27,12 @@ namespace API.Services.BookingRepo
         //Task<Property> GetPropertyWithDetailsAsync(int propertyId);
 
         Task<Promotion> GetPromotionByIdAsync(int promotionId);
+        Task<bool> IsPromotionValidForBookingAsync(int promotionId, int guestId, DateTime bookingStartDate);
+        Task AddUserUsedPromotionAsync(UserUsedPromotion usedPromotion);
+        Task<int> GetPromotionIdByCodeAsync(string promoCode);
+        Task<decimal> GetTotalIncomeForHostAsync(int hostId);
+        Task<decimal> GetTotalSpentByGuestAsync(int guestId);
+
+        Task<PaymentIntent> CreatePaymentIntentAsync(decimal amount);
     }
 }

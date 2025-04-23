@@ -1,34 +1,13 @@
-<app-header class="header" ></app-header>
-
+<app-header class="header" (searchPerformed)="onSearch($event)"></app-header>
 
 <div class="container">
-<!-- 
-  <div class="filters-bar">
-    <div class="filters-wrapper">
-      <div class="filter-buttons">
-        <button class="filter-button">
-          <span class="material-icons">apartment</span>
-          <span>All homes</span>
-        </button>
-        <button class="filter-button">
-          <span class="material-icons">villa</span>
-          <span>Amazing views</span>
-        </button>
-        <button class="filter-button">
-          <span class="material-icons">beach_access</span>
-          <span>Beach</span>
-        </button>
-        <button class="filter-button">
-          <span class="material-icons">cabin</span>
-          <span>Cabins</span>
-        </button>
-        <button class="filter-button">
-          <span class="material-icons">pool</span>
-          <span>Pools</span>
-        </button>
-      </div>
-    </div>
-  </div> -->
+  <!-- Search Results Info -->
+  <div class="search-info" *ngIf="isSearching">
+    <button class="clear-search" (click)="clearSearch()">
+      <mat-icon>arrow_back</mat-icon>
+      Back to all properties
+    </button>
+  </div>
 
   <div class="property-grid">
     <div class="property-card" *ngFor="let property of properties" (click)="goToProperty(property.id)">

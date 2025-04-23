@@ -1,7 +1,7 @@
 .container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 24px;
+  padding: 0 24px 24px;
   background: linear-gradient(to bottom, #f8f9fa, #ffffff);
   min-height: 100vh;
 }
@@ -58,7 +58,7 @@
 }
 
 .property-grid {
-  margin-top: 30px;
+  margin-top: 20px;
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 20px;
@@ -502,4 +502,36 @@ body {
 .sticky-nav {
   transition: transform 0.3s ease;
   transform: translateY(0);
+}
+
+/* Search Results Info */
+.search-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 20px 0;
+  padding: 0 16px;
+}
+
+.clear-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  color: #222;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 8px 16px;
+  border-radius: 20px;
+  transition: background-color 0.2s;
+}
+
+.clear-search:hover {
+  background-color: #f7f7f7;
+}
+
+.clear-search mat-icon {
+  font-size: 20px;
 }

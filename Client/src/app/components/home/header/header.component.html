@@ -11,7 +11,10 @@
       </div>
       <!-- Search bar in the center -->
       <div class="header-center">
-        <app-search-bar [isHeaderScrolled]="isScrolled"></app-search-bar>
+        <app-search-bar 
+          [isHeaderScrolled]="isScrolled"
+          (searchPerformed)="onSearch($event)">
+        </app-search-bar>
       </div>
 
 
