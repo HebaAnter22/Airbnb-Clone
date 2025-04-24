@@ -851,6 +851,7 @@
 }
 }
 
+
 .report-listing {
   margin-top: 40px;
   text-align: center;
@@ -1351,17 +1352,18 @@
     
     .verified-badge {
       position: absolute;
-      bottom: 0;
-      right: 0;
+      bottom: 10px;
+      right: 17px;
+      background-color: #FF5A5F;
+      color: white;
       width: 30px;
       height: 30px;
-      background-color: #fff;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-      
+      border: 2px solid white;
+    
       i {
         color: #008489;
         font-size: 16px;
@@ -2059,4 +2061,152 @@
   .discount-amount {
     color: #34c759;
   }
+}
+
+/* property-details.component.css */
+
+.toast-container {
+  position: fixed;
+  top: 1.5rem;
+  left: 1.5rem;
+  z-index: 1000;
+}
+
+.toast {
+  background-color: #fff8f4;
+  color: #222;
+  border: 1px solid #f7c59f;
+  margin-top: 0.5rem;
+  padding: 1rem 1.5rem;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  font-family: 'Airbnb Cereal App', 'Helvetica Neue', sans-serif;
+  font-size: 0.95rem;
+  display: inline-block;
+  max-width: 300px;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.toast a {
+  color: #ff385c;
+  font-weight: 600;
+  text-decoration: none;
+  margin-left: 0.5rem;
+}
+
+.toast a:hover {
+  text-decoration: underline;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  } to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+/* Host Restriction Styling */
+.booking-card.host-view {
+  position: relative;
+  overflow: hidden;
+}
+
+.booking-card.host-view::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(255, 255, 255, 0.7);
+  z-index: 1;
+}
+
+.host-message-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 2;
+  padding: 24px;
+  text-align: center;
+}
+
+.host-message-ribbon {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 150px;
+  height: 150px;
+  overflow: hidden;
+  z-index: 3;
+}
+
+.host-message-ribbon::before {
+  content: 'HOST VIEW';
+  position: absolute;
+  display: block;
+  width: 225px;
+  padding: 15px 0;
+  background-color: #E61E4D;
+  color: white;
+  font-weight: bold;
+  font-size: 14px;
+  text-align: center;
+  transform: rotate(45deg);
+  right: -25px;
+  top: 30px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+}
+
+.host-message-content {
+  background-color: white;
+  border-radius: 12px;
+  padding: 32px 24px;
+  box-shadow: 0px 6px 16px rgba(0, 0, 0, 0.12);
+  max-width: 80%;
+}
+
+.host-message-icon {
+  font-size: 48px;
+  color: #E61E4D;
+  margin-bottom: 16px;
+}
+
+.host-message-title {
+  font-size: 22px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: #222222;
+}
+
+.host-message-text {
+  font-size: 16px;
+  color: #717171;
+  margin-bottom: 24px;
+}
+
+.host-message-button {
+  background-color: #222222;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 14px 24px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.host-message-button:hover {
+  background-color: #000000;
 }

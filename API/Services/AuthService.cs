@@ -82,24 +82,24 @@ namespace API.Services
                 user.Email = userDto.Email;
                 user.FirstName = userDto.FirstName;
                 user.LastName = userDto.LastName;
-                user.Role = userDto.Role;
+                user.Role = "Guest";
                 user.ProfilePictureUrl = "/uploads/profile-pictures/default-profile.jpg";
                 
                 _context.Users.Add(user);
                 await _context.SaveChangesAsync();
 
 
-                if (user.Role == "Host")
-                {
+                //if (user.Role == "Host")
+                //{
 
-                    var host = new Models.Host
-                    {
-                        HostId = user.Id,
-                    };
+                //    var host = new Models.Host
+                //    {
+                //        HostId = user.Id,
+                //    };
 
-                    _context.HostProfules.Add(host);
-                    await _context.SaveChangesAsync();
-                }
+                //    _context.HostProfules.Add(host);
+                //    await _context.SaveChangesAsync();
+                //}
 
 
                 await transaction.CommitAsync();

@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace API.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250417205550_intialcreation")]
-    partial class intialcreation
+    [Migration("20250424172241_EditConversationTable")]
+    partial class EditConversationTable
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -200,10 +200,6 @@ namespace API.Migrations
                             t.HasCheckConstraint("CK_BookingPayments_RefundedAmount", "[refunded_amount] >= 0");
 
                             t.HasCheckConstraint("CK_BookingPayments_RefundedAmount_Amount", "[refunded_amount] <= [amount]");
-
-                            t.HasCheckConstraint("CK_BookingPayments_Status", "[status] IN ('pending', 'completed', 'failed', 'refunded')");
-
-                            t.HasCheckConstraint("CK_BookingPayments_TransactionId", "[payment_method_type] IN ('credit_card', 'paypal', 'bank_transfer', 'other')");
                         });
                 });
 
@@ -254,12 +250,11 @@ namespace API.Migrations
                         .HasColumnName("created_at")
                         .HasDefaultValueSql("GETDATE()");
 
-                    b.Property<int>("PropertyId")
+                    b.Property<int?>("PropertyId")
                         .HasColumnType("int")
                         .HasColumnName("property_id");
 
                     b.Property<string>("Subject")
-                        .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)")
                         .HasColumnName("subject");
@@ -409,10 +404,13 @@ namespace API.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("DocumentUrl")
+                    b.Property<string>("DocumentUrl1")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("HostId")
+                    b.Property<string>("DocumentUrl2")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("HostId")
                         .HasColumnType("int");
 
                     b.Property<string>("Status")
@@ -423,9 +421,6 @@ namespace API.Migrations
 
                     b.Property<string>("Type")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
 
                     b.Property<DateTime?>("VerifiedAt")
                         .HasColumnType("datetime2");
@@ -979,7 +974,7 @@ namespace API.Migrations
                         {
                             t.HasCheckConstraint("CK_Users_AccountStatus", "[account_status] IN ('active', 'pending', 'blocked')");
 
-                            t.HasCheckConstraint("CK_Users_Role", "[role] IN ('guest', 'host', 'admin')");
+                            t.HasCheckConstraint("CK_Users_Role", "[role] IN ('Guest', 'Host', 'Admin')");
                         });
                 });
 
@@ -1184,8 +1179,7 @@ namespace API.Migrations
                     b.HasOne("API.Models.Property", "Property")
                         .WithMany("Conversations")
                         .HasForeignKey("PropertyId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.HasOne("API.Models.User", "User1")
                         .WithMany("ConversationsAsUser1")
@@ -1240,7 +1234,9 @@ namespace API.Migrations
                 {
                     b.HasOne("API.Models.Host", "Host")
                         .WithMany("Verifications")
-                        .HasForeignKey("HostId");
+                        .HasForeignKey("HostId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Host");
                 });

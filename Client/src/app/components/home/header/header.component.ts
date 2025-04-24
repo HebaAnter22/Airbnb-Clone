@@ -29,7 +29,7 @@ switchToHosting() {
   this.authSerivce.switchToHosting().subscribe({
     next: (response) => {
       this.isGuest = false; // Update local flag
-      this.router.navigate(['/host-dashboard']); // Redirect to host dashboard
+      this.router.navigate(['/host']); // Redirect to host dashboard
     },
     error: (err) => {
       console.error('Failed to switch to host', err);

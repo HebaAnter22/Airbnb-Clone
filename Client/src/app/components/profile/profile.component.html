@@ -1,3 +1,4 @@
+<app-main-navbar></app-main-navbar>
 <div class="profile-container">
   <div *ngIf="isLoading" class="loading">
     <div class="spinner-border text-primary" role="status">
@@ -29,14 +30,19 @@
 
 
         <div class="profile-image-container">
-  <div class="profile-image">
-    <img [src]="getProfileImageUrl()" alt="Profile picture">
-        <div class="verified-badge" *ngIf="hostProfile?.isVerified">
-      <svg viewBox="0 0 24 24" fill="white" width="16" height="16">
-        <path d="M10 15.27L7.52 17.67c-.31.29-.85.09-.85-.32v-2.02c-3.48-.53-6.17-3.23-6.17-6.83C.5 4.36 5.2 1 10.5 1S20.5 4.36 20.5 8.5c0 4.14-4.7 7.5-10 7.5c-.16 0-.33-.02-.5-.04v-.69z"></path>
-      </svg>
-    </div>
-  </div>
+          <div class="profile-image">
+            <img [src]="getProfileImageUrl()" alt="Profile picture" onerror="this.src='/assets/default-profile.png'">
+            <div class="verified-badge" *ngIf="hostProfile?.isVerified">
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="12" cy="12" r="12" fill="#FF385C"/>
+                <path d="M7 12L10.5 15.5L17 9" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+          </div>
+          <button (click)="startConversation(userProfile.id)" class="message-btn">
+            <i class="fa fa-comment"></i>
+            Message
+          </button>
 
   <button class="editProfile-button" (click)="goToEditProfile()"  *ngIf="isCurrentUserProfile">Edit your profile</button>
   <!-- <div class="upload-section">
@@ -73,7 +79,7 @@
 
 
         <h1>{{ userProfile.firstName }} {{ userProfile.lastName }}</h1>
-        <div class="superhost-badge" *ngIf="hostProfile.isVerified">
+        <div class="superhost-badge" *ngIf="hostProfile.rating.toFixed(2)>4.5 ">
           <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
             <path d="M12 0l3.09 6.31 6.91.99-5 4.87 1.18 6.88L12 15.94l-6.18 3.11 1.18-6.88-5-4.87 6.91-.99L12 0z"></path>
           </svg>
@@ -100,14 +106,14 @@
         </div>
       </div>
 
-      <div class="verified-info" >
+      <div class="verified-info" *ngIf="this.userProfile.role != 'Admin'" >
         <h3>{{ userProfile.firstName }}'s confirmed information</h3>
         <ul>
           <li>
-            <span *ngIf="idVerified">
+            <span *ngIf="hostProfile?.isVerified">
               <i class="fa-regular fa-circle-check"></i>
             </span>
-            <span *ngIf="!idVerified">
+            <span *ngIf="!hostProfile?.isVerified">
               <i class="fa-regular fa-circle-xmark"></i></span>Identity</li>
           <li>
             <span *ngIf="emailVerified">
@@ -141,8 +147,103 @@
         <button [class.active]="activeTab === 'reviews'" (click)="setActiveTab('reviews') " *ngIf="userProfile.role=='Host'">Reviews</button>
       </div>
 
-      <div *ngIf="activeTab === 'about'" class="about-section">
+      <div *ngIf="activeTab === 'about' && userProfile.role!='Guest' " class="about-section">
         <h2>About {{ userProfile.firstName }}</h2>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        <div *ngIf=" userProfile.role=='Admin'"  class="about-content"
+        >
+          <div class="about-item"
+            *ngIf="userProfile.firstName ">
+            <div class="icon">
+              <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
+                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"></path>
+              </svg>
+            </div>
+            <div class="about-info">
+              <span>First Name : {{ userProfile.firstName  }}</span>
+            </div>
+          </div>
+          <div class="about-item"
+            *ngIf="userProfile.lastName ">
+            <div class="icon">
+              <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
+                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"></path>
+              </svg>
+            </div>
+            <div class="about-info">
+              <span>Last Name : {{ userProfile.lastName  }}</span>
+            </div>
+          </div>
+          <div class="about-item"
+            *ngIf="userProfile.email ">
+            <div class="icon">
+              <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
+                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"></path>
+              </svg>
+            </div>
+            <div class="about-info">
+              <span>Email : {{ userProfile.email  }}</span>
+            </div>
+          </div>
+          <div class="about-item"
+            *ngIf="userProfile.phoneNumber ">
+            <div class="icon">
+              <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
+                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"></path>
+              </svg>
+            </div>
+            <div class="about-info">
+              <span>Phone number : {{ userProfile.phoneNumber  }}</span>
+            </div>
+          </div>
+          <div class="about-item"
+            *ngIf="userProfile.dateOfBirth ">
+            <div class="icon">
+              <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
+                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"></path>
+              </svg>
+            </div>
+            <div class="about-info">
+              <span>Born in {{ userProfile.dateOfBirth  | date:'yyyy' }}</span>
+            </div>
+          </div>
+          
+        </div>
+
+
+
+
+
+
+
+
+
 
 
 
@@ -150,7 +251,7 @@
 
         
 
-        <div *ngIf="  shouldShowCreateProfile() && isCurrentUserProfile" class="empty-profile-prompt">
+        <div *ngIf="  shouldShowCreateProfile() && isCurrentUserProfile && userProfile.role!='Admin' " class="empty-profile-prompt">
           <div class="empty-profile-message">
             <h3>Your profile is looking empty!</h3>
             <p>Add information to help guests get to know you better</p>

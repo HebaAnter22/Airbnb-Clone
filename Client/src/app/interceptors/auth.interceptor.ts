@@ -1,6 +1,6 @@
-import { HttpInterceptor, HttpRequest, HttpHandler, HttpEvent } from '@angular/common/http';
+import { HttpInterceptor, HttpRequest, HttpHandler, HttpEvent, HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { catchError, Observable, switchMap, throwError } from 'rxjs';
 import { AuthService } from '../services/auth.service';
 
 @Injectable()
@@ -10,7 +10,6 @@ export class AuthInterceptor implements HttpInterceptor {
   intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     const token = this.authService.currentUserValue?.accessToken;
     
-    console.log('AuthInterceptor - Current Token:', token);
     
     if (token) {
       request = request.clone({
@@ -20,6 +19,15 @@ export class AuthInterceptor implements HttpInterceptor {
       });
     }
     
-    return next.handle(request);
+    return next.handle(request).pipe(
+      catchError((error: HttpErrorResponse) => {
+        if (error.status === 401) {
+          // Token expired, try to refresh
+          console.log('Token expired, refreshing...');
+        }
+        return throwError(() => error);
+      })
+    );
   }
-}
+   
+  }

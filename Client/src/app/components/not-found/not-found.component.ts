@@ -10,6 +10,6 @@ import { Router } from '@angular/router';
 export class NotFoundComponent {
   constructor(private router:Router) {}
   goToDashboard() {
-    this.router.navigate(['/dashboard']);
+    this.router.navigate(['/home']);
   }
 }

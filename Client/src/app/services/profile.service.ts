@@ -9,11 +9,14 @@ import { AuthService } from './auth.service';
 })
 export class ProfileService {
   private apiUrl = 'https://localhost:7228/api/Profile';
+  imageUrl: string = ''; 
   
   constructor(private http: HttpClient,
               private router: Router,
               private authService: AuthService
-  ) {}
+  ) {
+
+  }
 
   addOrRemoveToFavourites(listingId: number)
   : Observable<any> {
@@ -31,7 +34,25 @@ export class ProfileService {
     return this.http.get<any[]>(`${this.apiUrl}/favourites`);
   }
   
-  
+
+  getImageUrl(): string {
+    const user = this.authService.currentUserValue;
+    console.log('User:', user);
+    if (user && user.imageUrl) {
+
+      return user.imageUrl;
+    } else {
+      return this.imageUrl; 
+    }
+  }
+  getUserRole(): string {
+    const user = this.authService.currentUserValue;
+    if (user && user.role) {
+      return user.role;
+    } else {
+      return ''; 
+    }
+  }
 
   isPropertyInWishlist(propertyId: number): Observable<boolean> {
     const userId = this.authService.userId;
@@ -60,6 +81,8 @@ export class ProfileService {
   getUserReviews(userId:string): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/host/reviews/${userId}`);
   }
+
+
   
   
   uploadProfilePicture(file: File): Observable<any> {

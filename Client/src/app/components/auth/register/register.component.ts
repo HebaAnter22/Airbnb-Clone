@@ -5,11 +5,12 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, AbstractContro
 import { CommonModule } from '@angular/common';
 import { NgIf } from '@angular/common';
 import { GoogleSigninButtonModule } from '@abacritt/angularx-social-login';
+import { MainNavbarComponent } from '../../main-navbar/main-navbar.component';
 
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [ReactiveFormsModule, CommonModule, NgIf,GoogleSigninButtonModule],
+  imports: [ReactiveFormsModule, CommonModule, NgIf,GoogleSigninButtonModule,MainNavbarComponent],
   templateUrl: './register.component.html',
   styleUrls: ['./register.component.css']
 })
@@ -27,11 +28,13 @@ export class RegisterComponent {
       email: ['', [Validators.required, Validators.email]],
       firstName: ['', Validators.required],
       lastName: ['', Validators.required],
-      role: ['Guest', Validators.required],  // Default to 'Guest'
+     // role: ['Guest', Validators.required],  // Default to 'Guest'
       password: ['', [Validators.required, Validators.minLength(6)]],
       confirmPassword: ['', Validators.required]
     }, { validators: this.passwordMatchValidator });
   }
+
+
 
   passwordMatchValidator: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {
     const password = control.get('password');
@@ -56,8 +59,8 @@ togglePasswordVisibility(): void {
 
   onSubmit() {
     if (this.registerForm.valid) {
-      const { email, firstName, lastName,role, password } = this.registerForm.value;
-      this.authService.register(email, firstName, lastName, password,role)
+      const { email, firstName, lastName, password } = this.registerForm.value;
+      this.authService.register(email, firstName, lastName, password)
         .subscribe({
           next: () => {
             this.router.navigate(['/login']);

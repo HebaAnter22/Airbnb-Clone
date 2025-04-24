@@ -286,8 +286,9 @@ export class VerificationComponent implements OnInit, OnDestroy {
       
       // Create a FormData object to send the files
       const formData = new FormData();
-      formData.append('frontImage', this.idFrontImage);
-      formData.append('backImage', this.idBackImage);
+// Use the same field name 'files' and append multiple files
+      formData.append('files', this.idFrontImage); 
+      formData.append('files', this.idBackImage);
       
       // Make the POST request to the host verification endpoint
       this.http.post(`${this.apiUrl}/HostVerification/CreateVerification`, formData)

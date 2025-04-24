@@ -1,25 +1,54 @@
 <nav class="navbar" [class.scrolled]="isHeaderScrolled">
-  <!-- Left side: Globe icon -->
-  <!-- <div class="navbar-left"> -->
-    <!-- <span class="globe-icon" style="color: #484848;">🌐</span> -->
-  <!-- </div> -->
-
-  <!-- Right side: Menu and Profile -->
+  <!-- Right side: Notification, Menu and Profile -->
   <div class="navbar-right">
+  
+    <!-- Notification Bell -->
+    <div class="notification-container">
+      <div class="notification-bell" (click)="toggleNotifications($event)">
+        <i class="fa fa-bell"></i>
+        <span class="notification-badge" *ngIf="notificationCount > 0">{{notificationCount}}</span>
+      </div>
+      <!-- Notification Dropdown -->
+      <div class="notification-dropdown" *ngIf="isNotificationOpen">
+        <div class="notification-header">
+          <h3>Notifications</h3>
+          <span *ngIf="notifications.length > 0" (click)="markAllAsRead()" class="mark-read">Mark all as read</span>
+        </div>
+        <div class="notification-list" *ngIf="notifications.length > 0">
+          <div class="notification-item" *ngFor="let notification of notifications" [class.unread]="!notification.read">
+            <div class="notification-content">
+              <p>{{notification.message}}</p>
+              <span class="notification-time">{{notification.time}}</span>
+            </div>
+          </div>
+        </div>
+        <div class="empty-notifications" *ngIf="notifications.length === 0">
+          <p>No new notifications</p>
+        </div>
+      </div>
+    </div>
+    
     <div class="menu-profile" (click)="toggleDropdown($event)">
       <span class="menu-icon" style="color: #484848;">☰</span>
-      <span class="profile-icon" style="color: #484848;">👤</span>
+      <span class="profile-icon" style="color: #484848;">
+        <img *ngIf="loggedIn && imageUrl" [src]="imageUrl" alt="Profile" class="profile-image" />
+        <div *ngIf="loggedIn && !imageUrl" class="profile-avatar">
+          <div class="profile-placeholder">{{ userFirstName ? userFirstName[0] : 'G' }}</div>
+        </div>
+        <span class="profile-placeholder" *ngIf="!loggedIn">👤</span>
+      </span>
     </div>
-
     <!-- Dropdown Menu -->
     <div class="dropdown" *ngIf="isDropdownOpen">
       <ul>
-        <li><a href="/login">Log in</a></li>
-        <li><a href="/register">Sign up</a></li>
-        <!-- <li><a href="#">Gift cards</a></li> -->
-        <li><a href="/login">Airbnb your home</a></li>
-        <li><a href="/login">Host your home</a></li>
-        <!-- <li><a href="#">Help Center</a></li> -->
+        <li *ngIf="!loggedIn"><a href="/login">Log in</a></li>
+        <li *ngIf="!loggedIn"><a href="/register">Sign up</a></li>
+        <li *ngIf="loggedIn && !IsUserGuest"><a href="/host">Host Dashboard</a></li>
+        <li *ngIf="loggedIn"><a href='/bookings'>Bookings</a></li>
+        <li *ngIf="loggedIn && !IsUserGuest"><a (click)='ProfileClicked()'>Profile</a></li>
+        <li *ngIf="loggedIn"><a (click)='editProfileClicked()'>Edit Profile</a></li>
+        <li *ngIf="!IsUserGuest"><a href="/host/add-property">Host your home</a></li>
+        <li *ngIf="loggedIn"><a (click)="logout()">Logout</a></li>
       </ul>
     </div>
   </div>

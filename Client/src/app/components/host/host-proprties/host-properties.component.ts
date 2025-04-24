@@ -36,7 +36,9 @@ export class HostPropertiesComponent implements OnInit, OnChanges {
       this.filterProperties();
     }
   }
-
+  viewPropertyDetails(propertyid:number) {
+    this.router.navigate(['/property', propertyid]);
+  }
   async loadProperties() {
     try {
       const userId = await this.propertyService.currentUserValue();

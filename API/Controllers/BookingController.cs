@@ -482,8 +482,15 @@ namespace API.Controllers
                     return BadRequest("The property is not available for the selected dates.");
 
                 var stayDuration = (input.EndDate - input.StartDate).TotalDays;
+                
                 var basePrice = (property.Result.PricePerNight + property.Result.CleaningFee + property.Result.ServiceFee) * (decimal)stayDuration;
-                var promotion = await _bookingRepo.GetPromotionByIdAsync(input.PromotionId);
+
+                Promotion promotion=null ;
+                if (input.PromotionId>0)
+                {
+
+                 promotion = await _bookingRepo.GetPromotionByIdAsync(input.PromotionId);
+                }
                 decimal discountedPrice = (decimal)basePrice;
 
                 if (input.PromotionId > 0)
@@ -531,13 +538,17 @@ namespace API.Controllers
                 await _bookingRepo.CreateBookingAndUpdateAvailabilityAsync(booking);
                 var usedPromotion = new UserUsedPromotion
                 {
-                    PromotionId = promotion.Id,
+                    PromotionId = promotion != null ? promotion.Id : 0,
                     UserId = guestId,
                     BookingId = booking.Id,
                     DiscountedAmount = (decimal)(basePrice - discountedPrice),
                     UsedAt = DateTime.UtcNow
                 };
+                if (promotion != null)
+                {
                 await _bookingRepo.AddUserUsedPromotionAsync(usedPromotion);
+                }
+
 
 
                 var dto = new BookingOutputDTO

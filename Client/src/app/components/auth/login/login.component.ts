@@ -5,11 +5,13 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
 import { CommonModule } from '@angular/common';
 import { NgIf } from '@angular/common';
 import { GoogleSigninButtonModule, SocialAuthService } from '@abacritt/angularx-social-login';
+import { NavbarComponent } from '../../home/navbar/navbar.component';
+import { MainNavbarComponent } from '../../main-navbar/main-navbar.component';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [ReactiveFormsModule, CommonModule, NgIf, GoogleSigninButtonModule],
+  imports: [ReactiveFormsModule, CommonModule, NgIf, GoogleSigninButtonModule,MainNavbarComponent],
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css']
 })

@@ -8,6 +8,9 @@ import { environment } from '../environments/environment';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { NgxStripeModule } from 'ngx-stripe';
+import { RouterModule } from '@angular/router';
+import { routes } from './app.routes';
 
 @NgModule({
   declarations: [
@@ -21,6 +24,9 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
     MatCardModule,
     MatButtonModule,
     MatProgressSpinnerModule
+    // NgxStripeModule.forRoot('pk_test_51RG0HC05Xu3Oi1a7gr3XuJf2j0jrYVbLfKoCSSCLuyhGn8ESPKdOnfvtte1tlklH8Mb7EcDquwPoPDk47w2xe9bV00qW62yAKT') 
+    ,RouterModule.forRoot(routes) // Add RouterModule with routes
+
   ],
   providers: [
     {

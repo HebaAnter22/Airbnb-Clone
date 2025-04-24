@@ -1,13 +1,11 @@
 <!-- Property Details HTML Template -->
-
+<app-main-navbar></app-main-navbar>
 <div class="container" *ngIf="!loading && property">
     <!-- Property Title -->
     <div class="header">
       <h1>{{ property.title }}</h1>
       <div class="header-actions">
-        <button class="btn-share">
-          <i class="fa fa-share"></i> Share
-        </button>
+        
         <button class="wishlist-btn" (click)="toggleWishlist(property.id)" [class.active]="inWishList">
             <i class="fa-heart" [ngClass]="{'fas': inWishList, 'far': !inWishList}"></i>
             <span>{{ inWishList ? 'Saved' : 'Save' }}</span>
@@ -37,7 +35,7 @@
       <!-- Left Column: Property Info -->
       <div class="property-info">
         <div class="property-header">
-          <h2>Entire villa in {{ property.city }}, {{ property.country }}</h2>
+          <h2>{{property.categoryName}} in {{ property.city }}, {{ property.country }}</h2>
           <div class="property-meta">
             {{ property.maxGuests }} max guests · {{ property.bedrooms }} bedrooms · {{ property.bedrooms }} beds · {{ property.bathrooms }} baths
           </div>
@@ -251,8 +249,8 @@
       </div>
     </div>
     
-    <button class="btn-all-reviews" *ngIf="property.reviewCount > 6" (click)="openReviewsModal()">
-      Show all {{ property.reviewCount }} reviews
+    <button class="btn-all-reviews"  (click)="openReviewsModal()">
+      Show Total {{ property.reviewCount }} reviews
     </button>
   </div>
   
@@ -325,7 +323,7 @@
     </div>
   
       <!-- Right Column: Booking Details -->
-      <div class="booking-card">
+      <div class="booking-card" [ngClass]="{'host-view': userRole=='Host'} ">
         <div class="booking-price">
           <h2>{{ formatPrice(property?.pricePerNight+property.cleaningFee+property.serviceFee)}}</h2>
           <span class="per-night">per night</span>
@@ -345,7 +343,7 @@
   
 
           <!-- Booking Form -->
-<div class="booking-form">
+<div class="booking-form" >
     <div class="dates-container">
       <div class="check-in" (click)="openCalendar('checkIn')">
         <label>CHECK-IN</label>
@@ -580,6 +578,17 @@
             <span>{{ formatPrice(getTotalPrice()) }}</span>
           </div> -->
         </div>
+        <div class="host-message-overlay" *ngIf="userRole=='Host'">
+          <div class="host-message-ribbon"></div>
+          <div class="host-message-content">
+            <div class="host-message-icon">
+              <i class="fas fa-user-lock"></i>
+            </div>
+            <h3 class="host-message-title">Host Account Detected</h3>
+            <p class="host-message-text">You need to login as a guest to make reservations. Please switch to a guest account to continue.</p>
+            <button class="host-message-button" (click)="switchToGuestAccount()">Switch to Guest Mode</button>
+          </div>
+        </div>
         
       </div>
     </div>
@@ -664,7 +673,10 @@
         <div class="host-avatar">
           <img [src]="getFullImageUrl(property.hostProfileImage)" alt="{{ property.hostName }} ">
           <div class="verified-badge" *ngIf="hostProfile?.isVerified">
-            <i class="fa fa-check"></i>
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="12" cy="12" r="12" fill="#FF385C"/>
+              <path d="M7 12L10.5 15.5L17 9" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
           </div>
         </div>
         
@@ -788,3 +800,11 @@
   <div class="error" *ngIf="error">
     <p>{{ error }}</p>
   </div>
+
+  <!-- In your component template -->
+<!-- property-details.component.html -->
+
+<div *ngIf="showToast" class="toast-container">
+  <div class="toast" [innerHTML]="toastMessage">
+  </div>
+</div>

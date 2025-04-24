@@ -12,8 +12,7 @@ namespace API.DTOs
 
         [Required]
         public string LastName { get; set; }
-        [Required]
-        public string Role { get; set; }
+     
 
 
 

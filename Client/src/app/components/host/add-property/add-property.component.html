@@ -78,7 +78,8 @@
                         categoryId: category.categoryId,
                         propertyType: category.name.toLowerCase()
                     })">
-                    <mat-icon class="category-icon">{{category.iconUrl}}</mat-icon>
+                    <img [src]="category.iconUrl" alt="">
+                    <!-- <mat-icon class="category-icon">{{category.iconUrl}}</mat-icon> -->
                     <span class="category-name">{{category.name}}</span>
                     <span class="category-description" *ngIf="category.description">{{category.description}}</span>
                 </button>
@@ -173,7 +174,8 @@
                      [class.selected]="isAmenitySelected(amenity.id)"
                      (click)="toggleAmenity(amenity.id); $event.stopPropagation()">
                     <div class="amenity-icon">
-                        <mat-icon>{{ amenity.iconUrl || 'check_circle' }}</mat-icon>
+                        <!-- <mat-icon>{{ amenity.iconUrl || 'check_circle' }}</mat-icon> -->
+                            <img [src]="amenity.iconUrl"  alt="{{ amenity.name }}">
                     </div>
                     <div class="amenity-label">{{ amenity.name }}</div>
                 </div>
