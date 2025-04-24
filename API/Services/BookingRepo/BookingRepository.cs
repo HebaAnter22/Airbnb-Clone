@@ -351,9 +351,9 @@ using WebApiDotNet.Repos;
                 }
             }
 
-            public async Task<Promotion> GetPromotionByIdAsync(int promotionId)
+            public async Task<Promotion?> GetPromotionByIdAsync(int promotionId)
             {
-                if (promotionId <= 0)
+                if (promotionId < 0)
                     throw new ArgumentException("Promotion ID must be greater than zero.");
                 try
                 {

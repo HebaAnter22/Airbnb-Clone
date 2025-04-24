@@ -406,168 +406,172 @@ namespace API.Controllers
         }
 
 
-        [HttpPost]
-        [Authorize(Roles = "Guest")]
-        public async Task<IActionResult> CreateBooking([FromBody] BookingInputDTO input)
-        {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-            if (input.StartDate >= input.EndDate)
-                return BadRequest("Start date must be before end date.");
-            if (input.PropertyId <= 0)
-                return BadRequest("Property ID must be greater than zero.");
-            if (input.PromotionId < 0)
-                return BadRequest("Promotion ID must be greater than or equal to zero.");
-
-            if (input.StartDate < DateTime.UtcNow || input.EndDate < DateTime.UtcNow)
-                return BadRequest("Booking dates must be in the future.");
-
-            var lastavailableDate = await _bookingRepo.GetLastAvailableDateForPropertyAsync(input.PropertyId);
-
-            if (lastavailableDate == null || input.StartDate > lastavailableDate || input.EndDate > lastavailableDate.Value.AddDays(1))
-                return BadRequest("Booking dates exceed the property's availability.");
-
-
-            try
+            [HttpPost]
+            [Authorize(Roles = "Guest")]
+            public async Task<IActionResult> CreateBooking([FromBody] BookingInputDTO input)
             {
-                var guestId = GetCurrentUserId();
+                if (!ModelState.IsValid)
+                    return BadRequest(ModelState);
+                if (input.StartDate >= input.EndDate)
+                    return BadRequest("Start date must be before end date.");
+                if (input.PropertyId <= 0)
+                    return BadRequest("Property ID must be greater than zero.");
+                if (input.PromotionId < 0)
+                    return BadRequest("Promotion ID must be greater than or equal to zero.");
 
-                var property = _bookingRepo.getPropertyByIdAsync(input.PropertyId);
-                if (property.Result == null)
-                    return NotFound("Property not found.");
-                if (property.Result.Status != "Active")
-                    return BadRequest("Property is not available for booking.");
+                if (input.StartDate < DateTime.UtcNow || input.EndDate < DateTime.UtcNow)
+                    return BadRequest("Booking dates must be in the future.");
 
-                var minnights = property.Result.MinNights;
-                var maxnights = property.Result.MaxNights;
-                if (input.EndDate.Subtract(input.StartDate).TotalDays + 1 < minnights)
-                    return BadRequest($"Minimum booking duration is {minnights} nights.");
-                var isAvailable = await _bookingRepo.IsPropertyAvailableForBookingAsync(input.PropertyId, input.StartDate, input.EndDate);
-                if (!isAvailable)
-                    return BadRequest("The property is not available for the selected dates.");
+                var lastavailableDate = await _bookingRepo.GetLastAvailableDateForPropertyAsync(input.PropertyId);
 
-                var stayDuration = (input.EndDate - input.StartDate).TotalDays;
-                var basePrice = (property.Result.PricePerNight + property.Result.CleaningFee + property.Result.ServiceFee) * (decimal)stayDuration;
-                var promotion = await _bookingRepo.GetPromotionByIdAsync(input.PromotionId);
-                decimal discountedPrice = (decimal)basePrice;
+                if (lastavailableDate == null || input.StartDate > lastavailableDate || input.EndDate > lastavailableDate.Value.AddDays(1))
+                    return BadRequest("Booking dates exceed the property's availability.");
 
-                if (input.PromotionId > 0)
+
+                try
                 {
-                    var isPromotionValid = await _bookingRepo.IsPromotionValidForBookingAsync(input.PromotionId, guestId, input.StartDate);
-                    if (!isPromotionValid)
-                        return BadRequest("The promotion is invalid or cannot be applied.");
+                    var guestId = GetCurrentUserId();
 
-                    if (promotion == null)
-                        return BadRequest("Invalid promotion ID.");
+                    var property = _bookingRepo.getPropertyByIdAsync(input.PropertyId);
+                    if (property.Result == null)
+                        return NotFound("Property not found.");
+                    if (property.Result.Status != "Active")
+                        return BadRequest("Property is not available for booking.");
 
+                    var minnights = property.Result.MinNights;
+                    var maxnights = property.Result.MaxNights;
+                    if (input.EndDate.Subtract(input.StartDate).TotalDays + 1 < minnights)
+                        return BadRequest($"Minimum booking duration is {minnights} nights.");
+                    var isAvailable = await _bookingRepo.IsPropertyAvailableForBookingAsync(input.PropertyId, input.StartDate, input.EndDate);
+                    if (!isAvailable)
+                        return BadRequest("The property is not available for the selected dates.");
 
-                    if (promotion.DiscountType == "fixed")
+                    var stayDuration = (input.EndDate - input.StartDate).TotalDays;
+                    var basePrice = (property.Result.PricePerNight + property.Result.CleaningFee + property.Result.ServiceFee) * (decimal)stayDuration;
+                    var promotion = await _bookingRepo.GetPromotionByIdAsync(input.PromotionId);
+
+                    decimal discountedPrice = (decimal)basePrice;
+
+                    if (input.PromotionId > 0)
                     {
-                        discountedPrice -= promotion.Amount;
+                        var isPromotionValid = await _bookingRepo.IsPromotionValidForBookingAsync(input.PromotionId, guestId, input.StartDate);
+                        if (!isPromotionValid)
+                            return BadRequest("The promotion is invalid or cannot be applied.");
+
+                        if (promotion == null)
+                            return BadRequest("Invalid promotion ID.");
+
+
+                        if (promotion.DiscountType == "fixed")
+                        {
+                            discountedPrice -= promotion.Amount;
+                        }
+                        else if (promotion.DiscountType == "percentage")
+                        {
+                            discountedPrice -= (decimal)(basePrice * promotion.Amount / 100);
+                        }
+
+                        discountedPrice = Math.Max(discountedPrice, 0);
+                        promotion.UsedCount++;
+
                     }
-                    else if (promotion.DiscountType == "percentage")
+
+                    var booking = new Booking
                     {
-                        discountedPrice -= (decimal)(basePrice * promotion.Amount / 100);
+                        PropertyId = input.PropertyId,
+                        GuestId = guestId,
+                        StartDate = input.StartDate,
+                        EndDate = input.EndDate,
+                        TotalAmount = discountedPrice,
+                        PromotionId = input.PromotionId,
+                        Status = BookingStatus.Pending.ToString(),
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow
+                    };
+
+                    var notification1 = new Notification
+                    {
+                        UserId = (int)property.Result.HostId,
+                        SenderId = guestId,
+                        Message = $"A new booking has been made for your property {property.Result.Title}.",
+                        IsRead = false,
+                        CreatedAt = DateTime.UtcNow
+                    };
+
+                    var notification2 = new Notification
+                    {
+                        UserId = guestId,
+                        SenderId = (int)property.Result.HostId,
+                        Message = $"Your booking for property {property.Result.Title} has been confirmed.",
+                        IsRead = false,
+                        CreatedAt = DateTime.UtcNow
+                    };
+
+                    if (property.Result.InstantBook == true)
+                    {
+                        booking.Status = BookingStatus.Confirmed.ToString();
+                        await _notificationRepo.CreateNotificationAsync(notification2);
+                    }
+                    else
+                    {
+                        notification2.Message = $"Your booking for property {property.Result.Title} is pending confirmation.";
+                        await _notificationRepo.CreateNotificationAsync(notification2);
                     }
 
-                    discountedPrice = Math.Max(discountedPrice, 0);
-                    promotion.UsedCount++;
-
-                }
-
-                var booking = new Booking
-                {
-                    PropertyId = input.PropertyId,
-                    GuestId = guestId,
-                    StartDate = input.StartDate,
-                    EndDate = input.EndDate,
-                    TotalAmount = discountedPrice,
-                    PromotionId = input.PromotionId,
-                    Status = BookingStatus.Pending.ToString(),
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow
-                };
-
-                var notification1 = new Notification
-                {
-                    UserId = (int)property.Result.HostId,
-                    SenderId = guestId,
-                    Message = $"A new booking has been made for your property {property.Result.Title}.",
-                    IsRead = false,
-                    CreatedAt = DateTime.UtcNow
-                };
-
-                var notification2 = new Notification
-                {
-                    UserId = guestId,
-                    SenderId = (int)property.Result.HostId,
-                    Message = $"Your booking for property {property.Result.Title} has been confirmed.",
-                    IsRead = false,
-                    CreatedAt = DateTime.UtcNow
-                };
-
-                if (property.Result.InstantBook == true)
-                {
-                    booking.Status = BookingStatus.Confirmed.ToString();
-                    await _notificationRepo.CreateNotificationAsync(notification2);
-                }
-                else
-                {
-                    notification2.Message = $"Your booking for property {property.Result.Title} is pending confirmation.";
-                    await _notificationRepo.CreateNotificationAsync(notification2);
-                }
-
-                await _bookingRepo.CreateBookingAndUpdateAvailabilityAsync(booking);
+                    await _bookingRepo.CreateBookingAndUpdateAvailabilityAsync(booking);
                 
-                await _notificationRepo.CreateNotificationAsync(notification1);
+                    await _notificationRepo.CreateNotificationAsync(notification1);
+                    if(promotion != null)
+                    {
+                        var usedPromotion = new UserUsedPromotion
+                        {
+                            PromotionId = promotion.Id,
+                            UserId = guestId,
+                            BookingId = booking.Id,
+                            DiscountedAmount = (decimal)(basePrice - discountedPrice),
+                            UsedAt = DateTime.UtcNow
+                        };
+                        await _bookingRepo.AddUserUsedPromotionAsync(usedPromotion);
+                        var notification3 = new Notification
+                        {
+                            UserId = guestId,
+                            Message = $"You got {discountedPrice} discount on your booking on property {property.Result.Title}",
+                            IsRead = false,
+                            CreatedAt = DateTime.UtcNow
+                        };
+                        await _notificationRepo.CreateNotificationAsync(notification3);
+                    }
+                
 
-                var usedPromotion = new UserUsedPromotion
+
+                    var dto = new BookingOutputDTO
+                    {
+                        Id = booking.Id,
+                        PropertyId = booking.PropertyId,
+                        GuestId = booking.GuestId,
+                        StartDate = booking.StartDate,
+                        EndDate = booking.EndDate,
+                        CheckInStatus = booking.CheckInStatus,
+                        CheckOutStatus = booking.CheckOutStatus,
+                        Status = booking.Status,
+                        TotalAmount = booking.TotalAmount,
+                        PromotionId = booking.PromotionId,
+                        CreatedAt = booking.CreatedAt,
+                        UpdatedAt = booking.UpdatedAt
+                    };
+
+                    return CreatedAtAction(nameof(GetUserBookingDetails), new { bookingId = booking.Id }, dto);
+                }
+                catch (UnauthorizedAccessException ex)
                 {
-                    PromotionId = promotion.Id,
-                    UserId = guestId,
-                    BookingId = booking.Id,
-                    DiscountedAmount = (decimal)(basePrice - discountedPrice),
-                    UsedAt = DateTime.UtcNow
-                };
-                await _bookingRepo.AddUserUsedPromotionAsync(usedPromotion);
-                var notification3 = new Notification
+                    return Unauthorized(ex.Message);
+                }
+                catch (Exception ex)
                 {
-                    UserId = guestId,
-                    Message = $"You got {discountedPrice} discount on your booking on property {property.Result.Title}",
-                    IsRead = false,
-                    CreatedAt = DateTime.UtcNow
-                };
-                await _notificationRepo.CreateNotificationAsync(notification3);
+                    return StatusCode(500, "An unexpected error occurred while creating the booking.");
+                }
 
-
-                var dto = new BookingOutputDTO
-                {
-                    Id = booking.Id,
-                    PropertyId = booking.PropertyId,
-                    GuestId = booking.GuestId,
-                    StartDate = booking.StartDate,
-                    EndDate = booking.EndDate,
-                    CheckInStatus = booking.CheckInStatus,
-                    CheckOutStatus = booking.CheckOutStatus,
-                    Status = booking.Status,
-                    TotalAmount = booking.TotalAmount,
-                    PromotionId = booking.PromotionId,
-                    CreatedAt = booking.CreatedAt,
-                    UpdatedAt = booking.UpdatedAt
-                };
-
-                return CreatedAtAction(nameof(GetUserBookingDetails), new { bookingId = booking.Id }, dto);
             }
-            catch (UnauthorizedAccessException ex)
-            {
-                return Unauthorized(ex.Message);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, "An unexpected error occurred while creating the booking.");
-            }
-
-        }
 
 
         // Update an existing booking.
