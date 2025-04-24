@@ -34,17 +34,16 @@ namespace API.DTOs
         [StringLength(100)]
         public string City { get; set; }
 
-        [Required]
-        [StringLength(100)]
-        public string State { get; set; }
 
         [Required]
         [StringLength(20)]
         public string PostalCode { get; set; }
 
+        [Required]
         [Range(-90, 90)]
         public decimal? Latitude { get; set; }
 
+        [Required]
         [Range(-180, 180)]
         public decimal? Longitude { get; set; }
 
@@ -58,30 +57,45 @@ namespace API.DTOs
         [Range(0, double.MaxValue)]
         public decimal? ServiceFee { get; set; }
 
+        [Required]
         [Range(1, int.MaxValue)]
         public int? MinNights { get; set; }
 
+        [Required]
         [Range(1, int.MaxValue)]
         public int? MaxNights { get; set; }
 
+        [Required]
         [Range(0, int.MaxValue)]
         public int? Bedrooms { get; set; }
 
+        [Required]
         [Range(0, int.MaxValue)]
         public int? Bathrooms { get; set; }
 
+        [Required]
         [Range(1, int.MaxValue)]
         public int? MaxGuests { get; set; }
 
+        [StringLength(3)]
+        public string? Currency { get; set; }
 
         [Required]
-        [StringLength(3)]
-        public string Currency { get; set; }
-
         public bool? InstantBook { get; set; }
 
-
+        [Required]
         public int? CancellationPolicyId { get; set; }
 
+        [Required]
+        public List<PropertyImageCreateDto> Images { get; set; } = new List<PropertyImageCreateDto>();
+    }
+
+    public class PropertyImageCreateDto
+    {
+        [Required]
+        public string ImageUrl { get; set; }
+
+        [Required]
+        public bool IsPrimary { get; set; }
     }
 }

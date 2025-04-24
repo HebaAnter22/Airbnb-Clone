@@ -31,7 +31,7 @@
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.3" />
     <PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />
-    <PackageReference Include="Stripe.net" Version="47.4.0" />
+    <PackageReference Include="Stripe.net" Version="48.0.2" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="8.0.0" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.0.1" />
   </ItemGroup>
@@ -40,6 +40,12 @@
     <Content Update="appsettings.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="wwwroot\uploads\properties\4\" />
+    <Folder Include="wwwroot\uploads\properties\6\" />
+    <Folder Include="wwwroot\uploads\properties\7\" />
   </ItemGroup>
 
 </Project>

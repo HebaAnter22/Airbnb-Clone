@@ -1,4 +1,6 @@
-﻿namespace API.Models
+﻿using System.Text.Json.Serialization;
+
+namespace API.Models
 {
     public class PropertyImage
     {
@@ -11,6 +13,7 @@
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         // Navigation Property
+        [JsonIgnore]
         public virtual Property Property { get; set; } = null!;
     }
 }

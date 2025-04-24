@@ -14,6 +14,8 @@ namespace API.Models
         public string Languages { get; set; }
         public bool IsVerified { get; set; } = false;
 
+        public string StripeAccountId { get; set; }
+
         // Navigation Properties
         public virtual User User { get; set; }
         public virtual ICollection<Property> Properties { get; set; }

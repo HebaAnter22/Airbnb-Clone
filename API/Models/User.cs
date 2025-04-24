@@ -46,5 +46,8 @@ namespace API.Models
         public ICollection<Favourite> Favourites { get; set; } = new List<Favourite>();
         public ICollection<UserUsedPromotion> UsedPromotions { get; set; } = new List<UserUsedPromotion>();
 
+        public ICollection<Notification> Notifications { get; set; } = new List<Notification>();
+        public ICollection<Notification> NotificationsSent { get; set; } = new List<Notification>();
+
     }
 }

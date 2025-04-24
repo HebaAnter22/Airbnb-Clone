@@ -94,7 +94,7 @@ namespace API.Services
                     {
                         HostId = user.Id,
                     };
-
+                    user.AccountStatus = "Pending";
                     _context.HostProfules.Add(host);
                     await _context.SaveChangesAsync();
                 }

@@ -198,11 +198,34 @@ namespace API.Migrations
                             t.HasCheckConstraint("CK_BookingPayments_RefundedAmount", "[refunded_amount] >= 0");
 
                             t.HasCheckConstraint("CK_BookingPayments_RefundedAmount_Amount", "[refunded_amount] <= [amount]");
-
-                            t.HasCheckConstraint("CK_BookingPayments_Status", "[status] IN ('pending', 'completed', 'failed', 'refunded')");
-
-                            t.HasCheckConstraint("CK_BookingPayments_TransactionId", "[payment_method_type] IN ('credit_card', 'paypal', 'bank_transfer', 'other')");
                         });
+                });
+
+            modelBuilder.Entity("API.Models.BookingPayout", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("BookingId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Status")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BookingId");
+
+                    b.ToTable("BookingPayouts");
                 });
 
             modelBuilder.Entity("API.Models.CancellationPolicy", b =>
@@ -353,6 +376,9 @@ namespace API.Migrations
                         .HasColumnName("start_date")
                         .HasDefaultValueSql("GETDATE()");
 
+                    b.Property<string>("StripeAccountId")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("TotalReviews")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int")
@@ -377,10 +403,13 @@ namespace API.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("DocumentUrl")
+                    b.Property<string>("DocumentUrl1")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("HostId")
+                    b.Property<string>("DocumentUrl2")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("HostId")
                         .HasColumnType("int");
 
                     b.Property<string>("Status")
@@ -391,9 +420,6 @@ namespace API.Migrations
 
                     b.Property<string>("Type")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
 
                     b.Property<DateTime?>("VerifiedAt")
                         .HasColumnType("datetime2");
@@ -446,6 +472,44 @@ namespace API.Migrations
                     b.HasIndex("SenderId");
 
                     b.ToTable("Messages");
+                });
+
+            modelBuilder.Entity("API.Models.Notification", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETDATE()");
+
+                    b.Property<bool>("IsRead")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int?>("SenderId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SenderId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Notifications");
                 });
 
             modelBuilder.Entity("API.Models.Promotion", b =>
@@ -540,11 +604,11 @@ namespace API.Migrations
                         .HasDefaultValue(1)
                         .HasColumnName("bedrooms");
 
-                    b.Property<int>("CancellationPolicyId")
+                    b.Property<int?>("CancellationPolicyId")
                         .HasColumnType("int")
                         .HasColumnName("cancellation_policy_id");
 
-                    b.Property<int>("CategoryId")
+                    b.Property<int?>("CategoryId")
                         .HasColumnType("int")
                         .HasColumnName("category_id");
 
@@ -1039,6 +1103,17 @@ namespace API.Migrations
                     b.Navigation("Booking");
                 });
 
+            modelBuilder.Entity("API.Models.BookingPayout", b =>
+                {
+                    b.HasOne("API.Models.Booking", "Booking")
+                        .WithMany()
+                        .HasForeignKey("BookingId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Booking");
+                });
+
             modelBuilder.Entity("API.Models.Conversation", b =>
                 {
                     b.HasOne("API.Models.Property", "Property")
@@ -1100,7 +1175,9 @@ namespace API.Migrations
                 {
                     b.HasOne("API.Models.Host", "Host")
                         .WithMany("Verifications")
-                        .HasForeignKey("HostId");
+                        .HasForeignKey("HostId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Host");
                 });
@@ -1124,19 +1201,35 @@ namespace API.Migrations
                     b.Navigation("Sender");
                 });
 
+            modelBuilder.Entity("API.Models.Notification", b =>
+                {
+                    b.HasOne("API.Models.User", "Sender")
+                        .WithMany("NotificationsSent")
+                        .HasForeignKey("SenderId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("API.Models.User", "User")
+                        .WithMany("Notifications")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Sender");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("API.Models.Property", b =>
                 {
                     b.HasOne("API.Models.CancellationPolicy", "CancellationPolicy")
                         .WithMany("Properties")
                         .HasForeignKey("CancellationPolicyId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("API.Models.PropertyCategory", "Category")
                         .WithMany("Properties")
                         .HasForeignKey("CategoryId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.HasOne("API.Models.Host", "Host")
                         .WithMany("Properties")
@@ -1296,6 +1389,10 @@ namespace API.Migrations
                     b.Navigation("Host");
 
                     b.Navigation("Messages");
+
+                    b.Navigation("Notifications");
+
+                    b.Navigation("NotificationsSent");
 
                     b.Navigation("Reviews");
 

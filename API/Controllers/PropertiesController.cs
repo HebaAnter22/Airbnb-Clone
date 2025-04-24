@@ -4,6 +4,7 @@ using API.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace API.Controllers
@@ -13,10 +14,12 @@ namespace API.Controllers
     public class PropertiesController : ControllerBase
     {
         private readonly IPropertyService _propertyService;
+        private readonly IWebHostEnvironment _environment;
 
-        public PropertiesController(IPropertyService propertyService)
+        public PropertiesController(IPropertyService propertyService, IWebHostEnvironment environment)
         {
             _propertyService = propertyService;
+            _environment = environment;
         }
 
         private int GetHostId()
@@ -36,12 +39,65 @@ namespace API.Controllers
             var hostId = GetHostId();
             try
             {
+                // Log the incoming property data
+                Console.WriteLine($"Received property creation request from host: {hostId}");
+                Console.WriteLine($"Property data summary: Title='{propertyDto?.Title}', CategoryId={propertyDto?.CategoryId}, Type='{propertyDto?.PropertyType}'");
+                Console.WriteLine($"Images: {propertyDto?.Images?.Count ?? 0}");
 
-            var createdProperty = await _propertyService.AddPropertyAsync(propertyDto, hostId);
-            return CreatedAtAction(nameof(GetProperty), new { id = createdProperty.Id }, createdProperty);
+                if (!ModelState.IsValid)
+                {
+                    var errors = ModelState.Values
+                        .SelectMany(v => v.Errors)
+                        .Select(e => e.ErrorMessage)
+                        .ToList();
+
+                    Console.WriteLine($"Validation errors: {string.Join(", ", errors)}");
+                    return BadRequest($"Validation errors: {string.Join(", ", errors)}");
+                }
+
+                // Basic data validation
+                if (propertyDto == null)
+                {
+                    return BadRequest("Property data is required.");
+                }
+
+                if (string.IsNullOrWhiteSpace(propertyDto.Title))
+                {
+                    return BadRequest("Property title is required.");
+                }
+
+                if (propertyDto.CategoryId <= 0)
+                {
+                    return BadRequest("Valid category ID is required.");
+                }
+
+                if (string.IsNullOrWhiteSpace(propertyDto.PropertyType))
+                {
+                    return BadRequest("Property type is required.");
+                }
+
+                Console.WriteLine($"Attempting to create property for host: {hostId}");
+                Console.WriteLine($"Property data: Title={propertyDto.Title}, Type={propertyDto.PropertyType}, CategoryId={propertyDto.CategoryId}");
+
+                var createdProperty = await _propertyService.AddPropertyAsync(propertyDto, hostId);
+                return CreatedAtAction(nameof(GetProperty), new { id = createdProperty.Id }, createdProperty);
+            }
+            catch (ArgumentException ex)
+            {
+                Console.WriteLine($"Validation error: {ex.Message}");
+                return BadRequest(ex.Message);
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"Error creating property: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+
+                if (ex.InnerException != null)
+                {
+                    Console.WriteLine($"Inner exception: {ex.InnerException.Message}");
+                    Console.WriteLine($"Inner exception stack trace: {ex.InnerException.StackTrace}");
+                }
+
                 return BadRequest($"Error creating property: {ex.Message}");
             }
         }
@@ -78,7 +134,7 @@ namespace API.Controllers
         [Authorize]
         public async Task<IActionResult> GetMyProperties()
         {
-            var hostId = int.Parse(User.FindFirst("id")?.Value);
+            var hostId = GetHostId();
             var properties = await _propertyService.GetHostPropertiesAsync(hostId);
             return Ok(properties);
         }
@@ -100,5 +156,111 @@ namespace API.Controllers
             var properties = await _propertyService.SearchPropertiesAsync(city, minPrice, maxPrice, maxGuests);
             return Ok(properties);
         }
+
+        [HttpPost("images/upload")]
+        [Authorize]
+        public async Task<IActionResult> UploadImages([FromForm] List<IFormFile> files)
+        {
+            try
+            {
+                if (files == null || !files.Any())
+                {
+                    return BadRequest("No files were uploaded.");
+                }
+
+                Console.WriteLine($"Received {files.Count} files for upload");
+                foreach (var file in files)
+                {
+                    Console.WriteLine($"File: {file.FileName}, Size: {file.Length} bytes, Type: {file.ContentType}");
+                }
+
+                var imageUrls = await _propertyService.UploadImagesAsync(files);
+                Console.WriteLine($"Successfully uploaded files. Generated URLs: {string.Join(", ", imageUrls)}");
+
+                return Ok(imageUrls);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error uploading images: {ex.Message}");
+                return BadRequest($"Error uploading images: {ex.Message}");
+            }
+        }
+
+        [HttpPost("{id}/images")]
+        [Authorize]
+        public async Task<IActionResult> AddImagesToProperty(int id, [FromBody] object imageUrlsData)
+        {
+            try
+            {
+                var hostId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+
+                List<string> imageUrls;
+
+                // Handle input that could be either a direct array or an object with an imageUrls property
+                if (imageUrlsData is List<string> urlList)
+                {
+                    imageUrls = urlList;
+                }
+                else
+                {
+                    // Try to deserialize as object with imageUrls property
+                    try
+                    {
+                        var jsonElement = JsonSerializer.Deserialize<JsonElement>(
+                            JsonSerializer.Serialize(imageUrlsData));
+
+                        if (jsonElement.TryGetProperty("imageUrls", out var urlsElement) &&
+                            urlsElement.ValueKind == JsonValueKind.Array)
+                        {
+                            imageUrls = JsonSerializer.Deserialize<List<string>>(
+                                urlsElement.GetRawText());
+                        }
+                        else
+                        {
+                            // Try direct deserialization
+                            imageUrls = JsonSerializer.Deserialize<List<string>>(
+                                JsonSerializer.Serialize(imageUrlsData));
+                        }
+                    }
+                    catch
+                    {
+                        return BadRequest("Expected either an array of URLs or an object with an 'imageUrls' property");
+                    }
+                }
+
+                if (imageUrls == null || !imageUrls.Any())
+                {
+                    return BadRequest("No image URLs provided");
+                }
+
+                Console.WriteLine($"Adding {imageUrls.Count} images to property {id} for host {hostId}");
+
+                await _propertyService.AddImagesToPropertyAsync(id, imageUrls, hostId);
+                Console.WriteLine("Successfully added images to property");
+
+                return Ok(new { message = "Images added to property successfully" });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error adding images to property: {ex.Message}");
+                return BadRequest($"Error adding images to property: {ex.Message}");
+            }
+        }
+
+        [HttpGet("Newsearch")]
+        public async Task<IActionResult> SearchProperties([FromQuery] string title = null,[FromQuery] string country = null,[FromQuery] int? minNights = null,[FromQuery] int? maxNights = null,[FromQuery] DateTime? startDate = null,[FromQuery] DateTime? endDate = null,[FromQuery] int? maxGuests = null)
+        {
+            try
+            {
+                var properties = await _propertyService.SearchPropertiesAsync(title,country,minNights,maxNights,startDate,endDate,maxGuests);
+
+                return Ok(properties);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"An error occurred: {ex.Message}");
+            }
+        }
     }
+
 }
