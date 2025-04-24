@@ -23,7 +23,11 @@ export class PropertyService {
         isGuestFavorite: p.isGuestFavorite || false,
         viewCount: p.viewCount || Math.floor(Math.random() * 100) // Example random view count
       })))
-    );
+     
+    )
+    
+    ;
+
   }
 
   searchProperties(params: {

@@ -247,12 +247,11 @@ namespace API.Migrations
                         .HasColumnName("created_at")
                         .HasDefaultValueSql("GETDATE()");
 
-                    b.Property<int>("PropertyId")
+                    b.Property<int?>("PropertyId")
                         .HasColumnType("int")
                         .HasColumnName("property_id");
 
                     b.Property<string>("Subject")
-                        .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)")
                         .HasColumnName("subject");
@@ -1177,8 +1176,7 @@ namespace API.Migrations
                     b.HasOne("API.Models.Property", "Property")
                         .WithMany("Conversations")
                         .HasForeignKey("PropertyId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.HasOne("API.Models.User", "User1")
                         .WithMany("ConversationsAsUser1")

@@ -19,9 +19,9 @@
       <!-- Empty State for Active Properties -->
       <div *ngIf="status === 'active'">
         <i class="bi bi-house-door display-1"></i>
-        <h2>No listings yet</h2>
+        <h2>No Active listings yet</h2>
         <p>Start creating your first property listing</p>
-        <button class="btn btn-primary mt-3" routerLink="/host/new">
+        <button class="btn btn-primary mt-3" routerLink="/host/add-property">
           Create your first listing
         </button>
       </div>
@@ -39,7 +39,9 @@
   <div *ngIf="!loading && !error && filteredProperties.length > 0" class="property-grid">
     <div *ngFor="let property of filteredProperties" class="property-card">
       <!-- Image Container -->
-      <div class="image-container">
+      <div class="image-container"
+           
+           (click)="viewPropertyDetails(property.id)">
         <img [src]="getPropertyImage(property)" 
              [alt]="property?.title || 'Property Image'"
              class="property-image"

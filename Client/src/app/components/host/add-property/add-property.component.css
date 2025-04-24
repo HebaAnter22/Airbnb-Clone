@@ -264,8 +264,16 @@
 
 .amenity-icon {
     font-size: 24px;
+    width:35px ;
+    height: 35px;
     margin-bottom: 0.5rem;
     color: #FF5A5F;
+}
+.amenity-icon img{
+    width: 35px;
+    height: 35px;
+    object-fit: cover;
+    border-radius: 50%;
 }
 
 .amenity-name {

@@ -120,7 +120,6 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 5px;
   cursor: pointer;
   padding: 8px;
   transition: all 0.3s ease;
@@ -134,15 +133,7 @@
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-.profile-icon {
-  font-size: 32px;
-  color: #666;
-  background-color: #f0f0f0;
-  border-radius: 50%;
-  padding: 8px;
-  transition: all 0.3s ease;
-  border: 2px solid transparent;
-}
+
 
 .user-profile:hover .profile-icon {
   color: #ff5a5f;
@@ -372,3 +363,29 @@
     padding: 15px;
   }
 } 
+
+
+.profile-image{
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  object-fit: cover;
+  transition: all 0.3s ease;
+}
+
+.profile-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  overflow: hidden;
+  background-color: #d7d7d7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+  .profile-placeholder {
+    font-size: 18px;
+    font-weight: 600;
+    color: #414141;
+  }

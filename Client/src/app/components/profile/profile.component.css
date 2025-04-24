@@ -67,18 +67,18 @@
   object-fit: cover;
 }
 
-.verified-badge {
+/* .verified-badge {
   position: absolute;
-  bottom: 8px;
-  right: 8px;
-  background-color: #ff385c;
+  bottom: 20px;
+  right: 20px;
+  background-color: #38b6ff;
   border-radius: 50%;
-  width: 24px;
-  height: 24px;
+  width: 34px;
+  height: 34px;
   display: flex;
   align-items: center;
   justify-content: center;
-}
+} */
 
 .profile-header h1 {
   font-size: 26px;
@@ -418,11 +418,11 @@
 
 .verified-badge {
   position: absolute;
-  bottom: 10px;
+  bottom: 20px;
   right: 10px;
   background-color: #FF5A5F;
-  width: 25px;
-  height: 25px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
   display: flex;
   align-items: center;

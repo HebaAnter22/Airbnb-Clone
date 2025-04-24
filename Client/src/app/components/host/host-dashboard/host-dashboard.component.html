@@ -84,7 +84,12 @@
       <!-- User Profile with Dropdown -->
       <div class="nav-item dropdown">
         <div class="user-profile" data-bs-toggle="dropdown">
-          <span class="material-icons profile-icon">person</span>
+          <span class="profile-icon" >
+            <img *ngIf="  imageUrl  " [src]="imageUrl" alt="Profile" class="profile-image"  />
+              <div *ngIf="  !imageUrl " class="profile-avatar">
+                <div class="profile-placeholder">{{ userFirstName ? userFirstName[0] : 'G' }}</div>
+              </div>
+          </span>
           <span class="user-name">{{userName}}</span>
         </div>
         <ul class="dropdown-menu dropdown-menu-end">

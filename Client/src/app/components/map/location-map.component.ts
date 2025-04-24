@@ -155,9 +155,21 @@ export class LocationMapComponent implements OnInit, OnDestroy, AfterViewInit {
       }).addTo(this.map);
 
       // Add a draggable marker
-      this.marker = L.marker([defaultLat, defaultLng], {
-        draggable: true
-      }).addTo(this.map);
+    //   this.marker = L.marker([defaultLat, defaultLng], {
+    //     draggable: true
+    //   },
+    
+      
+    // ).addTo(this.map);
+      const homeIcon = L.icon({
+            iconUrl: '/assets/images/home-marker.png',
+            iconSize: [60, 60],
+            iconAnchor: [30, 30]
+          });
+      this.marker = L.marker([defaultLat, defaultLng],{
+        icon: homeIcon
+      }
+    ).addTo(this.map);
 
       // Handle marker drag events
       this.marker.on('dragend', () => {

@@ -6,7 +6,6 @@ import { HostComponent } from './components/protected/host/host.component';
 import { authGuard } from './guards/auth.guard';
 import { roleGuard } from './guards/role.guard';
 import { NotFoundComponent } from './components/not-found/not-found.component';
-import { ForbiddenComponent } from './components/forbidden/forbidden.component';
 import { ProfileComponent } from './components/profile/profile.component';
 import { SearchBarComponent } from './components/home/search-bar/search-bar.component';
 import { PropertyListingsComponent } from './components/home/property-listing/property-listing.component';
@@ -26,6 +25,7 @@ import { HostDashboardComponent } from './components/host/host-dashboard/host-da
 import { BookingDetailsComponent } from './components/host/booking-details/booking-details.component';
 import { PropertyBookingDetailsComponent } from './components/host/property-booking-details/property-booking-details.component';
 import { VerifinghostComponent } from './components/admin/verifinghost/verifinghost.component';
+import { PaymentComponent } from './components/payment/payment.component';
 
 
 
@@ -49,6 +49,8 @@ export const routes: Routes = [
       canActivate: [authGuard, roleGuard],
       data: { role: 'Host' }
     },
+
+    {path:'payment/:id',component:PaymentComponent,canActivate:[authGuard]},
     // {
     //   path: 'host/properties',
     //   component: HostPropertiesComponent,
@@ -103,7 +105,7 @@ export const routes: Routes = [
   // canActivate: [authGuard, roleGuard],
   // data: { role: 'Admin' }
 },
-    { path: 'forbidden', component: ForbiddenComponent },
+    { path: 'forbidden', component: NotFoundComponent },
     
   { path: '**',component:NotFoundComponent }
 ];

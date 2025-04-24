@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { ForbiddenComponent } from './forbidden.component';
+import { MainNavbarComponent } from './main-navbar.component';
 
-describe('ForbiddenComponent', () => {
-  let component: ForbiddenComponent;
-  let fixture: ComponentFixture<ForbiddenComponent>;
+describe('MainNavbarComponent', () => {
+  let component: MainNavbarComponent;
+  let fixture: ComponentFixture<MainNavbarComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ForbiddenComponent]
+      imports: [MainNavbarComponent]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(ForbiddenComponent);
+    fixture = TestBed.createComponent(MainNavbarComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

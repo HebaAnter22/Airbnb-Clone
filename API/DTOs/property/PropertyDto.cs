@@ -35,6 +35,8 @@ namespace API.DTOs
 
         public int CategoryID { get; set; }
 
+        public string CategoryName { get; set; }
+
 
         // Images
         public List<PropertyImageDto> Images { get; set; } = new List<PropertyImageDto>();

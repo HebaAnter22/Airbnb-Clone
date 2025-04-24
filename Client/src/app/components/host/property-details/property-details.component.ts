@@ -7,11 +7,14 @@ import { ProfileService } from '../../../services/profile.service';
 import { GoogleMap, GoogleMapsModule } from "@angular/google-maps";
 import * as L from 'leaflet';
 import { FormsModule } from '@angular/forms';
+import { AuthService } from '../../../services/auth.service';
+import { MainNavbarComponent } from '../../main-navbar/main-navbar.component';
+
 
 @Component({
   selector: 'app-property-details',
   standalone: true,
-  imports: [CommonModule, NgIf, NgForOf, DatePipe, NgClass,GoogleMapsModule,FormsModule],
+  imports: [CommonModule, NgIf, NgForOf, DatePipe, NgClass,GoogleMapsModule,FormsModule,MainNavbarComponent],
   templateUrl: './property-details.component.html',
   
   styleUrls: ['./property-details.component.scss']
@@ -46,67 +49,15 @@ isGuestDropdownOpen = false;
   promoCodeApplied = false;
   promoCodeError: string | null = null;
   promotion: any = null;
+  guestIsNotHost:boolean=true;
+  toastMessage = '';
+  bookingId:number=0;
   
-  
-  //   center: google.maps.LatLngLiteral = {lat: 22, lng: 72}; // Default values
-  // markerLatLong: google.maps.LatLngLiteral[] = [{lat: 22, lng: 72}]; // Default values
-  // mapOptions: google.maps.MapOptions = {
-//   disableDefaultUI: false,
-//   fullscreenControl: false,
-//   zoomControl: true,
-//   scrollwheel: false,
-//   streetViewControl: false,
-//   mapTypeControl: false,
-//   zoom: 15,
-//   styles: [
-//     {
-//       featureType: "poi",
-//       elementType: "labels",
-//       stylers: [{ visibility: "off" }]
-//     }
-//   ]
-// };
-
-// markerOptions: google.maps.MarkerOptions = {
-//   icon: {
-//     url: '/assets/images/home-marker.png', // You'll need to create this icon
-//     // Use simple object instead of google.maps.Size
-//     scaledSize: { width: 60, height: 60 } as google.maps.Size
-//   }
-//   // Remove animation property for now
-// };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-private map: L.Map | null = null;
-private marker: L.Marker | null = null;
-// Default coordinates (can be the same as your Google Maps defaults)
-private defaultLat: number = 22;
-private defaultLng: number = 72;
-
-
-
-
-
-
-
-
-
-
-
+  private map: L.Map | null = null;
+  private marker: L.Marker | null = null;
+  // Default coordinates (can be the same as your Google Maps defaults)
+  private defaultLat: number = 22;
+  private defaultLng: number = 72;
 
 
 isHostBioModalOpen = false;
@@ -121,13 +72,20 @@ coHosts = [
   selectedDates: { start: Date | null, end: Date | null } = { start: null, end: null };
   months: Array<{ month: Date, days: Array<{ date: Date, isSelected: boolean, isInRange: boolean, isDisabled: boolean }> }> = [];
   inWishList = false; // Track if the property is in the wishlist
+  showToast = false;
+  lastPropertyId: number=0;
+  loggedInUser:string|null='';
+  userRole='';
+
   constructor(
     private route: ActivatedRoute,
     private propertyService: CreatePropertyService,
     private profileService:ProfileService,
     private router :Router,
-    
+    private authService:AuthService
+
   ) { }
+
   
   
   
@@ -138,7 +96,9 @@ coHosts = [
     this.propertyId = +this.route.snapshot.paramMap.get('id')!;
     this.loadPropertyDetails();
     this.checkWishlistStatus();
-    
+    this.loggedInUser=this.authService.userId;
+    this.userRole=this.profileService.getUserRole();
+
     this.getUserLocation(); 
     // Initialize date selection
     const checkIn = new Date(this.checkInDate);
@@ -150,6 +110,18 @@ coHosts = [
     
     // Initialize calendar
     this.generateCalendarMonths();
+  }
+
+  switchToGuestAccount() {
+    // You can implement logic here to switch the user's role
+    // This might involve a service call or navigation to a login page
+    
+    // Example implementation:
+    this.authService.logout(); // Log out the current user
+    this.router.navigate(['/login']); // Redirect to login page
+    
+    // Or simply redirect to a role selection page
+    // this.router.navigate(['/select-role']);
   }
 
   togglePromoCodeSection(): void {
@@ -280,11 +252,10 @@ coHosts = [
       bookingData.promotionId=0
     }
     
-    console.log(bookingData)
     // Call API to create booking
     this.propertyService.createBooking(bookingData).subscribe({
       next: (response) => {
-
+        this.bookingId=response.id;
         // Navigate to booking confirmation page
         if(this.promoCode && this.promoCodeApplied){
           this.propertyService.updatePromoCode(this.promoCode).subscribe({
@@ -296,7 +267,19 @@ coHosts = [
             }
           });
         }
-        this.router.navigate(['/bookings']);
+        if(this.property.instantBook){
+
+          this.showToast = true;
+          console.log(this.bookingId)
+          this.toastMessage = `🏡 Property added to your Bookings! <a href='/payment/${this.bookingId}'>Now You Can Continue to payment From here</a>`;
+
+        setTimeout(() => {
+          this.showToast = false;
+        }, 5000);
+          
+          
+          //this.router.navigate(['/payment', response.bookingId]);
+        }
       },
       error: (error) => {
         console.error('Error creating booking:', error);
@@ -408,7 +391,17 @@ coHosts = [
       this.removeFromWishlist(propertyId);
     } else {
       this.addToWishlist(propertyId);
-    }
+      //add a success toast 
+     
+        this.lastPropertyId = propertyId;
+        this.showToast = true;
+        this.toastMessage = "🏡 Property added to your wishlist! <a href='/wishlist'>Click here to view</a>";
+
+        setTimeout(() => {
+          this.showToast = false;
+        }, 3000);
+          
+      }
   }
 
 
@@ -668,7 +661,6 @@ coHosts = [
           
           // Find primary image or use first one
           const primaryImage = this.property.images.find((img: any) => img.isPrimary);
-          console.log("ourlog",this.property.images)
           this.mainImage = primaryImage ?
             this.getFullImageUrl(primaryImage.imageUrl) :
             this.getFullImageUrl(this.property.images[0].imageUrl);
@@ -680,9 +672,8 @@ coHosts = [
         }
         if (this.property && this.property.hostId) {
           this.loadHostProfile(this.property.hostId);
-
-        
         }
+        
 
         this.loadAvailabilityDate(this.propertyId)
       },
@@ -836,15 +827,14 @@ coHosts = [
   
   
   getFullImageUrl(imageUrl: string): string {
-    console.log('imageUrl:', imageUrl);
-    // Check if the URL is already absolute
-    // if (imageUrl.startsWith('http')) {
+    //Check if the URL is already absolute
+     if (imageUrl.startsWith('http')) {
       return imageUrl;
       
-    // }
+    }
    
-    // Otherwise, prepend the base URL
-    // return `https://localhost:7228${imageUrl}`;
+    //Otherwise, prepend the base URL
+     return `https://localhost:7228${imageUrl}`;
   }
  
   reserve2(): void {
@@ -915,7 +905,6 @@ coHosts = [
   
   // Toggle expanded comment view
   toggleExpandedComment(reviewId: number): void {
-    console.log(`Toggling expanded view for review ${reviewId}`);
     // Implement the logic to expand/collapse comments
   }
   

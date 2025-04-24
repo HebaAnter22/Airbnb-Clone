@@ -15,6 +15,8 @@ export class AuthService {
   private currentUserSubject: BehaviorSubject<User | null>;
   public currentUser: Observable<User | null>;
 
+  public userDetails : User | null = null;
+
 
 
 
@@ -128,10 +130,9 @@ public get userId(): string | null {
 
 
 
-   checkEmailVerificationStatus():
-   
+checkEmailVerificationStatus( profileId: string):
   Observable<boolean> {
-    return this.http.get<{isEmailVerified: boolean}>(`https://localhost:7228/api/Profile/user/email-verification-status`).pipe(
+    return this.http.get<{isEmailVerified: boolean}>(`https://localhost:7228/api/Profile/user/email-verification-status/${profileId}`).pipe(
       map(response => response.isEmailVerified),
       catchError(error => {
         console.error('Error checking email verification status:', error);
@@ -143,13 +144,13 @@ public get userId(): string | null {
 
 
   register(
-    email: string, firstName: string, lastName: string,  password: string,role: string
+    email: string, firstName: string, lastName: string,  password: string
   ) {
     return this.http.post(`${this.baseUrl}register`, {  
       email,
       firstName,
       lastName,
-      password,role });
+      password });
   }
   logout() {
     // First get the token to ensure it's available for the interceptor
@@ -236,6 +237,7 @@ public get userId(): string | null {
   }
 getUserProfile(): Observable<any> {
   return this.http.get(`${this.baseUrl}profile`).pipe(
+
     catchError(error => {
       if (error.status === 401) {
         this.logout();

@@ -55,7 +55,7 @@ export class CreatePropertyService {
     return Promise.resolve(parseInt(decoded.nameid));
   }
   getPromoCodeDetails(promoCode: string): Observable<any> {
-    return this.http.get<any>(`${this.API_URL}/Promotion`, { params: { promoCode } }).pipe(
+    return this.http.get<any>(`${this.API_URL}/Promotion/code/${promoCode}`).pipe(
       map(response => {
         return response;
       }),

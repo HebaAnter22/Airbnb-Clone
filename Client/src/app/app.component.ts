@@ -4,6 +4,7 @@ import { RouterOutlet } from '@angular/router';
 import { NavbarComponent } from './components/home/navbar/navbar.component';
 import { AuthService } from './services/auth.service';
 import { AiChatbotComponent } from './components/ai-chatbot/ai-chatbot.component';
+import { HeaderComponent } from './components/home/header/header.component';
 @Component({
   selector: 'app-root',
   standalone: true,

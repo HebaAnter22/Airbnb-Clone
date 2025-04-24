@@ -3,11 +3,13 @@ using API.DTOs;
 using API.DTOs.Admin;
 using API.DTOs.HostVerification;
 using API.DTOs.property;
+using API.Models;
 using API.Services.AdminRepo;
 using API.Services.BookingRepo;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Org.BouncyCastle.Asn1.Tsp;
 
 namespace API.Controllers
 {
@@ -83,7 +85,12 @@ namespace API.Controllers
                 foreach (var h in hosts)
                 {
                     var totalIncome = await _bookingRepository.GetTotalIncomeForHostAsync(h.Id);
-                    var rating = h.Host.Properties.SelectMany(p => p.Bookings).Where(b => b.Review != null).Select( b => b.Review.Rating);
+                    var rating = h.Host?.Properties?
+                                            .Where(p => p != null)
+                                            .SelectMany(p => p.Bookings ?? Enumerable.Empty<Booking>())
+                                            .Where(b => b?.Review != null)
+                                            .Select(b => b.Review.Rating)
+                                            .ToList() ?? new List<int>(); 
                     var averageRating = rating.Any() ? rating.Average() : 0;
 
                     dtos.Add(new HostDto
@@ -94,12 +101,12 @@ namespace API.Controllers
                         Email = h.Email,
                         PhoneNumber = h.PhoneNumber,
                         Role = h.Role,
-                        IsVerified = h.Host.IsVerified,
-                        ProfilePictureUrl = h.ProfilePictureUrl,
+                        IsVerified = h.Host?.IsVerified ?? false,
+                        ProfilePictureUrl = h.ProfilePictureUrl ?? string.Empty,
                         StartDate = h.CreatedAt,
-                        TotalReviews = rating.Count(),
+                        TotalReviews = rating.Count,
                         Rating = (decimal)averageRating,
-                        PropertiesCount = h.Host.Properties.Count,
+                        PropertiesCount = h.Host?.Properties?.Count ?? 0,
                         TotalIncome = totalIncome
                     });
                 }

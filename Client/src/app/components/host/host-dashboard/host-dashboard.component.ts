@@ -20,12 +20,17 @@ export class HostDashboardComponent implements OnInit {
   isEarningsDropdownOpen: boolean = false;
   userProfileImage: string = 'assets/default-profile.png';
   userName: string = '';
+  userFirstName: string = '';
 
+  imageUrl: string = ''; 
   constructor(
     private authService: AuthService,
     private profileService: ProfileService,
     private router: Router
-  ) { }
+  ) { 
+    this.imageUrl= this.profileService.getImageUrl();
+
+  }
 
   ngOnInit(): void {
     // Get user ID from AuthService
@@ -37,8 +42,9 @@ export class HostDashboardComponent implements OnInit {
           this.userName = profile.firstName && profile.lastName 
             ? `${profile.firstName} ${profile.lastName}`
             : 'Host';
-          
-          // Use profile picture if available
+            this.imageUrl = profile.profilePictureUrl? 'https://localhost:7228'+ profile.profilePictureUrl:'';
+            this.userFirstName = profile.firstName || 'User';
+            // Use profile picture if available
           if (profile.profilePictureUrl) {
             this.userProfileImage = profile.profilePictureUrl;
           }

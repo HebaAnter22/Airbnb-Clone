@@ -10,8 +10,8 @@ namespace API.Data.Configurations
         {
             builder.HasKey(c => c.Id);
             builder.Property(c => c.Id).ValueGeneratedOnAdd().HasColumnName("id");
-            builder.Property(c => c.PropertyId).IsRequired().HasColumnName("property_id");
-            builder.Property(c => c.Subject).IsRequired().HasMaxLength(255).HasColumnName("subject");
+            builder.Property(c => c.PropertyId).HasColumnName("property_id");
+            builder.Property(c => c.Subject).HasMaxLength(255).HasColumnName("subject");
             builder.Property(c => c.user1Id).IsRequired().HasColumnName("user1_id");
             builder.Property(c => c.user2Id).IsRequired().HasColumnName("user2_id");
             builder.Property(c => c.CreatedAt).HasDefaultValueSql("GETDATE()").HasColumnType("datetime").HasColumnName("created_at");

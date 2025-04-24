@@ -71,7 +71,7 @@ export class EditProfileComponent implements OnInit {
       next: (user) => {
         this.user = user;
         // Check if user is a Guest
-        this.isGuestUser = user.role === 'Guest';
+        this.isGuestUser = user.role === 'Guest'|| user.role === 'Admin';
         
         this.profileImageUrl = user.profilePictureUrl
           ? `${this.apiBaseUrl}/${user.profilePictureUrl}`
@@ -210,7 +210,7 @@ export class EditProfileComponent implements OnInit {
 
       this.profileService.updateProfile(profileData).subscribe({
         next: () => {
-          this.router.navigate(['/profile', this.userId]);
+          this.router.navigate(['/home']);
         },
         error: (error) => {
           console.error('Error updating profile', error);

@@ -5,12 +5,13 @@ import { CommonModule } from '@angular/common';
 import { ProfileService } from '../../services/profile.service';
 import { Observable } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
+import { MainNavbarComponent } from '../main-navbar/main-navbar.component';
 
 @Component({
   selector: 'app-profile',
   templateUrl: './profile.component.html',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule,MainNavbarComponent],
   styleUrls: ['./profile.component.css']
 })
 export class ProfileComponent implements OnInit {
@@ -22,6 +23,7 @@ export class ProfileComponent implements OnInit {
   isLoading = true;
   errorMessage = '';
   activeTab: string = 'about';
+  
   
   selectedFile: File | null = null;
   uploadProgress: number = 0;
@@ -35,7 +37,7 @@ export class ProfileComponent implements OnInit {
     private router: Router,
     private authService: AuthService,
     private http: HttpClient,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
   ) {}
   
   ngOnInit(): void {
@@ -50,15 +52,17 @@ export class ProfileComponent implements OnInit {
     this.assignVerificationStatus();
   }
   assignVerificationStatus(): void {
-    this.authService.checkEmailVerificationStatus().subscribe({
+    this.authService.checkEmailVerificationStatus(this.route.snapshot.paramMap.get('id')||'' ).subscribe({
       next: (isVerified: boolean) => {
         this.emailVerified = isVerified;
+        console.log('Email verification status:', isVerified);
       },
       error: (err:any) => {
         console.error('Error checking email verification status:', err);
       }
     });
   }
+  
   goToVerificationPage(): void {
     this.router.navigate(['/verification']);
   }
@@ -132,7 +136,7 @@ export class ProfileComponent implements OnInit {
         this.userProfile = profile;
         console.log('User Profile:', this.userProfile);
         
-        if (this.userProfile.role === 'Host') {
+        if (this.userProfile.role != 'Guest') {
           this.loadHostProfile(userId);
         } else {
           // Create a default hostProfile for guests

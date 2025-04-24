@@ -1,8 +1,7 @@
 .container {
-  max-width: 1200px;
   margin: 0 auto;
   padding: 0 24px 24px;
-  background: linear-gradient(to bottom, #f8f9fa, #ffffff);
+  background: linear-gradient(to bottom, #ffff, #ffffff);
   min-height: 100vh;
 }
 
@@ -534,4 +533,48 @@ body {
 
 .clear-search mat-icon {
   font-size: 20px;
+}
+
+
+.toast-container {
+  position: fixed;
+  top: 1.5rem;
+  left: 1.5rem;
+  z-index: 1000;
+}
+
+.toast {
+  background-color: #fff8f4;
+  color: #222;
+  border: 1px solid #f7c59f;
+  margin-top: 0.5rem;
+  padding: 1rem 1.5rem;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  font-family: 'Airbnb Cereal App', 'Helvetica Neue', sans-serif;
+  font-size: 0.95rem;
+  display: inline-block;
+  max-width: 300px;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.toast a {
+  color: #ff385c;
+  font-weight: 600;
+  text-decoration: none;
+  margin-left: 0.5rem;
+}
+
+.toast a:hover {
+  text-decoration: underline;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  } to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

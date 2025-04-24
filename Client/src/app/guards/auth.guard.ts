@@ -9,6 +9,7 @@ import { AuthService } from '../services/auth.service';
   
     canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): boolean {
       const currentUser = this.authService.currentUserValue;
+      console.log("currentUser", currentUser);
       
       if (currentUser) {
         return true;

@@ -20,6 +20,8 @@ using Microsoft.OpenApi.Models;
 using Microsoft.Extensions.FileProviders;
 using API.Services.AdminRepo;
 using API.Services.HostVerificationRepo;
+using Stripe;
+using API.Hubs;
 
 namespace API
 {
@@ -28,7 +30,14 @@ namespace API
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
-         
+            var stripeSettings = builder.Configuration.GetSection("Stripe");
+            StripeConfiguration.ApiKey = stripeSettings["SecretKey"];
+
+            builder.Services.AddSignalR();
+            builder.Services.AddScoped<IChatService, ChatService>();
+
+
+
             builder.Services.AddControllers();
 
             builder.Services.AddSwaggerGen(c =>
@@ -140,8 +149,11 @@ namespace API
             //{
             //    app.UseDeveloperExceptionPage();
             //}
-            
+
             //app.UseExceptionMiddleware();
+
+            app.MapHub<ChatHub>("/chatHub");
+
             app.UseSwagger();
             app.UseSwaggerUI();
             app.UseCors("AllowAll");

@@ -84,4 +84,8 @@
   </div>
 </div>
 
+<div *ngIf="showToast" class="toast-container">
+  <div class="toast" [innerHTML]="toastMessage">
+  </div>
+</div>
 <app-sticky-nav class="sticky-nav"></app-sticky-nav>
