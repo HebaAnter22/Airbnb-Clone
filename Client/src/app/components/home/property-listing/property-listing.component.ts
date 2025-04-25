@@ -206,10 +206,8 @@ export class PropertyListingsComponent implements OnInit {
     event.stopPropagation(); // Prevent click from bubbling to parent elements
     
     if (this.isFavorite(propertyId)) {
-      console.log('Removing from wishlist:', propertyId);
       this.removeFromWishlist(propertyId);
     } else {
-      console.log('Adding to wishlist:', propertyId);
       this.addToWishlist(propertyId);
     }
   }
