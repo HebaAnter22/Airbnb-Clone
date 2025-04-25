@@ -92,7 +92,7 @@ private handleGoogleLogin(googleUser: SocialUser): void {
             
             localStorage.setItem('currentUser', JSON.stringify(user));
             this.currentUserSubject.next(user);
-            this.router.navigate(['/dashboard']);
+            this.router.navigate(['/home']);
         },
         error: (err) => {
             console.error('Google login error:', err);

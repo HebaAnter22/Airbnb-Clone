@@ -205,7 +205,7 @@ namespace API.Services
                     Email = email,
                     FirstName = firstName,
                     LastName = lastName,
-                    Role = "guest",
+                    Role = "Guest",
                     PasswordHash = "" // No password for Google users
                 };
                 
