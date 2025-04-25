@@ -62,6 +62,12 @@ namespace AirBnb.BL.Dtos.BookingDtos
         public DateTime CreatedAt { get; set; }
     }
 
+    public class CreatePaymentIntentDto
+    {
+        public int BookingId { get; set; }
+        public decimal Amount { get; set; }
+    }
+
     public class BookingGetAllDto
 	{
 		public int Id { get; set; }

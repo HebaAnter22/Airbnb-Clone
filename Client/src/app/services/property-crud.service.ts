@@ -54,6 +54,7 @@ export class CreatePropertyService {
     const decoded = this.authService.decodeToken(user.accessToken);
     return Promise.resolve(parseInt(decoded.nameid));
   }
+
   getPromoCodeDetails(promoCode: string): Observable<any> {
     return this.http.get<any>(`${this.API_URL}/Promotion/code/${promoCode}`).pipe(
       map(response => {
@@ -87,7 +88,6 @@ getPropertyAvailability(propertyId: number): Observable<any[]> {
 createBooking(bookingData: any): Observable<any> {
   return this.http.post<any>(`${this.API_URL}/booking`, bookingData);
 }
-
 
 
 

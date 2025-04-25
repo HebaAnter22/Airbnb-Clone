@@ -31,6 +31,7 @@
 /* Notification Styles */
 .notification-container {
   position: relative;
+  left : 0px;
 }
 
 .notification-bell {

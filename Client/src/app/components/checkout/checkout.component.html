@@ -1,0 +1,21 @@
+<div class="checkout-container">
+    <h2>Checkout for Booking #{{ bookingId }}</h2>
+    <p>Amount: ${{ amount }}</p>
+
+    <!-- Payment Intent Flow -->
+    <div id="card-element" class="stripe-card"></div>
+    <button (click)="processPayment()" [disabled]="paymentStatus">Pay Now</button>
+
+    <!-- Display Payment Status -->
+    <div *ngIf="paymentStatus" class="payment-status">
+        <p>Payment Status: {{ paymentStatus }}</p>
+    </div>
+
+    <!-- Display Error Message -->
+    <div *ngIf="errorMessage" class="error-message">
+        <p>{{ errorMessage }}</p>
+    </div>
+
+    <!-- Optional: Stripe Checkout Flow -->
+    <button (click)="redirectToCheckout()" [disabled]="paymentStatus">Pay with Stripe Checkout</button>
+</div>

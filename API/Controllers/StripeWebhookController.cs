@@ -1,5 +1,4 @@
 ﻿using API.Services.BookingPaymentRepo;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Stripe;
 
@@ -37,14 +36,16 @@ namespace API.Controllers
                 return BadRequest($"Webhook Error: {e.Message}");
             }
 
-            if (stripeEvent.Type == "payment_intent.succeeded")
+            if (stripeEvent.Type == "checkout.session.completed")
             {
-                var paymentIntent = stripeEvent.Data.Object as PaymentIntent;
-
-                if (paymentIntent != null && paymentIntent.Metadata.ContainsKey("bookingId"))
+                var session = stripeEvent.Data.Object as Stripe.Checkout.Session;
+                if (session != null && session.Metadata.ContainsKey("bookingId"))
                 {
-                    var bookingId = int.Parse(paymentIntent.Metadata["bookingId"]);
-                    await _bookingPaymentRepo.ConfirmBookingPaymentAsync(bookingId, paymentIntent.Id);
+                    var bookingId = int.Parse(session.Metadata["bookingId"]);
+                    var paymentIntentId = session.PaymentIntentId;
+
+                    // Confirm the payment and insert/update the payment record
+                    await _bookingPaymentRepo.ConfirmBookingPaymentAsync(bookingId, paymentIntentId);
                 }
             }
 

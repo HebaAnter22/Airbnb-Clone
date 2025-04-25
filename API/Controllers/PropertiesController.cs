@@ -145,10 +145,24 @@ namespace API.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAllProperties()
+        public async Task<IActionResult> GetAllProperties(
+    [FromQuery] int page = 1,
+    [FromQuery] int pageSize = 12,
+    [FromQuery] int? categoryId = null) // Add categoryId as an optional parameter
         {
-            var properties = await _propertyService.GetAllPropertiesAsync();
-            return Ok(properties);
+            var result = await _propertyService.GetAllPropertiesAsync(page, pageSize, categoryId);
+            return Ok(new
+            {
+                properties = result.Properties,
+                total = result.Total
+            });
+        }
+
+        [HttpGet("countries")]
+        public async Task<IActionResult> GetUniqueCountries()
+        {
+            var countries = await _propertyService.GetUniqueCountriesAsync();
+            return Ok(countries);
         }
 
         [HttpPost("images/upload")]

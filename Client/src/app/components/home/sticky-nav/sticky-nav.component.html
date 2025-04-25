@@ -1,16 +1,27 @@
 <div class="footer" id="footer">
     <ul> 
-        <li>
+        <li *ngIf="loggedIn && !IsUserGuest" style="cursor: pointer;">
+            <a href='/bookings' style="text-decoration: none; color: #2d2d2d;">
+
             <span class="material-icons" style="color: #ff385c;">favorite</span>
-           
+           <br>
             <span>Wishlists</span>
+            </a>                    
         </li>
-        <li>
+
+        <li *ngIf="loggedIn && !IsUserGuest">
+            <a href='/bookings' style="text-decoration: none; color: #2d2d2d;">
             <span class="material-icons">explore</span>
+            <br>
             <span>Trips</span>
+            </a>
         </li>
-        <li><span class="material-icons">account_circle</span>
-            <span>Account</span>
+        <li *ngIf="loggedIn && !IsUserGuest" style="cursor: pointer;">
+            <a (click)='editProfileClicked()'>
+            <span class="material-icons" >account_circle</span>
+            <br>
+                Account
+            </a>
         </li>
     </ul>
 </div>

@@ -1,5 +1,7 @@
 ﻿using API.Models;
 using WebApiDotNet.Repos;
+using Stripe.Checkout;
+using Stripe;
 
 namespace API.Services.BookingPaymentRepo
 {
@@ -11,6 +13,10 @@ namespace API.Services.BookingPaymentRepo
         Task<bool> RefundPaymentAsync(int paymentId, decimal refundAmount);
         Task ConfirmBookingPaymentAsync(int bookingId, string paymentIntentId);
         //Task<bool> CreatePayoutAsync(int bookingId, decimal amount);
+        Task<PaymentIntent> CreatePaymentIntentAsync(decimal amount, int bookingId);
+
+        Task<Session> CreateCheckoutSessionAsync(decimal amount, int bookingId);
+        Task InsertPaymentAsync(int bookingId, decimal amount, string transactionId, string status);
     }
 
 }

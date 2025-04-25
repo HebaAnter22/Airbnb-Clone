@@ -4,6 +4,9 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { RouterModule } from '@angular/router';
+import { AuthService } from '../../../services/auth.service';
+import { ProfileService } from '../../../services/profile.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-sticky-nav',
@@ -22,8 +25,22 @@ export class StickyNavComponent implements AfterViewInit {
    lastScrollTop: number = 0;
    footer: HTMLElement | null = null;
    isScrolled: boolean = false; // Added this property
+   IsUserGuest:boolean=false;
 
    @Output() scrollStateChanged = new EventEmitter<boolean>();
+    loggedIn: boolean = false;
+
+
+
+   constructor(private authService:AuthService,
+    private profileService:ProfileService,
+    private router:Router
+  ) {
+    if(this.authService.userId){
+      this.loggedIn = true;
+    }
+  }
+
 
    ngAfterViewInit() {
        this.footer = document.getElementById('footer');
@@ -61,4 +78,10 @@ export class StickyNavComponent implements AfterViewInit {
        }
        this.lastScrollTop = scrollTop;
    }
+
+   
+   editProfileClicked() {
+    
+    this.router.navigate([`/editProfile/${this.authService.userId}`]);
+}
 }

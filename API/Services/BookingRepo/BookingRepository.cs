@@ -438,14 +438,15 @@ using WebApiDotNet.Repos;
                 return totalSpent;
             }
 
-            public async Task<PaymentIntent> CreatePaymentIntentAsync(decimal amount)
-            {
+        public async Task<PaymentIntent> CreatePaymentIntentAsync(decimal amount, int bookingId)
+        {
                 var options = new PaymentIntentCreateOptions
                 {
                     Amount = (long)(amount * 100),
                     Currency = "usd",
                     PaymentMethodTypes = new List<string> { "card" },
-                    CaptureMethod = "automatic"
+                    CaptureMethod = "automatic",
+                    Metadata = new Dictionary<string, string> { { "bookingId", bookingId.ToString() } }
                 };
 
                 var service = new PaymentIntentService();

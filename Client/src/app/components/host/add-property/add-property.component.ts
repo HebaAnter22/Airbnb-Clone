@@ -345,6 +345,7 @@ export class AddPropertyComponent implements OnInit {
       this.snackBar.open('Error creating property', 'Close', { duration: 3000 });
     } finally {
       this.isLoading = false;
+      this.router.navigate(['/host']);
     }
   }
 

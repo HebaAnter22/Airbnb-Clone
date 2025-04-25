@@ -42,7 +42,7 @@ export class HostDashboardComponent implements OnInit {
           this.userName = profile.firstName && profile.lastName 
             ? `${profile.firstName} ${profile.lastName}`
             : 'Host';
-            this.imageUrl = profile.profilePictureUrl? 'https://localhost:7228'+ profile.profilePictureUrl:'';
+            this.imageUrl = profile.profilePictureUrl? profile.profilePictureUrl:'';
             this.userFirstName = profile.firstName || 'User';
             // Use profile picture if available
           if (profile.profilePictureUrl) {

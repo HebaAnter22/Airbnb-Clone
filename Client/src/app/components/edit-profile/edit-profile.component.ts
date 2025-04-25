@@ -73,9 +73,8 @@ export class EditProfileComponent implements OnInit {
         // Check if user is a Guest
         this.isGuestUser = user.role === 'Guest'|| user.role === 'Admin';
         
-        this.profileImageUrl = user.profilePictureUrl
-          ? `${this.apiBaseUrl}/${user.profilePictureUrl}`
-          : '';
+        this.profileImageUrl = user.profilePictureUrl;
+        console.log('Profile Image URL:', this.profileImageUrl);
               
         // Format the date for the HTML date input (YYYY-MM-DD)
         const formattedDateOfBirth = user.dateOfBirth ? this.formatDateForInput(new Date(user.dateOfBirth)) : '';

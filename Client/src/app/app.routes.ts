@@ -8,7 +8,6 @@ import { roleGuard } from './guards/role.guard';
 import { NotFoundComponent } from './components/not-found/not-found.component';
 import { ProfileComponent } from './components/profile/profile.component';
 import { SearchBarComponent } from './components/home/search-bar/search-bar.component';
-import { PropertyListingsComponent } from './components/home/property-listing/property-listing.component';
 import { HeaderComponent } from './components/home/header/header.component';
 import { AddPropertyComponent } from './components/host/add-property/add-property.component';
 import { HostPropertiesComponent } from './components/host/host-proprties/host-properties.component';
@@ -25,10 +24,11 @@ import { HostDashboardComponent } from './components/host/host-dashboard/host-da
 import { BookingDetailsComponent } from './components/host/booking-details/booking-details.component';
 import { PropertyBookingDetailsComponent } from './components/host/property-booking-details/property-booking-details.component';
 import { VerifinghostComponent } from './components/admin/verifinghost/verifinghost.component';
-import { PaymentComponent } from './components/payment/payment.component';
-
-
-
+// import { PaymentComponent } from './components/payment/payment.component';
+import { PropertyListingsComponent } from './components/home/property-listing/property-listing.component';
+import { CheckoutComponent } from './components/checkout/checkout.component';
+import { PaymentSuccessComponent } from './components/payment-success/payment-success.component';
+// import { PaymentCancelComponent } from './components/payment-cancel/payment-cancel.component';
 export const routes: Routes = [
   {path: 'home', component: PropertyListingsComponent},
   {path: '', redirectTo: 'home', pathMatch: 'full'},
@@ -50,7 +50,10 @@ export const routes: Routes = [
       data: { role: 'Host' }
     },
 
-    {path:'payment/:id',component:PaymentComponent,canActivate:[authGuard]},
+    { path: 'checkout/:id', component: CheckoutComponent },
+    { path: 'payment-success', component: PaymentSuccessComponent },
+    // { path: 'payment-cancel', component: PaymentCancelComponent }, // Optional
+    
     // {
     //   path: 'host/properties',
     //   component: HostPropertiesComponent,

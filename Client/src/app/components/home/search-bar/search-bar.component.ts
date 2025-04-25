@@ -30,12 +30,12 @@ export class SearchBarComponent implements OnInit, AfterViewInit {
   destination: string = '';
   checkIn: Date | null = null;
   checkOut: Date | null = null;
-  guests = { adults: 0, children: 0, infants: 0, pets: 0 };
+  guests = { adults: 0 };
   isMobile: boolean = false;
 
   // Date picker properties
-  currentDate: Date = new Date(2025, 3, 1); // April 2025
-  nextMonthDate: Date = new Date(2025, 4, 1); // May 2025
+  currentDate: Date = new Date(2025, 4, 1); // April 2025
+  nextMonthDate: Date = new Date(2025, 5, 1); // May 2025
   daysInMonth: number[] = [];
   daysInNextMonth: number[] = [];
   emptyDaysBefore: number[] = [];
@@ -44,13 +44,24 @@ export class SearchBarComponent implements OnInit, AfterViewInit {
   selectedEndDay: number | null = null;
 
   // Suggested destinations
-  suggestedDestinations = [
-    { name: 'Nearby', description: "Find what's around you", icon: 'near_me' },
-    { name: 'Istanbul, Türkiye', description: 'For sights like Galata Tower', icon: 'location_city' },
-    { name: 'London, United Kingdom', description: 'For the bustling nightlife', icon: 'landscape' },
-    { name: 'Beirut, Lebanon', description: 'Popular beach destination', icon: 'beach_access' },
-    { name: 'Paris, France', description: 'For its stunning architecture', icon: 'apartment' },
-  ];
+  suggestedDestinations: { name: string; description: string; icon: string }[] = [];
+
+  loadDestinations(): void {
+    this.propertyService.getUniqueCountries().subscribe({
+      next: (countries) => {
+        this.suggestedDestinations = countries.map(country => ({
+          name: country,
+          description: `Explore ${country}`,
+          icon: 'location_city'
+        }));
+        console.log('Suggested destinations:', this.suggestedDestinations);
+      },
+      error: (error) => {
+        console.error('Error loading destinations:', error);
+        // this.showError('Failed to load destinations');
+      }
+    });
+  }
 
   @Output() searchPerformed = new EventEmitter<any>();
   @ViewChild('container', { static: false }) containerRef!: ElementRef<HTMLDivElement>;
@@ -62,38 +73,26 @@ export class SearchBarComponent implements OnInit, AfterViewInit {
     @Inject(DOCUMENT) private document: Document
   ) {}
 
-  ngAfterViewInit() {
-    setTimeout(() => {
-      if (this.autocompleteTrigger && this.autocompleteTrigger.autocomplete) {
-        this.autocompleteTrigger.autocomplete.panel.nativeElement.style.width = '300px';
-        this.autocompleteTrigger.autocomplete.panel.nativeElement.style.minWidth = '300px';
-        this.autocompleteTrigger.autocomplete.panel.nativeElement.style.maxWidth = '300px';
-      }
-      
-      // Create a style element and add it to the document head
-      const styleElement = this.renderer.createElement('style');
-      const cssText = `
-        .cdk-overlay-pane {
-          width: 300px !important;
-          min-width: 300px !important;
-          max-width: 300px !important;
-        }
-        .mat-mdc-autocomplete-panel {
-          width: 300px !important;
-          min-width: 300px !important;
-          max-width: 300px !important;
-        }
-      `;
-      
-      this.renderer.appendChild(styleElement, this.renderer.createText(cssText));
-      this.renderer.appendChild(this.document.head, styleElement);
-    });
-  }
-
   ngOnInit(): void {
     this.checkScreenSize();
     window.addEventListener('resize', this.checkScreenSize.bind(this));
     this.updateCalendar();
+    this.loadDestinations(); // Load destinations on initialization
+  }
+
+  ngAfterViewInit(): void {
+    if (this.autocompleteTrigger) {
+      this.autocompleteTrigger.autocomplete.opened.subscribe(() => {
+        if (this.autocompleteTrigger?.autocomplete?.panel?.nativeElement) {
+          const panel = this.autocompleteTrigger.autocomplete.panel.nativeElement;
+          this.renderer.setStyle(panel, 'width', '300px');
+          this.renderer.setStyle(panel, 'minWidth', '300px');
+          this.renderer.setStyle(panel, 'maxWidth', '300px');
+        } else {
+          console.warn('Autocomplete panel not available');
+        }
+      });
+    }
   }
 
   checkScreenSize(): void {
@@ -102,7 +101,7 @@ export class SearchBarComponent implements OnInit, AfterViewInit {
 
   openSearchModal(): void {
     this.isSearchModalOpen = true;
-    this.modalMode = 'destination'; // Start with destination section
+    this.modalMode = 'destination';
     document.querySelector('.search-bar-container')?.classList.add('search-model-open');
   }
 
@@ -113,17 +112,12 @@ export class SearchBarComponent implements OnInit, AfterViewInit {
   }
 
   toggleSection(section: 'destination' | 'date' | 'guests', event?: Event): void {
-    // If event is provided, stop propagation
     if (event) {
       event.stopPropagation();
     }
-    
-    // Only toggle the section if it's not already active
     if (this.modalMode !== section) {
       this.modalMode = section;
     }
-    
-    // Only close the modal if explicitly requested (not when toggling sections)
     if (this.isMobile && !this.modalMode && section === null) {
       this.closeSearchModal();
     }
@@ -133,7 +127,7 @@ export class SearchBarComponent implements OnInit, AfterViewInit {
     this.destination = '';
     this.checkIn = null;
     this.checkOut = null;
-    this.guests = { adults: 0, children: 0, infants: 0, pets: 0 };
+    this.guests = { adults: 0 };
     this.selectedStartDay = null;
     this.selectedEndDay = null;
     this.modalMode = null;
@@ -151,9 +145,7 @@ export class SearchBarComponent implements OnInit, AfterViewInit {
 
   selectDestination(destination: string, event?: any): void {
     this.destination = destination;
-    this.modalMode = this.isMobile ? 'date' : null; // Move to next section on mobile
-    
-    // We don't need to stop propagation for MatOptionSelectionChange
+    this.modalMode = this.isMobile ? 'date' : null;
   }
 
   getCheckInDisplay(): string {
@@ -169,7 +161,7 @@ export class SearchBarComponent implements OnInit, AfterViewInit {
   }
 
   getGuestSummary(): string {
-    const total = this.guests.adults ;
+    const total = this.guests.adults;
     return total > 0 ? `${total} guest${total > 1 ? 's' : ''}` : 'Guests';
   }
 
@@ -180,8 +172,6 @@ export class SearchBarComponent implements OnInit, AfterViewInit {
     } else if (currentValue > 0) {
       this.guests[type] = currentValue - 1;
     }
-    
-    // Prevent the modal from closing when updating guests
     if (event) {
       event.stopPropagation();
     }
@@ -258,7 +248,6 @@ export class SearchBarComponent implements OnInit, AfterViewInit {
   }
 
   onSearch(): void {
-    // Validate search parameters
     if (!this.destination) {
       console.log('Search failed: No destination provided');
       return;
@@ -266,10 +255,9 @@ export class SearchBarComponent implements OnInit, AfterViewInit {
 
     const searchParams = {
       country: this.destination,
-      maxGuests: this.guests.adults + this.guests.children
+      maxGuests: this.guests.adults
     } as any;
 
-    // Only add dates if they are not null
     if (this.checkIn) {
       searchParams.startDate = this.checkIn;
     }
@@ -279,11 +267,9 @@ export class SearchBarComponent implements OnInit, AfterViewInit {
 
     console.log('Search Parameters:', searchParams);
 
-    // Call the property service to search
     this.propertyService.searchProperties(searchParams).subscribe({
       next: (properties) => {
         console.log('Search Results:', properties);
-        // Emit the search results
         this.searchPerformed.emit({
           destination: this.destination,
           checkIn: this.checkIn,
@@ -291,8 +277,6 @@ export class SearchBarComponent implements OnInit, AfterViewInit {
           guests: this.guests,
           properties: properties
         });
-        
-        // Close the search modal on mobile
         if (this.isMobile) {
           this.closeSearchModal();
         }

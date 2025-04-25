@@ -717,23 +717,34 @@ namespace API.Controllers
 
         #endregion
 
-        [HttpPost("create-payment-intent")]
-        [Authorize(Roles = "Guest")]
-        public async Task<IActionResult> CreatePaymentIntent([FromBody] int bookingId)
-        {
-            try
-            {
-                var booking = await _bookingRepo.GetByIdAsync(bookingId);
-                if (booking == null)
-                    return NotFound("Booking not found.");
-                var paymentIntent = await _bookingRepo.CreatePaymentIntentAsync(booking.TotalAmount);
-                return Ok(new { clientSecret = paymentIntent.ClientSecret, Id = paymentIntent.Id });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"An unexpected error occurred: {ex.Message}");
-            }
-        }
+        //[HttpPost("create-payment-intent")]
+        //[Authorize(Roles = "Guest")]
+        //public async Task<IActionResult> CreatePaymentIntent([FromBody] int bookingId)
+        //{
+        //    try
+        //    {
+        //        var booking = await _bookingRepo.GetByIdAsync(bookingId);
+        //        if (booking == null)
+        //            return NotFound("Booking not found.");
+        //        var paymentIntent = await _bookingRepo.CreatePaymentIntentAsync(booking.TotalAmount);
+        //        return Ok(new { clientSecret = paymentIntent.ClientSecret, Id = paymentIntent.Id });
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return StatusCode(500, $"An unexpected error occurred: {ex.Message}");
+        //    }
+        //}
+
+
+        //[HttpPost("create-payment-intent")]
+        //[Authorize]
+        //public async Task<IActionResult> CreatePaymentIntent([FromBody] CreatePaymentIntentDto createPaymentIntentDto)
+        //{
+        //    var paymentIntent = await _bookingRepo.CreatePaymentIntentAsync(createPaymentIntentDto.Amount, createPaymentIntentDto.BookingId);
+        //    return Ok(new { clientSecret = paymentIntent.ClientSecret });
+        //}
+
+
 
 
         //[HttpPost("create-payment-intent")]

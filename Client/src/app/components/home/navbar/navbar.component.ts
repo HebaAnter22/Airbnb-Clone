@@ -55,7 +55,7 @@ export class NavbarComponent implements OnInit {
       
       (profile: any) => {
         this.userFirstName = profile.firstName || 'User'; // Default to 'User' if first name is not available
-        this.imageUrl = profile.profilePictureUrl? 'https://localhost:7228'+ profile.profilePictureUrl :this.imageUrl// Use default image if profile picture URL is not available
+        this.imageUrl = profile.profilePictureUrl?  profile.profilePictureUrl :this.imageUrl// Use default image if profile picture URL is not available
       },
       (error) => {
         console.error('Error loading profile:', error);
