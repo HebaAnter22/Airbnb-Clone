@@ -1,21 +1,39 @@
+<!-- checkout.component.html -->
 <div class="checkout-container">
-    <h2>Checkout for Booking #{{ bookingId }}</h2>
-    <p>Amount: ${{ amount }}</p>
-
-    <!-- Payment Intent Flow -->
-    <div id="card-element" class="stripe-card"></div>
-    <button (click)="processPayment()" [disabled]="paymentStatus">Pay Now</button>
-
-    <!-- Display Payment Status -->
-    <div *ngIf="paymentStatus" class="payment-status">
-        <p>Payment Status: {{ paymentStatus }}</p>
+    <!-- Left Section: Booking Summary -->
+    <div class="booking-summary">
+      <h2>Booking confirmation</h2>
+      <div class="amount">${{ amount?.toFixed(2) }}</div>
+      <div class="booking-details" *ngIf="bookingDetails">
+        <p><strong>Property:</strong> {{ bookingDetails.propertyName }}</p>
+        <p><strong>Check-in:</strong> {{ bookingDetails.checkInDate | date:'mediumDate' }}</p>
+        <p><strong>Check-out:</strong> {{ bookingDetails.checkOutDate | date:'mediumDate' }}</p>
+      </div>
+      <div class="error-message" *ngIf="errorMessage">{{ errorMessage }}</div>
     </div>
-
-    <!-- Display Error Message -->
-    <div *ngIf="errorMessage" class="error-message">
-        <p>{{ errorMessage }}</p>
+  
+    <!-- Right Section: Payment Form -->
+    <div class="payment-form">
+      <h3>Pay with card</h3>
+      <form #paymentForm="ngForm" (ngSubmit)="pay()">
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input type="email" id="email" name="email" ngModel required email />
+        </div>
+        <div class="form-group">
+          <label>Card information</label>
+          <div id="card-element" class="card-element"></div>
+        </div>
+        <div class="form-group">
+          <label for="cardholder-name">Cardholder name</label>
+          <input type="text" id="cardholder-name" name="cardholderName" ngModel required />
+        </div>
+        <div class="form-group checkbox">
+          <input type="checkbox" id="save-info" name="saveInfo" ngModel />
+          <label for="save-info">Securely save my information for 1-click checkout</label>
+        </div>
+        <button type="submit" class="pay-button" [disabled]="!paymentForm['form'].valid">Pay</button>
+        <div class="payment-status" *ngIf="paymentStatus">{{ paymentStatus }}</div>
+      </form>
     </div>
-
-    <!-- Optional: Stripe Checkout Flow -->
-    <button (click)="redirectToCheckout()" [disabled]="paymentStatus">Pay with Stripe Checkout</button>
-</div>
+  </div>

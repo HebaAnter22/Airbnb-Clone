@@ -83,6 +83,22 @@ export class PaymentService {
         );
     }
 
+
+    getBookingDetails(bookingId: number): Observable<any> {
+      const url = `https://localhost:7228/api/Booking/${bookingId}/details`; // Matches the working endpoint
+      const token = localStorage.getItem('token');
+      const headers = new HttpHeaders({
+        'Authorization': `Bearer ${token}`
+      });
+  
+      return this.http.get(url, { headers }).pipe(
+        tap(response => console.log('Booking Details Response:', response)),
+        catchError(error => {
+          console.error('Error fetching booking details:', error);
+          return throwError(error);
+        })
+      );
+    }
     async redirectToCheckout(sessionId: string): Promise<void> {
         const stripe = await this.stripePromise;
         if (!stripe) {

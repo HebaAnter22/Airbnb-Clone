@@ -50,8 +50,8 @@ export const routes: Routes = [
       data: { role: 'Host' }
     },
 
-    { path: 'checkout/:id', component: CheckoutComponent },
-    { path: 'payment-success', component: PaymentSuccessComponent },
+    { path: 'checkout/:bookingId', component: CheckoutComponent },
+        { path: 'payment-success', component: PaymentSuccessComponent },
     // { path: 'payment-cancel', component: PaymentCancelComponent }, // Optional
     
     // {

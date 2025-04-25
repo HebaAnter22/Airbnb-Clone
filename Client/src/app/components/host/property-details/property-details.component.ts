@@ -269,16 +269,16 @@ coHosts = [
         }
         if(this.property.instantBook){
 
-          this.showToast = true;
-          console.log(this.bookingId)
-          this.toastMessage = `🏡 Property added to your Bookings! <a href='/payment/${this.bookingId}'>Now You Can Continue to payment From here</a>`;
+        //   this.showToast = true;
+        //   console.log(this.bookingId)
+        //   this.toastMessage = `🏡 Property added to your Bookings! <a href='/checkout/${this.bookingId}'>Now You Can Continue to payment From here</a>`;
 
-        setTimeout(() => {
-          this.showToast = false;
-        }, 5000);
+        // setTimeout(() => {
+        //   this.showToast = false;
+        // }, 5000);
           
           
-          //this.router.navigate(['/payment', response.bookingId]);
+          this.router.navigate(['/checkout/', this.bookingId]);
         }
       },
       error: (error) => {
