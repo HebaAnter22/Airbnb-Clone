@@ -66,6 +66,31 @@ namespace API.Hubs
                 await Clients.Caller.SendAsync("MessageError", "Failed to send message. Please try again.");
             }
         }
+        public async Task SendTypingNotification(int conversationId, int userId, bool isTyping)
+        {
+            try
+            {
+                var conversation = await _chatService.GetConversationAsync(conversationId);
+                if (conversation == null || (conversation.user1Id != userId && conversation.user2Id != userId))
+                {
+                    throw new HubException("Invalid conversation or user");
+                }
+
+                var otherUserId = conversation.user1Id == userId ? conversation.user2Id : conversation.user1Id;
+                await Clients.User(otherUserId.ToString())
+                    .SendAsync("ReceiveTypingNotification", conversationId, userId, isTyping);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in SendTypingNotification: {ex}");
+                await Clients.Caller.SendAsync("TypingError", ex.Message);
+            }
+        }
+        public async Task NotifyNewConversation(Conversation conversation, int otherUserId)
+        {
+            await Clients.User(otherUserId.ToString())
+                .SendAsync("ReceiveNewConversation", conversation);
+        }
         public async Task JoinConversation(int conversationId)
         {
             // Check if user is authorized to join this conversation

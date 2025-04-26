@@ -46,15 +46,17 @@ export class ChatComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     //do a refresh reload the page 
-    if (!sessionStorage.getItem('chatRefreshed')) {
-      sessionStorage.setItem('chatRefreshed', 'true');
-      window.location.reload();
-    } else {
-      sessionStorage.removeItem('chatRefreshed');
-    }
-    this.chatService.initializeSignalRConnection();
-
+    // if (!sessionStorage.getItem('chatRefreshed')) {
+    //   sessionStorage.setItem('chatRefreshed', 'true');
+    //   window.location.reload();
+    // } else {
+    //   sessionStorage.removeItem('chatRefreshed');
+    // }
     this.loadConversations();
+    this.chatService.initializeSignalRConnection();
+    this.chatService.hubConnection?.on('Connected', () => {
+      this.loadConversations(); // Reload when connection is established
+    });
 
     this.chatService.conversations$
       .pipe(takeUntil(this.destroy$))
@@ -85,6 +87,16 @@ export class ChatComponent implements OnInit, OnDestroy {
         this.loadConversation(Number(conversationId));
       }
     });
+    // In ngOnInit
+    this.chatService.newConversation$.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(conversation => {
+      if (conversation) {
+        this.conversations = [conversation, ...this.conversations];
+      }
+    });
+
+
 
     // Listen for window resize events to adjust the view
     window.addEventListener('resize', this.onResize.bind(this));
@@ -99,6 +111,9 @@ export class ChatComponent implements OnInit, OnDestroy {
 
   loadConversations(): void {
     this.chatService.getUserConversations().subscribe({
+      next: (conversations) => {
+        this.conversations = conversations;
+      },
       error: (err) => console.error('Error loading conversations:', err)
     });
   }
