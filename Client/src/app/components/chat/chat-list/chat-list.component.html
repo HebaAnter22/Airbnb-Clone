@@ -1,0 +1,38 @@
+<!-- src/app/components/chat/chat-list/chat-list.component.html -->
+<div class="chat-list-container">
+    <div class="chat-list-header">
+      <h3>Messages</h3>
+    </div>
+    
+    <div *ngIf="conversations.length === 0" class="no-conversations">
+      <p>No conversations yet</p>
+    </div>
+    
+    <div class="conversation-list">
+      <div *ngFor="let conversation of conversations" 
+           class="conversation-item" 
+           [class.active]="selectedConversation?.id === conversation.id"
+           [class.unread]="hasUnreadMessages(conversation)"
+           (click)="selectConversation(conversation)">
+        
+        <div class="avatar">
+          <img [src]="'https://localhost:7228'+ getOtherUser(conversation).profilePictureUrl || 'assets/images/default-avatar.png'" 
+               [alt]="getOtherUser(conversation).firstName">
+               <!-- Online indicator could be added here -->
+            </div>
+            <h1></h1>
+        
+        <div class="conversation-info">
+          <div class="conversation-header">
+            <h4 class="user-name">{{ getOtherUser(conversation).firstName }} {{ getOtherUser(conversation).lastName }}</h4>
+            <span class="time">{{ getLastMessageTime(conversation) }}</span>
+          </div>
+          
+          <div class="last-message">
+            <p>{{ getLastMessage(conversation) }}</p>
+            <span *ngIf="hasUnreadMessages(conversation)" class="unread-indicator"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>

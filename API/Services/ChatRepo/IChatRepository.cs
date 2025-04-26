@@ -12,5 +12,6 @@ namespace API.Services
         Task<List<Message>> GetConversationMessagesAsync(int conversationId);
         Task<Message> SaveMessageAsync(int conversationId, int senderId, string content);
         Task MarkMessageAsReadAsync(int messageId, int userId);
+        Task<int> GetUnreadCountAsync(int userId);
     }
 }

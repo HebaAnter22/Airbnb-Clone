@@ -1,9 +1,9 @@
 <nav class="navbar" [class.scrolled]="isHeaderScrolled">
   <!-- Right side: Notification, Menu and Profile -->
   <div class="navbar-right">
-  
+
     <!-- Notification Bell -->
-    <div class="notification-container">
+    <div class="notification-container" *ngIf="loggedIn">
       <div class="notification-bell" (click)="toggleNotifications($event)">
         <i class="fa fa-bell"></i>
         <span class="notification-badge" *ngIf="notificationCount > 0">{{notificationCount}}</span>
@@ -27,7 +27,9 @@
         </div>
       </div>
     </div>
-    
+    <app-chat-dropdown *ngIf="loggedIn"></app-chat-dropdown>
+
+
     <div class="menu-profile" (click)="toggleDropdown($event)">
       <span class="menu-icon" style="color: #484848;">☰</span>
       <span class="profile-icon" style="color: #484848;">

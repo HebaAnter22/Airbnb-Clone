@@ -1,4 +1,5 @@
-﻿using Stripe;
+﻿using System.Text.Json.Serialization;
+using Stripe;
 
 namespace API.Models
 {
@@ -40,7 +41,9 @@ namespace API.Models
         public Host Host { get; set; }
         public ICollection<Booking> Bookings { get; set; } = new List<Booking>();
         public ICollection<Review> Reviews { get; set; } = new List<Review>();
+        [JsonIgnore]
         public ICollection<Conversation> ConversationsAsUser1 { get; set; } = new List<Conversation>();
+        [JsonIgnore]
         public ICollection<Conversation> ConversationsAsUser2 { get; set; } = new List<Conversation>();
         public ICollection<Message> Messages { get; set; } = new List<Message>();
         public ICollection<Favourite> Favourites { get; set; } = new List<Favourite>();

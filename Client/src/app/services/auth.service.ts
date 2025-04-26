@@ -14,6 +14,7 @@ export class AuthService {
   private baseUrl = 'https://localhost:7228/api/Auth/';
   private currentUserSubject: BehaviorSubject<User | null>;
   public currentUser: Observable<User | null>;
+  public isLoggedIn:boolean = false;
 
   public userDetails : User | null = null;
 
@@ -24,11 +25,15 @@ export class AuthService {
     private socialAuthService: SocialAuthService
 
   ) {
+    
     const storedUser = localStorage.getItem('currentUser');
     this.currentUserSubject = new BehaviorSubject<User | null>(
       storedUser ? JSON.parse(storedUser) : null
     );
     this.currentUser = this.currentUserSubject.asObservable();
+    this.currentUser.subscribe(user => {
+      this.isLoggedIn = !!user; // Set isLoggedIn based on user existence
+    });
     this.socialAuthService.authState.subscribe((user: SocialUser) => {
       if (user) {
         this.handleGoogleLogin(user);
@@ -223,7 +228,7 @@ checkEmailVerificationStatus( profileId: string):
     };
 }
 
-  private getUserIdFromToken(token: string): string {
+  public getUserIdFromToken(token: string): string {
     const decoded = this.decodeToken(token);
     return decoded.nameid;
   }

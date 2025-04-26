@@ -11,12 +11,14 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { NgxStripeModule } from 'ngx-stripe';
 import { RouterModule } from '@angular/router';
 import { routes } from './app.routes';
+import { AppRoutingModule } from './app-routing.module';
 
 @NgModule({
   declarations: [
     AppComponent
   ],
   imports: [
+    AppRoutingModule,
     BrowserModule,
     HttpClientModule,
     SocialLoginModule,
