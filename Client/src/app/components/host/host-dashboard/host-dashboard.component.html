@@ -66,7 +66,7 @@
             <a class="dropdown-item" (click)="setCurrentSection('earnings-chart')">
               <i class="fas fa-chart-line"></i> Earnings Chart
             </a>
-            <a class="dropdown-item" (click)="setCurrentSection('payouts')">
+            <a class="dropdown-item" (click)="navigateToPayouts()">
               <i class="fas fa-money-bill-wave"></i> Payouts
             </a>
           </div>
@@ -143,7 +143,7 @@
 
 <!-- Payouts Section -->
 <div *ngIf="currentSection === 'payouts'" class="content-section">
-  <app-host-payouts></app-host-payouts>
+  <app-host-payout></app-host-payout>
 </div>
 
     <!-- Account Section -->

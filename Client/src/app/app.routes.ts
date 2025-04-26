@@ -28,6 +28,7 @@ import { VerifinghostComponent } from './components/admin/verifinghost/verifingh
 import { PropertyListingsComponent } from './components/home/property-listing/property-listing.component';
 import { CheckoutComponent } from './components/checkout/checkout.component';
 import { PaymentSuccessComponent } from './components/payment-success/payment-success.component';
+import { HostPayoutComponent } from './components/host-payout/host-payout.component';
 // import { PaymentCancelComponent } from './components/payment-cancel/payment-cancel.component';
 
 export const routes: Routes = [
@@ -52,8 +53,15 @@ export const routes: Routes = [
     },
 
     { path: 'checkout/:bookingId', component: CheckoutComponent },
-        { path: 'payment-success', component: PaymentSuccessComponent },
+    { path: 'payment-success', component: PaymentSuccessComponent },
     // { path: 'payment-cancel', component: PaymentCancelComponent }, // Optional
+    
+    { 
+      path: 'host/payouts', 
+      component: HostPayoutComponent,
+      canActivate: [authGuard, roleGuard],
+      data: { role: 'Host' }
+    },
     
     // {
     //   path: 'host/properties',

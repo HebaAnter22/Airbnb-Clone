@@ -1,11 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { PayoutsComponent } from '../payouts/payouts.component';
 import { HostPropertiesComponent } from '../host-proprties/host-properties.component';
 import { BookingComponent } from '../bookings/bookings.component';
 import { EarningsChartComponent } from './earnings';
+import { HostPayoutComponent } from '../../../components/host-payout/host-payout.component';
 
 @Component({
   selector: 'app-host-dashboard',
@@ -17,7 +18,8 @@ import { EarningsChartComponent } from './earnings';
     PayoutsComponent,
     HostPropertiesComponent,
     BookingComponent,
-    EarningsChartComponent
+    EarningsChartComponent,
+    HostPayoutComponent
   ],
   templateUrl: './host-dashboard.component.html',
   styleUrls: ['./host-dashboard.component.css']
@@ -31,7 +33,7 @@ export class HostDashboardComponent implements OnInit {
   userFirstName: string = '';
   imageUrl: string = '';
 
-  constructor() {}
+  constructor(private router: Router) {}
 
   ngOnInit() {
     // Initialize user data
@@ -66,6 +68,12 @@ export class HostDashboardComponent implements OnInit {
 
   navigateToAddProperty() {
     // Implement navigation
+    this.router.navigate(['/host/add-property']);
+  }
+
+  navigateToPayouts() {
+    // Navigate to the payouts page
+    this.router.navigate(['/host/payouts']);
   }
 
   goToUserProfile() {

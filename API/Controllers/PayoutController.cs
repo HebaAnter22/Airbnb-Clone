@@ -35,33 +35,50 @@ namespace API.Controllers
             }
         }
 
-        //[HttpPost("stripe/connect")]
-        //public async Task<IActionResult> CreateStripeConnectAccount([FromBody] int hostId)
-        //{
-        //    try
-        //    {
-        //        var accountId = await _payoutService.CreateStripeConnectAccount(hostId);
-        //        return Ok(new { accountId });
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return BadRequest(ex.Message);
-        //    }
-        //}
+        [HttpPost("stripe/connect")]
+        public async Task<IActionResult> CreateStripeConnectAccount([FromBody] HostIdRequest request)
+        {
+            try
+            {
+                var accountId = await _payoutService.CreateStripeConnectAccount(request.HostId);
+                return Ok(new { accountId });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating Stripe Connect account for hostId: {HostId}", request.HostId);
+                return BadRequest(ex.Message);
+            }
+        }
 
-        //[HttpGet("stripe/connect/link")]
-        //public async Task<IActionResult> GetStripeConnectAccountLink([FromQuery] int hostId)
-        //{
-        //    try
-        //    {
-        //        var link = await _payoutService.GetStripeConnectAccountLink(hostId);
-        //        return Ok(new { link });
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return BadRequest(ex.Message);
-        //    }
-        //}
+        [HttpGet("stripe/connect/link")]
+        public async Task<IActionResult> GetStripeConnectAccountLink([FromQuery] int hostId)
+        {
+            try
+            {
+                var link = await _payoutService.GetStripeConnectAccountLink(hostId);
+                return Ok(new { link });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting Stripe Connect account link for hostId: {HostId}", hostId);
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpGet("stripe/account/status")]
+        public async Task<IActionResult> CheckStripeAccountStatus([FromQuery] int hostId)
+        {
+            try
+            {
+                var isReady = await _payoutService.CheckStripeAccountStatus(hostId);
+                return Ok(new { isReady });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error checking Stripe account status for hostId: {HostId}", hostId);
+                return BadRequest(ex.Message);
+            }
+        }
 
         [HttpPost("request")]
         public async Task<ActionResult<HostPayout>> RequestPayout([FromBody] PayoutRequest request)
@@ -141,5 +158,11 @@ namespace API.Controllers
         [Required]
         [Range(0.01, double.MaxValue, ErrorMessage = "Amount must be greater than zero")]
         public decimal Amount { get; set; }
+    }
+
+    public class HostIdRequest
+    {
+        [Required]
+        public int HostId { get; set; }
     }
 } 

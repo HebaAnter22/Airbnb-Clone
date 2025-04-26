@@ -13,6 +13,7 @@ import { RouterModule } from '@angular/router';
 import { routes } from './app.routes';
 import { AuthInterceptor } from './interceptors/auth.interceptor';
 import { CheckoutComponent } from './components/checkout/checkout.component';
+import { HostPayoutComponent } from './components/host-payout/host-payout.component';
 // import { PaymentSuccessComponent } from './components/payment-success/payment-success.component';
 // import { PaymentCancelComponent } from './components/payment-cancel/payment-cancel.component';
 
@@ -20,6 +21,7 @@ import { CheckoutComponent } from './components/checkout/checkout.component';
     declarations: [
         AppComponent,
         CheckoutComponent,
+        HostPayoutComponent,
         // PaymentSuccessComponent,
         // PaymentCancelComponent,
     ],

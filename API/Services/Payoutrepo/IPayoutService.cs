@@ -15,6 +15,12 @@ namespace API.Services.Payoutrepo
         Task<decimal> GetHostBalance(int hostId);
 
         Task UpdatePayoutStatus(int payoutId, string status);
+        
+        // Stripe Connect methods
+        Task<string> CreateStripeConnectAccount(int hostId);
+        Task<string> GetStripeConnectAccountLink(int hostId);
+        Task<string> CreateStripePayoutToHost(int hostId, int payoutId);
+        Task<bool> CheckStripeAccountStatus(int hostId);
     }
 }
 
