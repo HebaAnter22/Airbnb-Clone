@@ -1,0 +1,44 @@
+/* src/app/components/chat/message-user-button/message-user-button.component.css */
+.message-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 16px;
+    border: 1px solid #1890ff;
+    border-radius: 4px;
+    background-color: white;
+    color: #1890ff;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  
+  .message-button:hover {
+    background-color: #e6f7ff;
+  }
+  
+  .message-button svg {
+    margin-right: 8px;
+  }
+  
+  /* Primary variant */
+  .message-button.primary {
+    background-color: #1890ff;
+    color: white;
+  }
+  
+  .message-button.primary:hover {
+    background-color: #40a9ff;
+    border-color: #40a9ff;
+  }
+  
+  /* Small variant */
+  .message-button.small {
+    padding: 4px 12px;
+    font-size: 0.8rem;
+  }
+  
+  .message-button.small svg {
+    width: 14px;
+    height: 14px;
+  }

@@ -1,0 +1,45 @@
+<!-- src/app/components/chat/chat.component.html -->
+<div class="chat-container">
+  <!-- Mobile back button -->
+  <div *ngIf="isMobileView && !showConversationList && selectedConversation" class="mobile-header">
+    <button class="back-button" (click)="backToConversations()">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="19" y1="12" x2="5" y2="12"></line>
+        <polyline points="12 19 5 12 12 5"></polyline>
+      </svg>
+      Back
+    </button>
+
+    <div *ngIf="selectedConversation" class="conversation-title">
+      <span>{{ chatService.getOtherUser(selectedConversation).firstName }} {{
+        chatService.getOtherUser(selectedConversation).lastName }}</span>
+    </div>
+  </div>
+
+  <div class="chat-layout">
+    <!-- Conversation List (hidden on mobile when viewing messages) -->
+    <div class="conversation-sidebar" [ngClass]="{'hidden': isMobileView && !showConversationList}">
+      <app-chat-list [conversations]="conversations" [selectedConversation]="selectedConversation"
+        [currentUserId]="currentUserId" (conversationSelected)="selectConversation($event)">
+      </app-chat-list>
+    </div>
+
+    <!-- Chat Messages (hidden on mobile when viewing conversation list) -->
+    <!-- Update in src/app/components/chat/chat.component.html -->
+    <div class="chat-main" [ngClass]="{'hidden': isMobileView && showConversationList}">
+      <div class="chat-content">
+        <!-- Add a div wrapper with the chat-messages class -->
+        <div class="chat-messages">
+          <app-chat-messages [messages]="messages" [conversation]="selectedConversation"
+            [currentUserId]="currentUserId">
+          </app-chat-messages>
+        </div>
+
+        <app-chat-input [disabled]="!selectedConversation" [conversationId]="selectedConversation?.id || null"
+          (messageSent)="sendMessage($event)">
+        </app-chat-input>
+      </div>
+    </div>
+  </div>
+</div>

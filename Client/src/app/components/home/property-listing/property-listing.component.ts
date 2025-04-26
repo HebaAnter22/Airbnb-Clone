@@ -44,16 +44,16 @@ export class PropertyListingsComponent implements OnInit {
   isLoading: boolean = true;
   activeFilter: string = 'All homes';
   isSearching: boolean = false;
-  wishlistProperties: number[] = []; 
+  wishlistProperties: number[] = [];
   showToast: boolean = false;
-  toastMessage: string = ''; 
+  toastMessage: string = '';
 
   constructor(
     private router: Router,
     private propertyService: PropertyService,
     private snackBar: MatSnackBar,
-    private profileService:ProfileService
-  ) {}
+    private profileService: ProfileService
+  ) { }
 
   ngOnInit() {
     this.fetchProperties();
@@ -127,7 +127,7 @@ export class PropertyListingsComponent implements OnInit {
     });
   }
 
-  
+
 
   getPropertyImage(property: PropertyDto): string {
     if (!property.images || property.images.length === 0) {
@@ -140,14 +140,14 @@ export class PropertyListingsComponent implements OnInit {
   handleImageError(property: PropertyDto) {
     console.warn(`Image failed to load for property ${property.id}:`, this.getPropertyImage(property));
     const currentIndex = this.currentImageIndices[property.id] ?? 0;
-    
+
     if (property.images && property.images.length > currentIndex + 1) {
       this.currentImageIndices[property.id] = currentIndex + 1;
     } else {
-      property.images = [{ 
-        id: 0, 
-        imageUrl: 'assets/images/property-placeholder.jpg', 
-        isPrimary: true 
+      property.images = [{
+        id: 0,
+        imageUrl: 'assets/images/property-placeholder.jpg',
+        isPrimary: true
       }];
     }
   }
@@ -191,7 +191,7 @@ export class PropertyListingsComponent implements OnInit {
         // Assuming the service returns an array of property IDs or objects with IDs
         console.log('Wishlist properties from API:', properties);
         this.wishlistProperties = properties.map((property: any) => property.propertyId);
-          console.log('Wishlist properties loaded:', this.wishlistProperties);
+        console.log('Wishlist properties loaded:', this.wishlistProperties);
       },
       error: (err) => console.error('Error loading wishlist:', err)
     });
@@ -204,12 +204,10 @@ export class PropertyListingsComponent implements OnInit {
 
   toggleFavorite(propertyId: number, event: Event): void {
     event.stopPropagation(); // Prevent click from bubbling to parent elements
-    
+
     if (this.isFavorite(propertyId)) {
-      console.log('Removing from wishlist:', propertyId);
       this.removeFromWishlist(propertyId);
     } else {
-      console.log('Adding to wishlist:', propertyId);
       this.addToWishlist(propertyId);
     }
   }
@@ -221,7 +219,7 @@ export class PropertyListingsComponent implements OnInit {
           this.wishlistProperties.push(propertyId);
           this.showToast = true;
           this.toastMessage = "🏡 Property added to your wishlist! <a href='/wishlist'>Click here to view</a>";
-  
+
           setTimeout(() => {
             this.showToast = false;
           }, 3000);
@@ -230,7 +228,7 @@ export class PropertyListingsComponent implements OnInit {
       error: (err) => console.error('Error adding to wishlist:', err)
     });
   }
- 
+
   removeFromWishlist(propertyId: number): void {
     this.profileService.addOrRemoveToFavourites(propertyId).subscribe({
       next: () => {

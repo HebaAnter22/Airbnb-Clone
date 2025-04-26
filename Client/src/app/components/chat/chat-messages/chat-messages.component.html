@@ -1,0 +1,45 @@
+<!-- src/app/components/chat/chat-messages/chat-messages.component.html -->
+<div class="messages-container" #messageContainer>
+  <div *ngIf="!conversation" class="no-conversation">
+    <p>Select a conversation to start chatting</p>
+  </div>
+
+  <div *ngIf="conversation && messages.length === 0" class="no-messages">
+    <p>No messages yet. Send a message to start the conversation.</p>
+  </div>
+
+  <!-- Remove the reverseArray pipe -->
+  <div *ngIf="conversation && messages.length > 0" class="message-list">
+    <ng-container *ngFor="let message of messages; let i = index">
+      <div *ngIf="shouldShowDate(i)" class="date-divider">
+        <span>{{ getDateDivider(message.sentAt) }}</span>
+      </div>
+
+      <div class="message" [class.own-message]="message.senderId === currentUserId"
+        [class.other-message]="message.senderId !== currentUserId">
+        <div class="message-content">
+          <p>{{ message.content }}</p>
+          <div class="message-meta">
+            <span class="message-time">{{ getMessageDate(message) }}</span>
+            <span *ngIf="message.senderId === currentUserId" class="message-status" [class.read]="message.readAt">
+              <span *ngIf="getMessageStatus(message) =='Read'">
+                <i class="fa-solid fa-check-double"></i>
+              </span>
+              {{ getMessageStatus(message) }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </ng-container>
+  </div>
+
+
+</div>
+<div *ngIf="conversation && isTyping" class="typing-indicator">
+  <div class="typing-dots">
+    <div class="dot"></div>
+    <div class="dot"></div>
+    <div class="dot"></div>
+  </div>
+  <span>{{typingUserName}} is typing...</span>
+</div>

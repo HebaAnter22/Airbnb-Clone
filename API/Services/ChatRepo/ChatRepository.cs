@@ -105,5 +105,15 @@ namespace API.Services
                 await _context.SaveChangesAsync();
             }
         }
+        public async Task<int> GetUnreadCountAsync(int userId)
+        {
+            var conversations = await _context.Conversations
+                .Include(c => c.Messages)
+                .Where(c => c.user1Id == userId || c.user2Id == userId)
+                .ToListAsync();
+
+            return conversations.Sum(c => c.Messages.Count(m =>
+                m.SenderId != userId && m.ReadAt == null));
+        }
     }
 }

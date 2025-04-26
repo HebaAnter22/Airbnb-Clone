@@ -1,0 +1,126 @@
+.chat-list-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    border-right: 1px solid #EBEBEB;
+    background-color: #fff;
+  }
+  
+  .chat-list-header {
+    padding: 24px 20px;
+    border-bottom: 1px solid #EBEBEB;
+    background-color: #fff;
+  }
+  
+  .chat-list-header h3 {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 600;
+    color: #222222;
+    font-family: 'Circular', -apple-system, BlinkMacSystemFont, Roboto, "Helvetica Neue", sans-serif;
+  }
+  
+  .no-conversations {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    color: #717171;
+    font-family: 'Circular', -apple-system, BlinkMacSystemFont, Roboto, "Helvetica Neue", sans-serif;
+  }
+  
+  .conversation-list {
+    flex: 1;
+    overflow-y: auto;
+  }
+  
+  .conversation-item {
+    display: flex;
+    padding: 16px 20px;
+    border-bottom: 1px solid #EBEBEB;
+    cursor: pointer;
+    transition: all 0.2s;
+    background-color: #fff;
+  }
+  
+  .conversation-item:hover {
+    background-color: #F7F7F7;
+  }
+  
+  .conversation-item.active {
+    background-color: #FFF8F6;
+    border-left: 3px solid #FF385C;
+  }
+  
+  .conversation-item.unread {
+    background-color: #FFF8F6;
+  }
+  
+  .avatar {
+    width: 56px;
+    height: 56px;
+    margin-right: 16px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+    border: 1px solid #EBEBEB;
+  }
+  
+  .avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  
+  .conversation-info {
+    flex: 1;
+    min-width: 0;
+  }
+  
+  .conversation-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 6px;
+  }
+  
+  .user-name {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: #222222;
+    font-family: 'Circular', -apple-system, BlinkMacSystemFont, Roboto, "Helvetica Neue", sans-serif;
+  }
+  
+  .time {
+    font-size: 14px;
+    color: #717171;
+    white-space: nowrap;
+    font-family: 'Circular', -apple-system, BlinkMacSystemFont, Roboto, "Helvetica Neue", sans-serif;
+  }
+  
+  .last-message {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .last-message p {
+    margin: 0;
+    font-size: 14px;
+    color: #717171;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 80%;
+    font-family: 'Circular', -apple-system, BlinkMacSystemFont, Roboto, "Helvetica Neue", sans-serif;
+  }
+  
+  .unread-indicator {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: #FF385C;
+  }

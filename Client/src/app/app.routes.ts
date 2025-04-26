@@ -26,6 +26,7 @@ import { BookingDetailsComponent } from './components/host/booking-details/booki
 import { PropertyBookingDetailsComponent } from './components/host/property-booking-details/property-booking-details.component';
 import { VerifinghostComponent } from './components/admin/verifinghost/verifinghost.component';
 import { PaymentComponent } from './components/payment/payment.component';
+import { ChatComponent } from './components/chat/chat.component';
 
 
 
@@ -49,7 +50,16 @@ export const routes: Routes = [
       canActivate: [authGuard, roleGuard],
       data: { role: 'Host' }
     },
-
+    {
+      path: 'chat',
+      component: ChatComponent,
+      canActivate: [authGuard]
+    },
+    {
+      path: 'chat/:id',
+      component: ChatComponent,
+      canActivate: [authGuard]
+    },
     {path:'payment/:id',component:PaymentComponent,canActivate:[authGuard]},
     // {
     //   path: 'host/properties',

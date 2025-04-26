@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../../services/auth.service';
 import { ProfileService } from '../../../services/profile.service';
+import { ChatDropdownComponent } from '../../chat/chat-dropdown/chat-dropdown.component';
 
 interface Notification {
   id: number;
@@ -13,7 +14,7 @@ interface Notification {
 @Component({
   selector: 'app-navbar',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, ChatDropdownComponent],
   templateUrl: './navbar.component.html',
   styleUrls: ['./navbar.component.css']
 })
@@ -21,18 +22,18 @@ interface Notification {
 export class NavbarComponent implements OnInit {
   @Input() isHeaderScrolled: boolean = false;
   isDropdownOpen = false;
-  loggedIn: boolean = false; 
+  loggedIn: boolean = false;
   imageUrl: string = ''; // Default image URL
-  userFirstName:string='';
-  IsUserGuest:boolean=false;
+  userFirstName: string = '';
+  IsUserGuest: boolean = false;
 
- 
+
   // Add these properties to your component class
   isNotificationOpen: boolean = false;
   notificationCount: number = 0;
   notifications: Notification[] = [];
-  
- 
+
+
 
 
 
@@ -41,21 +42,22 @@ export class NavbarComponent implements OnInit {
     event.stopPropagation(); // Prevent the click from bubbling up to the document
     this.isDropdownOpen = !this.isDropdownOpen;
   }
-  constructor(private authService:AuthService,
-    private profileService:ProfileService,
-    private router:Router
+  constructor(private authService: AuthService,
+    private profileService: ProfileService,
+    private router: Router
   ) {
-    if(this.authService.userId){
+    if (this.authService.userId) {
       this.loggedIn = true;
     }
   }
 
   ngOnInit() {
-    this.profileService.getUserProfile(this.authService.userId?this.authService.userId:''  ).subscribe(
-      
+
+    this.profileService.getUserProfile(this.authService.userId ? this.authService.userId : '').subscribe(
+
       (profile: any) => {
         this.userFirstName = profile.firstName || 'User'; // Default to 'User' if first name is not available
-        this.imageUrl = profile.profilePictureUrl? 'https://localhost:7228'+ profile.profilePictureUrl :this.imageUrl// Use default image if profile picture URL is not available
+        this.imageUrl = profile.profilePictureUrl ? 'https://localhost:7228' + profile.profilePictureUrl : this.imageUrl// Use default image if profile picture URL is not available
       },
       (error) => {
         console.error('Error loading profile:', error);
@@ -65,7 +67,7 @@ export class NavbarComponent implements OnInit {
 
     this.IsUserGuest = this.authService.isUserAGuest();
   }
-  
+
   hostYourHomeClicked() {
     if (this.authService.isUserAGuest()) {
 
@@ -79,8 +81,8 @@ export class NavbarComponent implements OnInit {
 
 
 
-   // Add this to your ngOnInit or constructor
-   initializeNotifications() {
+  // Add this to your ngOnInit or constructor
+  initializeNotifications() {
     // Example notifications - replace with your actual data source
     this.notifications = [
       {
@@ -102,26 +104,26 @@ export class NavbarComponent implements OnInit {
         read: true
       }
     ];
-    
+
     // Count unread notifications
     this.updateNotificationCount();
   }
-  
+
   // Method to toggle notification dropdown
   toggleNotifications(event: Event) {
     event.stopPropagation();
     this.isNotificationOpen = !this.isNotificationOpen;
-    
+
     if (this.isDropdownOpen) {
       this.isDropdownOpen = false;
     }
   }
-  
+
   // Update the notification count
   updateNotificationCount() {
     this.notificationCount = this.notifications.filter(notification => !notification.read).length;
   }
-  
+
   // Mark all notifications as read
   markAllAsRead() {
     this.notifications.forEach(notification => {
@@ -129,17 +131,16 @@ export class NavbarComponent implements OnInit {
     });
     this.updateNotificationCount();
   }
-  
+
   // Close notifications when clicking elsewhere
   // Add this to your existing document click handler or create one
-  @HostListener('document:click', ['$event'])
   clickOutside(event: Event) {
     // Close notification dropdown when clicking outside
     const target = event.target as HTMLElement | null;
     if (this.isNotificationOpen && target && !target.closest('.notification-container')) {
       this.isNotificationOpen = false;
     }
-    
+
     // If you already have a dropdown close handler, integrate this logic there
     if (this.isDropdownOpen && target && !target.closest('.menu-profile') && !target.closest('.dropdown')) {
       this.isDropdownOpen = false;
@@ -152,8 +153,8 @@ export class NavbarComponent implements OnInit {
   }
 
   editProfileClicked() {
-    
-      this.router.navigate([`/editProfile/${this.authService.userId}`]);
+
+    this.router.navigate([`/editProfile/${this.authService.userId}`]);
   }
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: Event) {
@@ -175,6 +176,6 @@ export class NavbarComponent implements OnInit {
   logout() {
     console.log('Logging out...'); // Debugging log
     this.authService.logout();
-    
+
   }
 }

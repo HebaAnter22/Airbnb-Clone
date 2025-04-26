@@ -710,9 +710,11 @@
        
       
         
-        <button class="btn-message-host">
-          Message host
-        </button>
+          <app-message-user-button 
+          [userId]="property.hostId" 
+          buttonText="Message Host" 
+          buttonClass="Dark">
+        </app-message-user-button>
         
         <div class="host-attributes">
           <div class="host-attribute" *ngIf="hostProfile?.work">
