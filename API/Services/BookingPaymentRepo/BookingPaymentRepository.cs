@@ -15,6 +15,7 @@ namespace API.Services.BookingPaymentRepo
         private readonly IConfiguration _configuration;
         private readonly ILogger<BookingPaymentRepository> _logger;
 
+
         public BookingPaymentRepository(
             AppDbContext context, 
             IBookingRepository bookingRepository, 
@@ -93,6 +94,8 @@ namespace API.Services.BookingPaymentRepo
                 Status = status, // Use the passed status (e.g., "succeeded")
                 CreatedAt = DateTime.UtcNow
             };
+            var booking = _bookingRepository.UpdateBookingStatusAsync(bookingId,  "Confirmed");
+
 
             _context.BookingPayments.Add(payment);
             await _context.SaveChangesAsync();
@@ -167,6 +170,7 @@ namespace API.Services.BookingPaymentRepo
                 {
                     // Try the standard method first
                     await UpdateHostEarningsAsync(bookingId, paymentAmount);
+                    await _bookingRepository.UpdateBookingStatusAsync(bookingId, "Confirmed");
                 }
                 catch (Exception ex)
                 {

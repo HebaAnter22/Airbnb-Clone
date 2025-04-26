@@ -153,6 +153,16 @@ namespace API.Controllers
                     existingPayment.Status = "succeeded";
                     paymentAmount = existingPayment.Amount;
                     isNewPayment = true;
+                    
+                    // Update booking status to Confirmed when payment is marked as successful
+                    var booking = await _context.Bookings.FindAsync(confirmPaymentDto.BookingId);
+                    if (booking != null && booking.Status == "Pending")
+                    {
+                        booking.Status = "Confirmed";
+                        _context.Update(booking);
+                        _logger.LogInformation("Booking {BookingId} status updated to Confirmed", booking.Id);
+                    }
+                    
                     await _context.SaveChangesAsync();
                 }
             }
@@ -187,12 +197,26 @@ namespace API.Controllers
                 Amount = amount,
                 PaymentMethodType = "Stripe",
                 TransactionId = transactionId,
-                Status = "succeeded", // Fix: Changed from "Confrimed" to "succeeded" to match expected status
+                Status = "succeeded", // Fixed status value to match expected status
                 CreatedAt = DateTime.UtcNow
             };
 
+            var booking = await _context.Bookings.FindAsync(bookingId);
+            if (booking == null)
+            {
+                throw new Exception($"Booking with ID {bookingId} not found.");
+            }
+            else if (booking.Status != "Pending")
+            {
+                throw new Exception($"Booking with ID {bookingId} is not in a valid state for payment.");
+            }
+            
+            booking.Status = "Confirmed"; // Update booking status to Confirmed
+            _context.Update(booking);
             _context.BookingPayments.Add(payment);
             await _context.SaveChangesAsync();
+            
+            _logger.LogInformation("Booking {BookingId} status updated to Confirmed", bookingId);
         }
 
         [HttpGet("GetPaymentBySessionId/{sessionId}")]

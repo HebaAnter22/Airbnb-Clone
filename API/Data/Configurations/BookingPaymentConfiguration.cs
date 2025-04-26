@@ -13,7 +13,7 @@ namespace API.Data.Configurations
             builder.Property(bp => bp.BookingId).IsRequired().HasColumnName("booking_id");
             builder.Property(bp => bp.Amount).IsRequired().HasColumnType("decimal(18,2)").HasColumnName("amount");
             builder.Property(bp => bp.PaymentMethodType).IsRequired().HasMaxLength(50).HasColumnName("payment_method_type");
-            builder.Property(bp => bp.Status).IsRequired().HasMaxLength(20).HasColumnName("status").HasConversion<string>();
+            builder.Property(bp => bp.Status).IsRequired().HasMaxLength(50).HasColumnName("status").HasConversion<string>();
             builder.Property(bp => bp.TransactionId).HasMaxLength(255).HasColumnName("transaction_id");
             builder.Property(bp => bp.CreatedAt).HasDefaultValueSql("GETDATE()").HasColumnType("datetime").HasColumnName("created_at");
             builder.Property(bp => bp.UpdatedAt).HasColumnType("datetime").HasColumnName("updated_at");

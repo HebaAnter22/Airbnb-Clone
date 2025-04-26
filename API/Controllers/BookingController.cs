@@ -524,16 +524,16 @@ namespace API.Controllers
                     EndDate = input.EndDate,
                     TotalAmount = discountedPrice,
                     PromotionId = input.PromotionId,
-                    Status = BookingStatus.Pending.ToString(),
+                    Status = "Pending",
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
                 };
 
 
-                if (property.Result.InstantBook == true)
-                {
-                    booking.Status = BookingStatus.Confirmed.ToString();
-                }
+                //if (property.Result.InstantBook == true)
+                //{
+                //    booking.Status = BookingStatus.Confirmed.ToString();
+                //}
 
                 await _bookingRepo.CreateBookingAndUpdateAvailabilityAsync(booking);
                 var usedPromotion = new UserUsedPromotion
