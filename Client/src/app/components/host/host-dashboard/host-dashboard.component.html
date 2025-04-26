@@ -143,28 +143,7 @@
 
 <!-- Payouts Section -->
 <div *ngIf="currentSection === 'payouts'" class="content-section">
-  <h2>Payouts</h2>
-  <div class="payouts-container">
-    <div class="payout-summary">
-      <div class="payout-card">
-        <h3>Available Balance</h3>
-        <p class="amount">$0.00</p>
-        <button class="btn btn-primary">Request Payout</button>
-      </div>
-      <div class="payout-card">
-        <h3>Next Payout</h3>
-        <p class="amount">$0.00</p>
-        <p class="date">Not scheduled</p>
-      </div>
-    </div>
-    <div class="payout-history">
-      <h3>Payout History</h3>
-      <div class="empty-state">
-        <i class="fas fa-money-bill-wave"></i>
-        <p>No payout history available</p>
-      </div>
-    </div>
-  </div>
+  <app-host-payouts></app-host-payouts>
 </div>
 
     <!-- Account Section -->

@@ -23,6 +23,7 @@ using API.Services.HostVerificationRepo;
 using Stripe;
 using API.Hubs;
 using API.Services.BookingPaymentRepo;
+using API.Services.Payoutrepo;
 
 namespace API
 {
@@ -132,7 +133,8 @@ namespace API
             builder.Services.AddScoped<IHostVerificationRepository, HostVerificationRepository>();
 
             builder.Services.AddScoped<IBookingRepository, BookingRepository>();
-            builder.Services.AddScoped<IBookingPaymentRepository, BookingPaymentRepository>(); // Add this
+            builder.Services.AddScoped<IBookingPaymentRepository, BookingPaymentRepository>();
+            builder.Services.AddScoped<IPayoutService, Services.Payoutrepo.PayoutService>();
             builder.Services.AddScoped<IPropertyAvailabilityRepository, PropertyAvailabilityRepository>();
             builder.Services.AddScoped<IAdminRepository, AdminRepository>();
             builder.Services.AddScoped<IHostVerificationRepository, HostVerificationRepository>();
