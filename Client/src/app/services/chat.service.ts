@@ -1,7 +1,7 @@
 // src/app/services/chat.service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable, map } from 'rxjs';
+import { BehaviorSubject, Observable, map, tap } from 'rxjs';
 import { HttpTransportType, HubConnection, HubConnectionBuilder } from '@microsoft/signalr';
 import { AuthService } from './auth.service';
 
@@ -32,17 +32,19 @@ export interface Conversation {
 })
 export class ChatService {
     private baseUrl = 'https://localhost:7228';
-    private hubConnection: HubConnection | null = null;
+    public hubConnection: HubConnection | null = null;
     private conversationsSubject: BehaviorSubject<Conversation[]> = new BehaviorSubject<Conversation[]>([]);
     public conversations$ = this.conversationsSubject.asObservable();
-
+    public newConversationSubject = new BehaviorSubject<Conversation | null>(null);
+    public newConversation$ = this.newConversationSubject.asObservable();
     private selectedConversationSubject: BehaviorSubject<Conversation | null> = new BehaviorSubject<Conversation | null>(null);
     public selectedConversation$ = this.selectedConversationSubject.asObservable();
     private unreadCountSubject = new BehaviorSubject<number>(0);
     public unreadCount$ = this.unreadCountSubject.asObservable();
     private messagesSubject: BehaviorSubject<Message[]> = new BehaviorSubject<Message[]>([]);
     public messages$ = this.messagesSubject.asObservable();
-
+    private typingUsersSubject = new BehaviorSubject<{ [conversationId: number]: number }>({});
+    public typingUsers$ = this.typingUsersSubject.asObservable();
     constructor(
         private http: HttpClient,
         private authService: AuthService
@@ -103,7 +105,13 @@ export class ChatService {
 
 
 
-
+    public notifyTyping(conversationId: number, isTyping: boolean): void {
+        if (this.hubConnection?.state === 'Connected') {
+            const userId = Number(this.authService.userId);
+            this.hubConnection.invoke('SendTypingNotification', conversationId, userId, isTyping)
+                .catch(err => console.error('Error sending typing notification:', err));
+        }
+    }
 
 
 
@@ -164,6 +172,23 @@ export class ChatService {
 
         this.hubConnection.on('MessageError', (errorMessage: string) => {
             console.error('Message error from server:', errorMessage);
+        });
+
+        this.hubConnection?.on('ReceiveTypingNotification', (conversationId: number, userId: number, isTyping: boolean) => {
+            const currentTypingUsers = { ...this.typingUsersSubject.value };
+
+            if (isTyping) {
+                currentTypingUsers[conversationId] = userId;
+            } else {
+                delete currentTypingUsers[conversationId];
+            }
+
+            this.typingUsersSubject.next(currentTypingUsers);
+        });
+        // Add to setupSignalREvents in ChatService
+        this.hubConnection?.on('ReceiveNewConversation', (conversation: Conversation) => {
+            const currentConversations = this.conversationsSubject.value;
+            this.conversationsSubject.next([conversation, ...currentConversations]);
         });
     }
 
@@ -356,11 +381,16 @@ export class ChatService {
     public createConversation(otherUserId: number): Observable<Conversation> {
         return this.http.post<Conversation>(`${this.baseUrl}/api/Chat/conversations?otherUserId=${otherUserId}`, {})
             .pipe(
-                map(conversation => {
+                tap(conversation => {
                     const currentConversations = this.conversationsSubject.value;
                     this.conversationsSubject.next([conversation, ...currentConversations]);
-                    this.selectedConversationSubject.next(conversation);
-                    return conversation;
+                    this.newConversationSubject.next(conversation);
+
+                    // Notify via SignalR
+                    if (this.hubConnection?.state === 'Connected') {
+                        this.hubConnection.invoke('NotifyNewConversation', conversation, otherUserId)
+                            .catch(err => console.error('Error notifying new conversation:', err));
+                    }
                 })
             );
     }
@@ -411,7 +441,6 @@ export class ChatService {
 
     public getOtherUser(conversation: Conversation): any {
         const currentUserId = Number(this.authService.userId);
-        console.log(currentUserId, conversation.user1Id, conversation.user2Id);
         return conversation.user1Id === currentUserId ? conversation.user2 : conversation.user1;
     }
 
