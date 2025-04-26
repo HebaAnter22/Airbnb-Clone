@@ -38,9 +38,11 @@ namespace API
             builder.Services.AddSignalR();
             builder.Services.AddScoped<IChatService, ChatService>();
 
-
-
-            builder.Services.AddControllers();
+            // Configure to allow reading the raw request body for Stripe webhooks
+            builder.Services.AddControllers(options =>
+            {
+                options.AllowEmptyInputInBodyModelBinding = true;
+            });
 
             builder.Services.AddSwaggerGen(c =>
             {
@@ -162,6 +164,13 @@ namespace API
             app.UseSwaggerUI();
             app.UseCors("AllowAll");
             app.UseHttpsRedirection();
+
+            // Configure to read raw request body for Stripe webhooks
+            app.Use(async (context, next) =>
+            {
+                context.Request.EnableBuffering();
+                await next();
+            });
 
             // Ensure the uploads directory exists
             var uploadsPath = Path.Combine(app.Environment.WebRootPath, "uploads");

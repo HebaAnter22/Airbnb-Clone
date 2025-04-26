@@ -29,8 +29,6 @@ import { PropertyListingsComponent } from './components/home/property-listing/pr
 import { CheckoutComponent } from './components/checkout/checkout.component';
 import { PaymentSuccessComponent } from './components/payment-success/payment-success.component';
 import { HostPayoutComponent } from './components/host-payout/host-payout.component';
-// import { PaymentCancelComponent } from './components/payment-cancel/payment-cancel.component';
-
 export const routes: Routes = [
   {path: 'home', component: PropertyListingsComponent},
   {path: '', redirectTo: 'home', pathMatch: 'full'},
@@ -116,6 +114,11 @@ export const routes: Routes = [
   component: VerifinghostComponent,
   // canActivate: [authGuard, roleGuard],
   // data: { role: 'Admin' }
+},
+{
+  path: 'profile',
+  component: ProfileComponent,
+  canActivate: [authGuard]
 },
     { path: 'forbidden', component: NotFoundComponent },
     

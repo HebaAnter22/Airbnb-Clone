@@ -12,6 +12,8 @@ namespace API.Services.BookingPaymentRepo
         Task<bool> UpdatePaymentStatusAsync(int paymentId, string newStatus);
         Task<bool> RefundPaymentAsync(int paymentId, decimal refundAmount);
         Task ConfirmBookingPaymentAsync(int bookingId, string paymentIntentId);
+        Task UpdateHostEarningsAsync(int bookingId, decimal amount);
+        Task UpdateHostEarningsDirectlyAsync(int hostId, decimal amount);
         //Task<bool> CreatePayoutAsync(int bookingId, decimal amount);
         Task<PaymentIntent> CreatePaymentIntentAsync(decimal amount, int bookingId);
 

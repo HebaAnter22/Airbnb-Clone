@@ -13,12 +13,18 @@ namespace API.Services.BookingPaymentRepo
         private readonly AppDbContext _context;
         private readonly IBookingRepository _bookingRepository;
         private readonly IConfiguration _configuration;
+        private readonly ILogger<BookingPaymentRepository> _logger;
 
-        public BookingPaymentRepository(AppDbContext context, IBookingRepository bookingRepository, IConfiguration configuration) : base(context)
+        public BookingPaymentRepository(
+            AppDbContext context, 
+            IBookingRepository bookingRepository, 
+            IConfiguration configuration,
+            ILogger<BookingPaymentRepository> logger) : base(context)
         {
             _context = context;
             _bookingRepository = bookingRepository;
             _configuration = configuration;
+            _logger = logger;
 
             StripeConfiguration.ApiKey = _configuration["Stripe:SecretKey"];
         }
@@ -42,7 +48,6 @@ namespace API.Services.BookingPaymentRepo
             var service = new PaymentIntentService();
             return await service.CreateAsync(options);
         }
-
 
         public async Task<Session> CreateCheckoutSessionAsync(decimal amount, int bookingId)
         {
@@ -92,11 +97,16 @@ namespace API.Services.BookingPaymentRepo
             _context.BookingPayments.Add(payment);
             await _context.SaveChangesAsync();
         }
+        
         public async Task ConfirmBookingPaymentAsync(int bookingId, string paymentIntentId)
         {
             // Check if payment already exists to avoid duplicates
             var existingPayment = await _context.BookingPayments
                 .FirstOrDefaultAsync(p => p.TransactionId == paymentIntentId);
+
+            decimal paymentAmount = 0;
+            bool isNewPayment = false;
+            int? hostId = null;
 
             if (existingPayment == null)
             {
@@ -104,19 +114,178 @@ namespace API.Services.BookingPaymentRepo
                 var paymentIntentService = new PaymentIntentService();
                 var paymentIntent = await paymentIntentService.GetAsync(paymentIntentId);
 
+                paymentAmount = paymentIntent.Amount / 100m; // Convert from cents to dollars
+                isNewPayment = true;
+
+                // First, get the host ID to ensure we can update earnings even if the main method fails
+                var booking = await _context.Bookings
+                    .Include(b => b.Property)
+                    .ThenInclude(p => p.Host)
+                    .FirstOrDefaultAsync(b => b.Id == bookingId);
+
+                if (booking?.Property?.Host != null)
+                {
+                    hostId = booking.Property.Host.HostId;
+                }
+
                 // Insert the payment record
                 await InsertPaymentAsync(
                     bookingId,
-                    paymentIntent.Amount / 100m, // Convert from cents to dollars
+                    paymentAmount,
                     paymentIntentId,
                     paymentIntent.Status
                 );
             }
             else
             {
-                // Update the status if the payment already exists
-                existingPayment.Status = "succeeded";
+                // Update the status if the payment already exists but wasn't successful yet
+                if (existingPayment.Status != "succeeded")
+                {
+                    existingPayment.Status = "succeeded";
+                    paymentAmount = existingPayment.Amount;
+                    isNewPayment = true;
+
+                    // Get host ID
+                    var booking = await _context.Bookings
+                        .Include(b => b.Property)
+                        .ThenInclude(p => p.Host)
+                        .FirstOrDefaultAsync(b => b.Id == bookingId);
+
+                    if (booking?.Property?.Host != null)
+                    {
+                        hostId = booking.Property.Host.HostId;
+                    }
+
+                    await _context.SaveChangesAsync();
+                }
+            }
+
+            // Only update host earnings for new successful payments
+            if (isNewPayment && paymentAmount > 0)
+            {
+                try
+                {
+                    // Try the standard method first
+                    await UpdateHostEarningsAsync(bookingId, paymentAmount);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error updating host earnings through booking. Trying direct method...");
+                    
+                    // If there's an error, try the direct method if we have the host ID
+                    if (hostId.HasValue)
+                    {
+                        await UpdateHostEarningsDirectlyAsync(hostId.Value, paymentAmount);
+                    }
+                    else
+                    {
+                        _logger.LogError("Cannot update host earnings: no host ID available");
+                    }
+                }
+            }
+        }
+
+        public async Task UpdateHostEarningsAsync(int bookingId, decimal amount)
+        {
+            try
+            {
+                // Get the booking with property and host information
+                var booking = await _context.Bookings
+                    .Include(b => b.Property)
+                    .ThenInclude(p => p.Host)
+                    .FirstOrDefaultAsync(b => b.Id == bookingId);
+
+                if (booking == null)
+                {
+                    _logger.LogWarning("UpdateHostEarningsAsync: Booking {BookingId} not found", bookingId);
+                    return;
+                }
+
+                if (booking.Property?.Host == null)
+                {
+                    _logger.LogWarning("UpdateHostEarningsAsync: Host not found for booking {BookingId}", bookingId);
+                    return;
+                }
+
+                // Get the host directly to ensure proper tracking
+                var hostId = booking.Property.Host.HostId;
+                var host = await _context.HostProfules.FindAsync(hostId);
+                
+                if (host == null)
+                {
+                    _logger.LogWarning("UpdateHostEarningsAsync: Host with ID {HostId} not found in direct query", hostId);
+                    return;
+                }
+
+                // Determine the host's commission rate (usually hosts pay a percentage to the platform)
+                // For simplicity, we'll assume 85% goes to host (15% platform fee)
+                decimal hostCommissionRate = 0.85m;
+                decimal hostAmount = amount * hostCommissionRate;
+
+                // Log the values before the update for debugging
+                _logger.LogInformation(
+                    "Before update - Host {HostId}: Current TotalEarnings: {TotalEarnings}, Current AvailableBalance: {AvailableBalance}",
+                    host.HostId, host.TotalEarnings, host.AvailableBalance);
+
+                // Update the host's total earnings and available balance
+                host.TotalEarnings += hostAmount;
+                host.AvailableBalance += hostAmount;
+
+                // Mark entity as modified
+                _context.HostProfules.Update(host);
+
+                // Save changes to database
                 await _context.SaveChangesAsync();
+
+                _logger.LogInformation(
+                    "Updated Host {HostId} earnings: Added {Amount} to TotalEarnings and AvailableBalance. New Total: {Total}, New Balance: {Balance}",
+                    host.HostId, hostAmount, host.TotalEarnings, host.AvailableBalance);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating host earnings for booking {BookingId}", bookingId);
+                throw;
+            }
+        }
+
+        public async Task UpdateHostEarningsDirectlyAsync(int hostId, decimal amount)
+        {
+            try
+            {
+                // Get the host directly from the database
+                var host = await _context.HostProfules.FindAsync(hostId);
+                
+                if (host == null)
+                {
+                    _logger.LogWarning("UpdateHostEarningsDirectlyAsync: Host with ID {HostId} not found", hostId);
+                    return;
+                }
+
+                // Determine the host's commission rate
+                decimal hostCommissionRate = 0.85m;
+                decimal hostAmount = amount * hostCommissionRate;
+
+                // Log before values
+                _logger.LogInformation(
+                    "Direct update - Before values - Host {HostId}: TotalEarnings: {TotalEarnings}, AvailableBalance: {AvailableBalance}",
+                    host.HostId, host.TotalEarnings, host.AvailableBalance);
+
+                // Update using direct SQL for guaranteed update
+                await _context.Database.ExecuteSqlRawAsync(
+                    "UPDATE HostProfules SET TotalEarnings = TotalEarnings + {0}, AvailableBalance = AvailableBalance + {0} WHERE HostId = {1}",
+                    hostAmount, hostId);
+
+                // Refresh the host entity from database to get updated values
+                await _context.Entry(host).ReloadAsync();
+
+                _logger.LogInformation(
+                    "Direct update - After values - Host {HostId}: TotalEarnings: {TotalEarnings}, AvailableBalance: {AvailableBalance}",
+                    host.HostId, host.TotalEarnings, host.AvailableBalance);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error directly updating host earnings for host {HostId}", hostId);
+                throw;
             }
         }
 
@@ -220,10 +389,6 @@ namespace API.Services.BookingPaymentRepo
 
         //        return true;
             
-
-            
         //}
-
     }
-
 }

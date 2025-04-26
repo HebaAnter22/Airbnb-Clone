@@ -32,7 +32,7 @@
 
         <div class="profile-image-container">
           <div class="profile-image">
-            <img [src]="getProfileImageUrl()" alt="Profile picture" onerror="this.src='/assets/default-profile.png'">
+            <img [src]="getProfileImageUrl()" alt="Profile picture">
             <div class="verified-badge" *ngIf="hostProfile?.isVerified">
               <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <circle cx="12" cy="12" r="12" fill="#FF385C"/>

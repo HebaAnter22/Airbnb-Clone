@@ -22,7 +22,7 @@ namespace API.Services.Payoutrepo
 
         public async Task<decimal> GetHostBalance(int hostId)
         {
-            var host = await _context.Hosts.FindAsync(hostId);
+            var host = await _context.HostProfules.FindAsync(hostId);
             if (host == null)
                 throw new Exception("Host not found");
 
@@ -33,7 +33,7 @@ namespace API.Services.Payoutrepo
         {
             try 
             {
-                var host = await _context.Hosts
+                var host = await _context.HostProfules
                     .Include(h => h.Payouts)
                     .FirstOrDefaultAsync(h => h.HostId == hostId);
 
@@ -147,7 +147,7 @@ namespace API.Services.Payoutrepo
                 else if (status == "Failed")
                 {
                     // Refund the amount back to host's available balance
-                    var host = await _context.Hosts.FindAsync(payout.HostId);
+                    var host = await _context.HostProfules.FindAsync(payout.HostId);
                     if (host != null)
                     {
                         host.AvailableBalance += payout.Amount;
@@ -165,7 +165,7 @@ namespace API.Services.Payoutrepo
         // Stripe Connect implementations
         public async Task<string> CreateStripeConnectAccount(int hostId)
         {
-            var host = await _context.Hosts
+            var host = await _context.HostProfules
                 .Include(h => h.User)
                 .FirstOrDefaultAsync(h => h.HostId == hostId);
 
@@ -220,7 +220,7 @@ namespace API.Services.Payoutrepo
 
         public async Task<string> GetStripeConnectAccountLink(int hostId)
         {
-            var host = await _context.Hosts.FindAsync(hostId);
+            var host = await _context.HostProfules.FindAsync(hostId);
             if (host == null)
                 throw new Exception("Host not found");
 
@@ -228,7 +228,7 @@ namespace API.Services.Payoutrepo
             {
                 // Create an account first
                 await CreateStripeConnectAccount(hostId);
-                host = await _context.Hosts.FindAsync(hostId); // Refresh data
+                host = await _context.HostProfules.FindAsync(hostId); // Refresh data
             }
 
             try
@@ -256,7 +256,7 @@ namespace API.Services.Payoutrepo
 
         public async Task<string> CreateStripePayoutToHost(int hostId, int payoutId)
         {
-            var host = await _context.Hosts.FindAsync(hostId);
+            var host = await _context.HostProfules.FindAsync(hostId);
             if (host == null)
                 throw new Exception("Host not found");
 
@@ -298,7 +298,7 @@ namespace API.Services.Payoutrepo
 
         public async Task<bool> CheckStripeAccountStatus(int hostId)
         {
-            var host = await _context.Hosts.FindAsync(hostId);
+            var host = await _context.HostProfules.FindAsync(hostId);
             if (host == null)
                 throw new Exception("Host not found");
 

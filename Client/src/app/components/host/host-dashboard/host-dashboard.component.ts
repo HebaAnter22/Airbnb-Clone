@@ -7,6 +7,8 @@ import { HostPropertiesComponent } from '../host-proprties/host-properties.compo
 import { BookingComponent } from '../bookings/bookings.component';
 import { EarningsChartComponent } from './earnings';
 import { HostPayoutComponent } from '../../../components/host-payout/host-payout.component';
+import { AuthService } from '../../../services/auth.service';
+import { ProfileService } from '../../../services/profile.service';
 
 @Component({
   selector: 'app-host-dashboard',
@@ -32,13 +34,58 @@ export class HostDashboardComponent implements OnInit {
   userName: string = '';
   userFirstName: string = '';
   imageUrl: string = '';
+  userProfile: any;
 
-  constructor(private router: Router) {}
+  constructor(
+    private router: Router, 
+    private authService: AuthService,
+    private profileService: ProfileService
+  ) {}
 
   ngOnInit() {
     // Initialize user data
+    this.authService.getUserProfile().subscribe((userProfile: any) => {
+      console.log('User profile received:', userProfile); // Log the entire object
+      
+      // Set user data from the profile
+      this.userName = userProfile.userName || userProfile.email || '';
+      this.userFirstName = userProfile.firstName || '';
+    });
+
+    // Get user profile from profile service
+    const userId = this.authService.userId;
+    if (userId) {
+      this.profileService.getUserProfile(userId).subscribe({
+        next: (profile) => {
+          this.userProfile = profile;
+          this.imageUrl = this.userProfile.profilePictureUrl;
+          console.log('User Profile from profile service:', this.userProfile);
+        },
+        error: (err) => {
+          console.error('Error loading user profile:', err);
+        }
+      });
+    }
+
+    // Additional fallback - get values from current user if available
+    const currentUser = this.authService.currentUserValue;
+    if (currentUser) {
+      if (!this.userFirstName) {
+        this.userFirstName = currentUser.firstName || '';
+      }
+      if (!this.imageUrl) {
+        this.imageUrl = currentUser.imageUrl || '';
+      }
+    }
   }
 
+  getProfileImageUrl(): string {
+    if (this.userProfile?.profilePictureUrl) {
+      return this.userProfile.profilePictureUrl;
+    }
+    return '';
+  }
+  
   toggleDropdown(dropdown: string) {
     switch (dropdown) {
       case 'listings':
@@ -78,9 +125,11 @@ export class HostDashboardComponent implements OnInit {
 
   goToUserProfile() {
     // Implement navigation
+    this.router.navigate(['/profile']);
   }
 
   logout() {
+    this.authService.logout();
     // Implement logout
   }
 } 

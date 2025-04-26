@@ -750,4 +750,14 @@ export class AddPropertyComponent implements OnInit {
     });
     return result;
   }
+  help(): void {
+    this.snackBar.open('Please contact customer service for assistance.', 'Close', { 
+      duration: 5000, 
+      panelClass: ['snackbar-help']
+    });
+  }
+
+  exitHosting(): void {
+    this.router.navigate(['/host']);
+  }
 }

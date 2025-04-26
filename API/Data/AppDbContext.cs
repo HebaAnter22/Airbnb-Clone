@@ -26,7 +26,7 @@ namespace API.Data
         public DbSet<UserUsedPromotion> UserUsedPromotions { get; set; }
         public DbSet<PropertyCategory> PropertyCategories { get; set; }
         public DbSet<PropertyAvailability> PropertyAvailabilities { get; set; }
-        public DbSet<Models.Host> Hosts { get; set; }
+        //public DbSet<Models.Host> Hosts { get; set; }
         public DbSet<HostPayout> HostPayouts { get; set; }
 
         public DbSet<VwPropertyDetails> VwPropertyDetails { get; set; }

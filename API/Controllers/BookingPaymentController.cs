@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Stripe;
 using Stripe.Checkout;
+using Microsoft.Extensions.Logging;
 
 namespace API.Controllers
 {
@@ -18,11 +19,16 @@ namespace API.Controllers
     {
         private readonly IBookingPaymentRepository _bookingPaymentRepo;
         private readonly AppDbContext _context;
+        private readonly ILogger<BookingPaymentController> _logger;
 
-        public BookingPaymentController(IBookingPaymentRepository bookingPaymentRepository, AppDbContext context)
+        public BookingPaymentController(
+            IBookingPaymentRepository bookingPaymentRepository, 
+            AppDbContext context,
+            ILogger<BookingPaymentController> logger)
         {
             _bookingPaymentRepo = bookingPaymentRepository;
             _context = context;
+            _logger = logger;
         }
 
         [HttpPost("create-payment-intent")]
@@ -85,10 +91,31 @@ namespace API.Controllers
         [Authorize]
         public async Task<IActionResult> ConfirmBookingPaymentAsync([FromBody] ConfirmPaymentDto confirmPaymentDto)
         {
-            Console.WriteLine($"ConfirmBookingPaymentAsync called for bookingId: {confirmPaymentDto.BookingId}, paymentIntentId: {confirmPaymentDto.PaymentIntentId}");
+            _logger.LogInformation("ConfirmBookingPaymentAsync called for bookingId: {BookingId}, paymentIntentId: {PaymentIntentId}", 
+                confirmPaymentDto.BookingId, confirmPaymentDto.PaymentIntentId);
 
+            // Try to use the repository method first, which handles everything including earnings update
+            try
+            {
+                await _bookingPaymentRepo.ConfirmBookingPaymentAsync(
+                    confirmPaymentDto.BookingId, 
+                    confirmPaymentDto.PaymentIntentId);
+                
+                _logger.LogInformation("Payment confirmed and host earnings updated via repository.");
+                return Ok(new { Message = "Payment confirmed and host earnings updated." });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error using repository method to confirm payment. Falling back to controller implementation.");
+                // Fall back to controller implementation if the repository method fails
+            }
+
+            // Fall back implementation
             var existingPayment = await _context.BookingPayments
                 .FirstOrDefaultAsync(p => p.TransactionId == confirmPaymentDto.PaymentIntentId);
+
+            decimal paymentAmount = 0;
+            bool isNewPayment = false;
 
             if (existingPayment == null)
             {
@@ -96,30 +123,60 @@ namespace API.Controllers
                 {
                     var paymentIntentService = new PaymentIntentService();
                     var paymentIntent = await paymentIntentService.GetAsync(confirmPaymentDto.PaymentIntentId);
-                    Console.WriteLine($"PaymentIntent retrieved: Amount: {paymentIntent.Amount}, Status: {paymentIntent.Status}");
+                    _logger.LogInformation("PaymentIntent retrieved: Amount: {Amount}, Status: {Status}", 
+                        paymentIntent.Amount, paymentIntent.Status);
+
+                    paymentAmount = paymentIntent.Amount / 100m;
+                    isNewPayment = true;
 
                     await InsertPaymentAsync(
                         confirmPaymentDto.BookingId,
-                        paymentIntent.Amount / 100m,
+                        paymentAmount,
                         confirmPaymentDto.PaymentIntentId,
                         paymentIntent.Status
                     );
-                    Console.WriteLine("Payment record inserted successfully.");
-                    return Ok(new { Message = "Payment confirmed and record inserted successfully." });
+                    _logger.LogInformation("Payment record inserted successfully.");
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Error inserting payment: {ex.Message}");
+                    _logger.LogError(ex, "Error inserting payment");
                     return BadRequest(new { Message = $"Error inserting payment: {ex.Message}" });
                 }
             }
             else
             {
-                Console.WriteLine($"Payment already exists with TransactionId: {confirmPaymentDto.PaymentIntentId}. Updating status to succeeded.");
-                existingPayment.Status = "succeeded";
-                await _context.SaveChangesAsync();
-                return Ok(new { Message = "Payment status updated to succeeded." });
+                _logger.LogInformation("Payment already exists with TransactionId: {TransactionId}. Updating status to succeeded.", 
+                    confirmPaymentDto.PaymentIntentId);
+                
+                if (existingPayment.Status != "succeeded")
+                {
+                    existingPayment.Status = "succeeded";
+                    paymentAmount = existingPayment.Amount;
+                    isNewPayment = true;
+                    await _context.SaveChangesAsync();
+                }
             }
+
+            // Update host earnings if this is a new/updated payment
+            if (isNewPayment && paymentAmount > 0)
+            {
+                try
+                {
+                    _logger.LogInformation("Updating host earnings for booking {BookingId}, amount {Amount}", 
+                        confirmPaymentDto.BookingId, paymentAmount);
+                    
+                    await _bookingPaymentRepo.UpdateHostEarningsAsync(confirmPaymentDto.BookingId, paymentAmount);
+                    
+                    _logger.LogInformation("Host earnings updated successfully");
+                }
+                catch (Exception ex)
+                {
+                    // Don't fail the request if earnings update fails, just log it
+                    _logger.LogError(ex, "Error updating host earnings");
+                }
+            }
+
+            return Ok(new { Message = "Payment confirmed successfully." });
         }
 
         private async Task InsertPaymentAsync(int bookingId, decimal amount, string transactionId, string status)
@@ -130,7 +187,7 @@ namespace API.Controllers
                 Amount = amount,
                 PaymentMethodType = "Stripe",
                 TransactionId = transactionId,
-                Status = "Confrimed",
+                Status = "succeeded", // Fix: Changed from "Confrimed" to "succeeded" to match expected status
                 CreatedAt = DateTime.UtcNow
             };
 
