@@ -9,12 +9,13 @@ import * as L from 'leaflet';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../../services/auth.service';
 import { MainNavbarComponent } from '../../main-navbar/main-navbar.component';
+import { MessageUserButtonComponent } from '../../chat/message-user-button/message-user-button.component';
 
 
 @Component({
   selector: 'app-property-details',
   standalone: true,
-  imports: [CommonModule, NgIf, NgForOf, DatePipe, NgClass,GoogleMapsModule,FormsModule,MainNavbarComponent],
+  imports: [CommonModule, NgIf, NgForOf, DatePipe, NgClass,GoogleMapsModule,FormsModule,MainNavbarComponent,MessageUserButtonComponent],
   templateUrl: './property-details.component.html',
   
   styleUrls: ['./property-details.component.scss']
@@ -120,8 +121,6 @@ coHosts = [
     this.authService.logout(); // Log out the current user
     this.router.navigate(['/login']); // Redirect to login page
     
-    // Or simply redirect to a role selection page
-    // this.router.navigate(['/select-role']);
   }
 
   togglePromoCodeSection(): void {

@@ -6,12 +6,13 @@ import { ProfileService } from '../../services/profile.service';
 import { Observable } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { MainNavbarComponent } from '../main-navbar/main-navbar.component';
+import { MessageUserButtonComponent } from '../chat/message-user-button/message-user-button.component';
 
 @Component({
   selector: 'app-profile',
   templateUrl: './profile.component.html',
   standalone: true,
-  imports: [CommonModule,MainNavbarComponent],
+  imports: [CommonModule,MainNavbarComponent,MessageUserButtonComponent],
   styleUrls: ['./profile.component.css']
 })
 export class ProfileComponent implements OnInit {
@@ -23,8 +24,11 @@ export class ProfileComponent implements OnInit {
   isLoading = true;
   errorMessage = '';
   activeTab: string = 'about';
+  currentUserId = 0;
+
   
-  
+  profileId :number= 0;
+
   selectedFile: File | null = null;
   uploadProgress: number = 0;
   isUploading: boolean = false;
@@ -41,7 +45,10 @@ export class ProfileComponent implements OnInit {
   ) {}
   
   ngOnInit(): void {
+
+    this.currentUserId = parseInt(this.authService.userId || '0');
     const profileUserId: string = this.route.snapshot.paramMap.get('id') || '';
+    this.profileId = Number(profileUserId);
 
     const currentUserId: string = this.authService.userId || '';
     this.isCurrentUserProfile = profileUserId === currentUserId;
@@ -270,6 +277,7 @@ export class ProfileComponent implements OnInit {
   goToPropertyPage(listingId: string): void {
     this.router.navigate(['/property', listingId]);
   }
+  
 
   logout(): void {
     this.authService.logout();

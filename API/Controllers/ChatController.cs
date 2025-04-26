@@ -46,7 +46,7 @@ namespace API.Controllers
         }
 
         [HttpPost("conversations")]
-        public async Task<ActionResult<Conversation>> CreateConversation(int otherUserId)
+        public async Task<ActionResult<Conversation>> CreateConversation([FromQuery]int otherUserId)
         {
             var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
             var conversation = await _chatService.GetOrCreateConversationAsync(userId, otherUserId);

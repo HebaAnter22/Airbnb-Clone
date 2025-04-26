@@ -22,6 +22,7 @@ using API.Services.AdminRepo;
 using API.Services.HostVerificationRepo;
 using Stripe;
 using API.Hubs;
+using System.Text.Json.Serialization;
 
 namespace API
 {
@@ -35,6 +36,15 @@ namespace API
 
             builder.Services.AddSignalR();
             builder.Services.AddScoped<IChatService, ChatService>();
+            builder.Services.AddSignalR(options =>
+            {
+                options.EnableDetailedErrors = true; // Helps with debugging
+                options.ClientTimeoutInterval = TimeSpan.FromSeconds(30);
+                options.KeepAliveInterval = TimeSpan.FromSeconds(15);
+            }).AddJsonProtocol(options =>
+            {
+                options.PayloadSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+            });
 
 
 
@@ -52,30 +62,36 @@ namespace API
                     Scheme = "Bearer"
                 });
                 c.AddSecurityRequirement(new OpenApiSecurityRequirement
-    {
-        {
-            new OpenApiSecurityScheme
-            {
-                Reference = new OpenApiReference
-                {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                }
-            },
-            Array.Empty<string>()
-        }
-    });
-            });
+                    {
+                        {
+                            new OpenApiSecurityScheme
+                            {
+                                Reference = new OpenApiReference
+                                {
+                                    Type = ReferenceType.SecurityScheme,
+                                    Id = "Bearer"
+                                }
+                            },
+                            Array.Empty<string>()
+                        }
+                    });
+                });
 
             builder.Services.AddDALService(builder.Configuration);
+            builder.Services.AddControllers()
+            .AddJsonOptions(options =>
+            {
+                options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+                options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+            });
 
-       
 
             builder.Services.AddCors(options => {
                 options.AddPolicy("AllowAll", policy => {
-                    policy.AllowAnyOrigin()
+                    policy.WithOrigins("http://localhost:4200")
                           .AllowAnyMethod()
-                          .AllowAnyHeader();
+                          .AllowAnyHeader().
+                          AllowCredentials();
                 });
             });
 
@@ -99,6 +115,20 @@ namespace API
                     ValidateLifetime = true,
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"])),
                     ValidateIssuerSigningKey = true,
+                };
+                options.Events = new JwtBearerEvents
+                {
+                    OnMessageReceived = context =>
+                    {
+                        var accessToken = context.Request.Query["access_token"];
+                        var path = context.HttpContext.Request.Path;
+                        if (!string.IsNullOrEmpty(accessToken) &&
+                            path.StartsWithSegments("/chatHub"))
+                        {
+                            context.Token = accessToken;
+                        }
+                        return Task.CompletedTask;
+                    }
                 };
             });
 
@@ -171,6 +201,7 @@ namespace API
 
             app.UseAuthentication();
             app.UseStaticFiles();
+            app.UseWebSockets();
 
             app.UseAuthorization();
             app.MapControllers();
