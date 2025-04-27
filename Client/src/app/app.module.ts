@@ -14,6 +14,8 @@ import { routes } from './app.routes';
 import { AuthInterceptor } from './interceptors/auth.interceptor';
 import { CheckoutComponent } from './components/checkout/checkout.component';
 import { HostPayoutComponent } from './components/host-payout/host-payout.component';
+import { ToastrModule } from 'ngx-toastr';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 // import { PaymentSuccessComponent } from './components/payment-success/payment-success.component';
 // import { PaymentCancelComponent } from './components/payment-cancel/payment-cancel.component';
 
@@ -27,6 +29,7 @@ import { HostPayoutComponent } from './components/host-payout/host-payout.compon
     ],
     imports: [
         BrowserModule,
+        BrowserAnimationsModule,
         HttpClientModule,
         SocialLoginModule,
         FormsModule,
@@ -34,6 +37,11 @@ import { HostPayoutComponent } from './components/host-payout/host-payout.compon
         MatButtonModule,
         MatProgressSpinnerModule,
         MatSnackBarModule, // Add for MatSnackBar
+        ToastrModule.forRoot({
+            timeOut: 3000,
+            positionClass: 'toast-top-right',
+            preventDuplicates: true,
+        }),
         RouterModule.forRoot(routes),
     ],
     providers: [

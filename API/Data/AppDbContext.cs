@@ -28,6 +28,7 @@ namespace API.Data
         public DbSet<PropertyAvailability> PropertyAvailabilities { get; set; }
         //public DbSet<Models.Host> Hosts { get; set; }
         public DbSet<HostPayout> HostPayouts { get; set; }
+        public DbSet<Violation> Violations { get; set; }
 
         public DbSet<VwPropertyDetails> VwPropertyDetails { get; set; }
         public DbSet<VwHostPerformance> VwHostPerformance { get; set; }

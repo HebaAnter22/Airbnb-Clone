@@ -97,11 +97,20 @@
         </div>
       </div>
 
+
+        <!-- Sidebar section for violations -->
+        <div class="nav-item" (click)="setCurrentSection('violations')">
+          <i class="fas fa-flag"></i>
+          <span *ngIf="!isSidebarCollapsed">Violations</span>
+        </div>
+        
       <!-- Account Details -->
       <div class="nav-item" (click)="setCurrentSection('account')" [class.active]="currentSection === 'account'" data-tooltip="Account Details">
         <i class="fas fa-user-circle"></i>
         <span *ngIf="!isSidebarCollapsed">Account Details</span>
       </div>
+
+    
     </nav>
 
     <!-- Logout Button -->
@@ -158,12 +167,20 @@
                   <button *ngIf="!host?.isVerified" class="verify-btn" (click)="verifyHost(host?.id ?? 0)">
                     View Verification
                   </button>
+                  <button *ngIf="host?.isVerified && currentSection === 'verified-hosts'" class="view-details-btn" (click)="viewHostDetails(host?.id ?? 0)">
+                    <i class="bi bi-eye-fill"></i> View Details
+                  </button>
                 </div>
               </td>
             </tr>
           </tbody>
         </table>
       </div>
+    </div>
+
+    <!-- Host Details -->
+    <div *ngIf="currentSection === 'host-details'" class="content-section">
+      <app-host-details [hostId]="selectedHostId"></app-host-details>
     </div>
 
     <!-- Property Management -->
@@ -465,6 +482,11 @@
     <!-- Account Details -->
     <div *ngIf="currentSection === 'account'" class="content-section">
       <app-profile></app-profile>
+    </div>
+
+    <!-- Violations Management Section -->
+    <div *ngIf="currentSection === 'violations'" class="content-section violations-section">
+      <app-violations-management></app-violations-management>
     </div>
   </div>
 </div>

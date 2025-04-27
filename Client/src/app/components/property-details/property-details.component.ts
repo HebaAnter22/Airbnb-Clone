@@ -7,11 +7,21 @@ import { ProfileService } from '../../services/profile.service';
 import { GoogleMap, GoogleMapsModule } from "@angular/google-maps";
 import * as L from 'leaflet';
 import { FormsModule } from '@angular/forms';
+import { ReportViolationComponent } from '../common/report-violation/report-violation.component';
 
 @Component({
   selector: 'app-property-details',
   standalone: true,
-  imports: [CommonModule, NgIf, NgForOf, DatePipe, NgClass,GoogleMapsModule,FormsModule],
+  imports: [
+    CommonModule, 
+    NgIf, 
+    NgForOf, 
+    DatePipe, 
+    NgClass, 
+    GoogleMapsModule, 
+    FormsModule, 
+    ReportViolationComponent
+  ],
   templateUrl: './property-details.component.html',
   
   styleUrls: ['./property-details.component.scss']
@@ -1224,7 +1234,9 @@ ngOnDestroy(): void {
   document.removeEventListener('click', this.onDocumentClick);
 }
 
-
-
+onViolationReported(): void {
+  // Optional: add any logic to execute after a violation is reported
+  console.log('Violation report submitted for property ID:', this.propertyId);
+}
 
 }

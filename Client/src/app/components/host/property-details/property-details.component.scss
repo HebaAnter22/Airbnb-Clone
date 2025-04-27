@@ -2210,3 +2210,25 @@
 .host-message-button:hover {
   background-color: #000000;
 }
+
+.host-actions {
+  margin-top: 20px;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Optional: Additional styling adjustments for the report button if needed */
+::ng-deep .host-actions .report-btn {
+  font-size: 14px;
+  padding: 8px 12px;
+}
+
+.property-footer {
+  margin-top: 40px;
+  padding-top: 20px;
+  border-top: 1px solid #eee;
+  display: flex;
+  justify-content: flex-end;
+}

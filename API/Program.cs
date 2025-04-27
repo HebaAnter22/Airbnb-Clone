@@ -146,9 +146,8 @@ namespace API
             builder.Services.AddScoped<IOpenAIService, OpenAIService>();
             builder.Services.AddAutoMapper(typeof(Program));
 
-
-
-
+            // Register services
+            builder.Services.AddScoped<IViolationService, ViolationService>();
 
             var app = builder.Build();
             //if (app.Environment.IsDevelopment())

@@ -7,13 +7,23 @@ import { AdminServiceService, HostDto, GuestDto, PropertyDto, BookingDto } from 
 import Chart from 'chart.js/auto';
 import { NgIf } from '@angular/common';
 import { ProfileService } from '../../services/profile.service';
+import { ViolationsManagementComponent } from './violations-management/violations-management.component';
+import { HostDetailsComponent } from './host-details/host-details.component';
+import { firstValueFrom } from 'rxjs';
 // import { HostProfileComponent } from '../host/host-profile/host-profile.component';
 // import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-admin',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule, ProfileComponent],
+  imports: [
+    CommonModule, 
+    RouterModule, 
+    FormsModule, 
+    ProfileComponent, 
+    ViolationsManagementComponent,
+    HostDetailsComponent
+  ],
   templateUrl: './admin.component.html',
   styleUrls: ['./admin.component.css']
 })
@@ -22,6 +32,7 @@ export class AdminComponent implements OnInit, AfterViewInit {
   adminPicture: string = 'assets/images/admin-avatar.png';
   currentSection: string = 'all-hosts';
   isSidebarCollapsed: boolean = false;
+  selectedHostId: number | null = null;
 
   // Host management sections
   hostSections = {
@@ -206,6 +217,9 @@ export class AdminComponent implements OnInit, AfterViewInit {
         break;
       case 'Properties':
         this.loadPropertiesAnalytics();
+        break;
+      case 'host-details':
+        this.loadHostDetails(this.selectedHostId);
         break;
       default:
         this.loading = false;
@@ -710,8 +724,24 @@ export class AdminComponent implements OnInit, AfterViewInit {
     this.loading = true;
     this.error = null;
     this.adminService.getVerifiedHosts().subscribe({
-      next: (data) => {
-        this.hosts = data;
+      next: async (hosts) => {
+        // Load ratings from ProfileService for each host
+        this.hosts = await Promise.all(hosts.map(async (host) => {
+          try {
+            const reviews = await firstValueFrom(this.profileService.getUserReviews(host.id.toString()));
+            if (reviews && reviews.length > 0) {
+              const avgRating = reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length;
+              return {
+                ...host,
+                Rating: avgRating,
+                totalReviews: reviews.length
+              };
+            }
+          } catch (error) {
+            console.error(`Failed to load reviews for host ${host.id}:`, error);
+          }
+          return host; // Return original host if reviews couldn't be loaded
+        }));
         this.loading = false;
       },
       error: (err) => {
@@ -929,5 +959,17 @@ export class AdminComponent implements OnInit, AfterViewInit {
         console.error('Error updating booking status:', err);
       }
     });
+  }
+
+  // View host details 
+  viewHostDetails(hostId: number): void {
+    this.selectedHostId = hostId;
+    this.currentSection = 'host-details';
+  }
+  
+  // Load host details data
+  loadHostDetails(hostId: number | null): void {
+    // Nothing to load here as the host-details component handles its own data loading
+    this.loading = false;
   }
 }

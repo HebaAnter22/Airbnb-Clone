@@ -1,0 +1,186 @@
+<div class="violations-container">
+  <h2 class="section-title">Violation Reports</h2>
+  
+  <div class="filters">
+    <div class="filter-group">
+      <label for="statusFilter">Filter by Status:</label>
+      <select id="statusFilter" [(ngModel)]="statusFilter" (change)="onStatusFilterChange()">
+        <option value="all">All Statuses</option>
+        <option *ngFor="let status of violationStatuses" [value]="status.value">{{ status.label }}</option>
+      </select>
+    </div>
+  </div>
+  
+  <div class="violations-list">
+    <div *ngIf="loading" class="loading">Loading violations...</div>
+    <div *ngIf="error" class="error-message">{{ error }}</div>
+    
+    <div *ngIf="!loading && !error && filteredViolations.length === 0" class="empty-state">
+      <p>No violation reports found.</p>
+    </div>
+    
+    <table *ngIf="!loading && !error && filteredViolations.length > 0" class="violations-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Type</th>
+          <th>Reporter</th>
+          <th>Reported Entity</th>
+          <th>Date</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let violation of filteredViolations">
+          <td>{{ violation.id }}</td>
+          <td>{{ violation.violationType }}</td>
+          <td>{{ violation.reporterName }}</td>
+          <td>
+            <span *ngIf="violation.reportedPropertyId">
+              Property: {{ violation.reportedPropertyTitle }}
+            </span>
+            <span *ngIf="violation.reportedHostId">
+              Host: {{ violation.reportedHostName }}
+            </span>
+          </td>
+          <td>{{ violation.createdAt | date:'short' }}</td>
+          <td>
+            <span class="status-badge" [ngClass]="violation.status.toLowerCase()">
+              {{ violation.status }}
+            </span>
+          </td>
+          <td>
+            <button class="view-btn" (click)="viewDetails(violation)">View Details</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    
+    <!-- Pagination -->
+    <div class="pagination" *ngIf="totalItems > pageSize">
+      <button 
+        class="page-btn"
+        [disabled]="currentPage === 1"
+        (click)="onPageChange(currentPage - 1)">
+        Previous
+      </button>
+      
+      <span class="page-info">
+        Page {{ currentPage }} of {{ Math.ceil(totalItems / pageSize) }}
+      </span>
+      
+      <button 
+        class="page-btn"
+        [disabled]="currentPage === Math.ceil(totalItems / pageSize)"
+        (click)="onPageChange(currentPage + 1)">
+        Next
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Violation Details Modal -->
+<div class="modal-overlay" *ngIf="showDetailsModal">
+  <div class="modal-container">
+    <div class="modal-header">
+      <h3>Violation Details</h3>
+      <button (click)="closeDetailsModal()" class="close-btn">&times;</button>
+    </div>
+    
+    <div class="modal-body" *ngIf="selectedViolation">
+      <div *ngIf="error" class="error-message">{{ error }}</div>
+      <div *ngIf="success" class="success-message">{{ success }}</div>
+      
+      <div class="detail-section">
+        <h4>General Information</h4>
+        <div class="detail-row">
+          <span class="label">ID:</span>
+          <span class="value">{{ selectedViolation.id }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Type:</span>
+          <span class="value">{{ selectedViolation.violationType }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Status:</span>
+          <span class="value status-badge" [ngClass]="selectedViolation.status.toLowerCase()">
+            {{ selectedViolation.status }}
+          </span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Reported On:</span>
+          <span class="value">{{ selectedViolation.createdAt | date:'medium' }}</span>
+        </div>
+        <div class="detail-row" *ngIf="selectedViolation.resolvedAt">
+          <span class="label">Resolved On:</span>
+          <span class="value">{{ selectedViolation.resolvedAt | date:'medium' }}</span>
+        </div>
+      </div>
+      
+      <div class="detail-section">
+        <h4>Involved Parties</h4>
+        <div class="detail-row">
+          <span class="label">Reported By:</span>
+          <span class="value">{{ selectedViolation.reporterName }}</span>
+        </div>
+        <div class="detail-row" *ngIf="selectedViolation.reportedPropertyId">
+          <span class="label">Property:</span>
+          <span class="value">{{ selectedViolation.reportedPropertyTitle }}</span>
+        </div>
+        <div class="detail-row" *ngIf="selectedViolation.reportedHostId">
+          <span class="label">Host:</span>
+          <span class="value">{{ selectedViolation.reportedHostName }}</span>
+        </div>
+      </div>
+      
+      <div class="detail-section">
+        <h4>Description</h4>
+        <p class="description">{{ selectedViolation.description }}</p>
+      </div>
+      
+      <div class="detail-section" *ngIf="selectedViolation.status !== 'Resolved' && selectedViolation.status !== 'Dismissed'">
+        <h4>Admin Actions</h4>
+        <div class="form-group">
+          <label for="adminNotes">Admin Notes</label>
+          <textarea 
+            id="adminNotes" 
+            [(ngModel)]="adminNotes" 
+            rows="3" 
+            placeholder="Add notes about this violation..."></textarea>
+        </div>
+        
+        <div class="action-buttons">
+          <button 
+            class="status-btn under-review" 
+            [disabled]="loading || selectedViolation.status === 'UnderReview'"
+            (click)="updateStatus('UnderReview')">
+            Mark as Under Review
+          </button>
+          
+          <button 
+            class="status-btn dismissed" 
+            [disabled]="loading || selectedViolation.status === 'Dismissed'"
+            (click)="updateStatus('Dismissed')">
+            Dismiss Report
+          </button>
+          
+          <button 
+            class="status-btn resolved" 
+            [disabled]="loading || selectedViolation.status === 'Resolved'"
+            (click)="updateStatus('Resolved')">
+            Mark as Resolved
+          </button>
+          
+          <button 
+            *ngIf="selectedViolation.reportedHostId"
+            class="block-host-btn" 
+            [disabled]="loading"
+            (click)="blockHost()">
+            Block Host
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div> 

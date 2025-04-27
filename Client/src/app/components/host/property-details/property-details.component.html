@@ -785,9 +785,9 @@
   </div>
     <!-- Report Listing link -->
     <div class="report-listing">
-      <a href="#">
+      <!-- <a href="#">
         <i class="fa fa-flag"></i> Report this listing
-      </a>
+      </a> -->
     </div>
   </div>
   
@@ -808,3 +808,16 @@
   <div class="toast" [innerHTML]="toastMessage">
   </div>
 </div>
+
+<!-- Add report violation button in the host info section -->
+<div class="host-actions">
+  <!-- Existing buttons/actions... -->
+  <app-report-violation 
+    [propertyId]="property?.id" 
+    [hostId]="property?.hostId" 
+    (reportSubmitted)="onViolationReported()">
+  </app-report-violation>
+</div>
+
+<!-- Example of directive-based approach for reporting violations -->
+<!-- <div class="property-footer" appReportViolation [propertyId]="property?.id" [hostId]="property?.hostId"></div> -->

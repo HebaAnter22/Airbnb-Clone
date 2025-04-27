@@ -261,41 +261,38 @@ namespace API.Controllers
         {
             try
             {
-                var hosts = await _adminRepository.GetAllHostsAsync();
-                var verifiedHosts = hosts.Where(h => h.Host?.IsVerified == true).ToList();
-                //var verifiedHosts = await _adminRepository.GetVerifiedHostsAsync();
+                var verifiedHosts = await _adminRepository.GetVerifiedHostsAsync();
                 var dtos = new List<HostDto>();
-                foreach (var host in verifiedHosts)
+
+                foreach (var h in verifiedHosts)
                 {
-                    var totalIncome = await _bookingRepository.GetTotalIncomeForHostAsync(host.Id);
-                    
-                    // Add null checks to prevent exceptions
-                    var rating = host.Host?.Properties?
-                        .Where(p => p != null)
-                        .SelectMany(p => p.Bookings ?? Enumerable.Empty<Booking>())
-                        .Where(b => b?.Review != null)
-                        .Select(b => b.Review.Rating)
-                        .ToList() ?? new List<int>();
-                        
+                    var totalIncome = await _bookingRepository.GetTotalIncomeForHostAsync(h.Id);
+                    var rating = h.Host?.Properties?
+                                            .Where(p => p != null)
+                                            .SelectMany(p => p.Bookings ?? Enumerable.Empty<Booking>())
+                                            .Where(b => b?.Review != null)
+                                            .Select(b => b.Review.Rating)
+                                            .ToList() ?? new List<int>(); 
                     var averageRating = rating.Any() ? Math.Round(rating.Average(), 2) : 0;
-                    
+
                     dtos.Add(new HostDto
                     {
-                        Id = host.Id,
-                        FirstName = host.FirstName,
-                        LastName = host.LastName,
-                        Email = host.Email,
-                        PhoneNumber = host.PhoneNumber,
-                        Role = host.Role,
-                        IsVerified = host.Host?.IsVerified ?? false,
-                        ProfilePictureUrl = host.ProfilePictureUrl,
-                        StartDate = host.CreatedAt,
-                        TotalReviews = rating.Count(),
+                        Id = h.Id,
+                        FirstName = h.FirstName,
+                        LastName = h.LastName,
+                        Email = h.Email,
+                        PhoneNumber = h.PhoneNumber,
+                        Role = h.Role,
+                        IsVerified = h.Host?.IsVerified ?? false,
+                        ProfilePictureUrl = h.ProfilePictureUrl ?? string.Empty,
+                        StartDate = h.CreatedAt,
+                        TotalReviews = rating.Count,
                         Rating = (decimal)averageRating,
-                        PropertiesCount = host.Host?.Properties?.Count ?? 0,
+                        PropertiesCount = h.Host?.Properties?.Count ?? 0,
                         TotalIncome = totalIncome
                     });
                 }
+
                 return Ok(dtos);
             }
             catch (Exception ex)
@@ -309,41 +306,83 @@ namespace API.Controllers
         {
             try
             {
-                var hosts = await _adminRepository.GetAllHostsAsync();
-                var notVerifiedHosts = hosts.Where(h => h.Host?.IsVerified == false).ToList();
-                //var notVerifiedHosts = await _adminRepository.GetNotVerifiedHostsAsync();
+                var notVerifiedHosts = await _adminRepository.GetNotVerifiedHostsAsync();
                 var dtos = new List<HostDto>();
-                foreach (var host in notVerifiedHosts) 
+
+                foreach (var h in notVerifiedHosts)
                 {
-                    var totalIncome = await _bookingRepository.GetTotalIncomeForHostAsync(host.Id);
-                    
-                    // Add null checks to prevent exceptions
-                    var rating = host.Host?.Properties?
-                        .Where(p => p != null)
-                        .SelectMany(p => p.Bookings ?? Enumerable.Empty<Booking>())
-                        .Where(b => b?.Review != null)
-                        .Select(b => b.Review.Rating)
-                        .ToList() ?? new List<int>();
-                        
+                    var totalIncome = await _bookingRepository.GetTotalIncomeForHostAsync(h.Id);
+                    var rating = h.Host?.Properties?
+                                            .Where(p => p != null)
+                                            .SelectMany(p => p.Bookings ?? Enumerable.Empty<Booking>())
+                                            .Where(b => b?.Review != null)
+                                            .Select(b => b.Review.Rating)
+                                            .ToList() ?? new List<int>(); 
                     var averageRating = rating.Any() ? Math.Round(rating.Average(), 2) : 0;
-                    
+
                     dtos.Add(new HostDto
                     {
-                        Id = host.Id,
-                        FirstName = host.FirstName,
-                        LastName = host.LastName,
-                        Email = host.Email,
-                        PhoneNumber = host.PhoneNumber,
-                        Role = host.Role,
-                        IsVerified = host.Host?.IsVerified ?? false,
-                        ProfilePictureUrl = host.ProfilePictureUrl,
-                        StartDate = host.CreatedAt,
-                        TotalReviews = rating.Count(),
+                        Id = h.Id,
+                        FirstName = h.FirstName,
+                        LastName = h.LastName,
+                        Email = h.Email,
+                        PhoneNumber = h.PhoneNumber,
+                        Role = h.Role,
+                        IsVerified = h.Host?.IsVerified ?? false,
+                        ProfilePictureUrl = h.ProfilePictureUrl ?? string.Empty,
+                        StartDate = h.CreatedAt,
+                        TotalReviews = rating.Count,
                         Rating = (decimal)averageRating,
-                        PropertiesCount = host.Host?.Properties?.Count ?? 0,
+                        PropertiesCount = h.Host?.Properties?.Count ?? 0,
                         TotalIncome = totalIncome
                     });
                 }
+
+                return Ok(dtos);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"An unexpected error occurred: {ex.Message}");
+            }
+        }
+
+        [HttpGet("hosts/blocked")]
+        public async Task<IActionResult> GetBlockedHosts()
+        {
+            try
+            {
+                var hosts = await _adminRepository.GetBlockedHostsAsync();
+                var dtos = new List<HostDto>();
+
+                foreach (var h in hosts)
+                {
+                    var totalIncome = await _bookingRepository.GetTotalIncomeForHostAsync(h.Id);
+                    var rating = h.Host?.Properties?
+                                            .Where(p => p != null)
+                                            .SelectMany(p => p.Bookings ?? Enumerable.Empty<Booking>())
+                                            .Where(b => b?.Review != null)
+                                            .Select(b => b.Review.Rating)
+                                            .ToList() ?? new List<int>(); 
+                    var averageRating = rating.Any() ? Math.Round(rating.Average(), 2) : 0;
+
+                    dtos.Add(new HostDto
+                    {
+                        Id = h.Id,
+                        FirstName = h.FirstName,
+                        LastName = h.LastName,
+                        Email = h.Email,
+                        PhoneNumber = h.PhoneNumber,
+                        Role = h.Role,
+                        IsVerified = h.Host?.IsVerified ?? false,
+                        ProfilePictureUrl = h.ProfilePictureUrl ?? string.Empty,
+                        StartDate = h.CreatedAt,
+                        TotalReviews = rating.Count,
+                        Rating = (decimal)averageRating,
+                        PropertiesCount = h.Host?.Properties?.Count ?? 0,
+                        TotalIncome = totalIncome
+                    });
+                }
+
                 return Ok(dtos);
             }
             catch (Exception ex)

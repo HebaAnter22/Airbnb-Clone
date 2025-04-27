@@ -9,12 +9,14 @@ import * as L from 'leaflet';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../../services/auth.service';
 import { MainNavbarComponent } from '../../main-navbar/main-navbar.component';
+import { ReportViolationComponent } from '../../common/report-violation/report-violation.component';
+import { ReportViolationDirective } from '../../../directives/report-violation.directive';
 
 
 @Component({
   selector: 'app-property-details',
   standalone: true,
-  imports: [CommonModule, NgIf, NgForOf, DatePipe, NgClass,GoogleMapsModule,FormsModule,MainNavbarComponent],
+  imports: [CommonModule, NgIf, NgForOf, DatePipe, NgClass,GoogleMapsModule,FormsModule,MainNavbarComponent,ReportViolationComponent,ReportViolationDirective],
   templateUrl: './property-details.component.html',
   
   styleUrls: ['./property-details.component.scss']
@@ -1241,7 +1243,10 @@ ngOnDestroy(): void {
   document.removeEventListener('click', this.onDocumentClick);
 }
 
-
-
+// Add method to handle violation reports
+onViolationReported(): void {
+  // You can add custom logic here if needed, like showing a thank you message
+  console.log('Violation report submitted for property:', this.property?.id);
+}
 
 }
