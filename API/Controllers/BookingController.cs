@@ -3,6 +3,7 @@ using AirBnb.BL.Dtos.BookingDtos;
 using API.DTOs.Promotion;
 using API.Models;
 using API.Services.BookingRepo;
+using API.Services.NotificationRepository;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -16,10 +17,12 @@ namespace API.Controllers
     public class BookingController : ControllerBase
     {
         private readonly IBookingRepository _bookingRepo;
+        private readonly INotificationRepository _notificationRepo;
 
-        public BookingController(IBookingRepository bookingRepo)
+        public BookingController(IBookingRepository bookingRepo, INotificationRepository notificationRepository)
         {
             _bookingRepo = bookingRepo;
+            _notificationRepo = notificationRepository;
         }
 
         private int GetCurrentUserId()
@@ -528,14 +531,38 @@ namespace API.Controllers
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
                 };
+                var notification1 = new Notification
+                {
+                    UserId = (int)property.Result.HostId,
+                    SenderId = guestId,
+                    Message = $"A new booking has been made for your property {property.Result.Title}.",
+                    IsRead = false,
+                    CreatedAt = DateTime.UtcNow
+                };
 
+                var notification2 = new Notification
+                {
+                    UserId = guestId,
+                    SenderId = (int)property.Result.HostId,
+                    Message = $"Your booking for property {property.Result.Title} has been confirmed.",
+                    IsRead = false,
+                    CreatedAt = DateTime.UtcNow
+                };
 
                 if (property.Result.InstantBook == true)
                 {
                     booking.Status = BookingStatus.Confirmed.ToString();
+                    await _notificationRepo.CreateNotificationAsync(notification2);
+                }
+                else
+                {
+                    notification2.Message = $"Your booking for property {property.Result.Title} is pending confirmation.";
+                    await _notificationRepo.CreateNotificationAsync(notification2);
                 }
 
+
                 await _bookingRepo.CreateBookingAndUpdateAvailabilityAsync(booking);
+                await _notificationRepo.CreateNotificationAsync(notification1);
                 var usedPromotion = new UserUsedPromotion
                 {
                     PromotionId = promotion != null ? promotion.Id : 0,
