@@ -43,7 +43,7 @@ namespace API.Controllers
                 CreatedAt = n.CreatedAt,
                 SenderName = n.Sender != null ? $"{n.Sender.FirstName} {n.Sender.LastName}" : string.Empty
             }).ToList();
-            return Ok(notifications);
+            return Ok(dtos);
         }
 
         [HttpGet("unread-notifications")]
