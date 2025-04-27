@@ -27,6 +27,9 @@ namespace API.Data
         public DbSet<UserUsedPromotion> UserUsedPromotions { get; set; }
         public DbSet<PropertyCategory> PropertyCategories { get; set; }
         public DbSet<PropertyAvailability> PropertyAvailabilities { get; set; }
+        public DbSet<Notification> Notifications { get; set; }
+        public DbSet<BookingPayout> BookingPayouts { get; set; }
+
 
 
 

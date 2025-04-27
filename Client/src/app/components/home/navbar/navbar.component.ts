@@ -4,17 +4,13 @@ import { CommonModule } from '@angular/common';
 import { AuthService } from '../../../services/auth.service';
 import { ProfileService } from '../../../services/profile.service';
 import { ChatDropdownComponent } from '../../chat/chat-dropdown/chat-dropdown.component';
+import { NotificationComponent } from '../notification/notification.component';
 
-interface Notification {
-  id: number;
-  message: string;
-  time: string;
-  read: boolean;
-}
+
 @Component({
   selector: 'app-navbar',
   standalone: true,
-  imports: [CommonModule, ChatDropdownComponent],
+  imports: [CommonModule, ChatDropdownComponent, NotificationComponent],
   templateUrl: './navbar.component.html',
   styleUrls: ['./navbar.component.css']
 })
@@ -28,10 +24,6 @@ export class NavbarComponent implements OnInit {
   IsUserGuest: boolean = false;
 
 
-  // Add these properties to your component class
-  isNotificationOpen: boolean = false;
-  notificationCount: number = 0;
-  notifications: Notification[] = [];
 
 
 
@@ -63,7 +55,6 @@ export class NavbarComponent implements OnInit {
         console.error('Error loading profile:', error);
       }
     );
-    this.initializeNotifications();
 
     this.IsUserGuest = this.authService.isUserAGuest();
   }
@@ -77,75 +68,16 @@ export class NavbarComponent implements OnInit {
 
 
 
-
-
-
-
-  // Add this to your ngOnInit or constructor
-  initializeNotifications() {
-    // Example notifications - replace with your actual data source
-    this.notifications = [
-      {
-        id: 1,
-        message: 'Your booking request for Villa Garden has been accepted',
-        time: '2 hours ago',
-        read: false
-      },
-      {
-        id: 2,
-        message: 'Welcome discount: 15% off your next booking!',
-        time: '1 day ago',
-        read: false
-      },
-      {
-        id: 3,
-        message: 'Complete your profile to unlock special offers',
-        time: '3 days ago',
-        read: true
-      }
-    ];
-
-    // Count unread notifications
-    this.updateNotificationCount();
-  }
-
-  // Method to toggle notification dropdown
-  toggleNotifications(event: Event) {
-    event.stopPropagation();
-    this.isNotificationOpen = !this.isNotificationOpen;
-
-    if (this.isDropdownOpen) {
-      this.isDropdownOpen = false;
-    }
-  }
-
-  // Update the notification count
-  updateNotificationCount() {
-    this.notificationCount = this.notifications.filter(notification => !notification.read).length;
-  }
-
-  // Mark all notifications as read
-  markAllAsRead() {
-    this.notifications.forEach(notification => {
-      notification.read = true;
-    });
-    this.updateNotificationCount();
-  }
-
-  // Close notifications when clicking elsewhere
-  // Add this to your existing document click handler or create one
   clickOutside(event: Event) {
     // Close notification dropdown when clicking outside
     const target = event.target as HTMLElement | null;
-    if (this.isNotificationOpen && target && !target.closest('.notification-container')) {
-      this.isNotificationOpen = false;
-    }
 
     // If you already have a dropdown close handler, integrate this logic there
     if (this.isDropdownOpen && target && !target.closest('.menu-profile') && !target.closest('.dropdown')) {
       this.isDropdownOpen = false;
     }
   }
+
 
 
   ProfileClicked() {

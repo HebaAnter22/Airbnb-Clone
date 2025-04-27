@@ -2,31 +2,7 @@
   <!-- Right side: Notification, Menu and Profile -->
   <div class="navbar-right">
 
-    <!-- Notification Bell -->
-    <div class="notification-container" *ngIf="loggedIn">
-      <div class="notification-bell" (click)="toggleNotifications($event)">
-        <i class="fa fa-bell"></i>
-        <span class="notification-badge" *ngIf="notificationCount > 0">{{notificationCount}}</span>
-      </div>
-      <!-- Notification Dropdown -->
-      <div class="notification-dropdown" *ngIf="isNotificationOpen">
-        <div class="notification-header">
-          <h3>Notifications</h3>
-          <span *ngIf="notifications.length > 0" (click)="markAllAsRead()" class="mark-read">Mark all as read</span>
-        </div>
-        <div class="notification-list" *ngIf="notifications.length > 0">
-          <div class="notification-item" *ngFor="let notification of notifications" [class.unread]="!notification.read">
-            <div class="notification-content">
-              <p>{{notification.message}}</p>
-              <span class="notification-time">{{notification.time}}</span>
-            </div>
-          </div>
-        </div>
-        <div class="empty-notifications" *ngIf="notifications.length === 0">
-          <p>No new notifications</p>
-        </div>
-      </div>
-    </div>
+    <app-notification *ngIf="loggedIn "></app-notification>
     <app-chat-dropdown *ngIf="loggedIn"></app-chat-dropdown>
 
 

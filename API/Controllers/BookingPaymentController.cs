@@ -1,5 +1,8 @@
 ﻿using API.DTOs.BookingPayment;
+using API.Models;
 using API.Services.BookingPaymentRepo;
+using API.Services.BookingRepo;
+using API.Services.NotificationRepository;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -12,9 +15,14 @@ namespace API.Controllers
     public class BookingPaymentController : ControllerBase
     {
         public readonly IBookingPaymentRepository _bookingPaymentRepo;
-        public BookingPaymentController(IBookingPaymentRepository bookingPaymentRepository)
+        private readonly IBookingRepository _bookingRepo;
+        private readonly INotificationRepository _notificationRepo;
+        public BookingPaymentController(IBookingPaymentRepository bookingPaymentRepository, IBookingRepository bookingRepo, INotificationRepository notificationRepository)
         {
             _bookingPaymentRepo = bookingPaymentRepository;
+            _bookingRepo = bookingRepo;
+            _notificationRepo = notificationRepository;
+
         }
 
         [HttpGet("GetPaymentByTransactionId/{transactionId}")]
@@ -59,6 +67,25 @@ namespace API.Controllers
             if (paymentIntent.Status == "succeeded")
             {
                 await _bookingPaymentRepo.ConfirmBookingPaymentAsync(confirmPaymentDto.BookingId, paymentIntent.Id);
+                var booking = await _bookingRepo.getBookingByIdWithData(confirmPaymentDto.BookingId);
+                var notification1 = new Notification
+                {
+                    UserId = booking.GuestId,
+                    SenderId = booking.Property.HostId,
+                    Message = $"Your payment of {paymentIntent.Amount / 100m} was successful.",
+                    CreatedAt = DateTime.UtcNow,
+                    IsRead = false
+                };
+                var notification2 = new Notification
+                {
+                    UserId = booking.Property.HostId,
+                    SenderId = booking.GuestId,
+                    Message = $"You have received a payment of {paymentIntent.Amount / 100m} from {booking.Guest.FirstName} {booking.Guest.LastName}.",
+                    CreatedAt = DateTime.UtcNow,
+                    IsRead = false
+                };
+                await _notificationRepo.CreateNotificationAsync(notification1);
+                await _notificationRepo.CreateNotificationAsync(notification2);
 
                 return Ok(new { Message = "Payment confirmed and booking updated successfully." });
             }
