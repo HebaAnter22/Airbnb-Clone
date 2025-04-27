@@ -6,10 +6,12 @@ using API.DTOs.property;
 using API.Models;
 using API.Services.AdminRepo;
 using API.Services.BookingRepo;
+using API.Services.NotificationRepository;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Org.BouncyCastle.Asn1.Tsp;
+using Org.BouncyCastle.Crypto;
 
 namespace API.Controllers
 {
@@ -20,10 +22,13 @@ namespace API.Controllers
     {
         private readonly IAdminRepository _adminRepository;
         private readonly IBookingRepository _bookingRepository;
-        public AdminController(IAdminRepository adminRepository, IBookingRepository bookingRepository)
+        private readonly INotificationRepository _notificationRepository;
+
+        public AdminController(IAdminRepository adminRepository, IBookingRepository bookingRepository , INotificationRepository notificationRepository)
         {
             _adminRepository = adminRepository;
             _bookingRepository = bookingRepository;
+            _notificationRepository = notificationRepository;
         }
 
         [HttpGet("GetVerificationsByHostId/{hostId}")]
@@ -64,6 +69,14 @@ namespace API.Controllers
                 var success = await _adminRepository.ApproveHostAsync(hostId, request.IsVerified);
                 if (!success)
                     return NotFound("Host not found.");
+                var notification = new Notification
+                {
+                    UserId = hostId,
+                    Message = $"Your host verification has been {(request.IsVerified ? "approved" : "denied")}.",
+                    CreatedAt = DateTime.UtcNow,
+                    IsRead = false
+                };
+                await _notificationRepository.CreateNotificationAsync(notification);
 
                 return Ok(new { Message = $"Host {(request.IsVerified ? "verified" : "unverified")} successfully." });
             }
@@ -242,6 +255,14 @@ namespace API.Controllers
                 var success = await _adminRepository.BlockUserAsync(userId, input.IsBlocked);
                 if (!success)
                     return NotFound("User not found.");
+                var notification = new Notification
+                {
+                    UserId = userId,
+                    Message = $"Your account has been {(input.IsBlocked ? "blocked" : "unblocked")}.",
+                    CreatedAt = DateTime.UtcNow,
+                    IsRead = false
+                };
+                await _notificationRepository.CreateNotificationAsync(notification);
 
                 return Ok(new { Message = $"User {(input.IsBlocked ? "blocked" : "unblocked")} successfully." });
             }

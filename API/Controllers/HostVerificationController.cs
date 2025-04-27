@@ -2,6 +2,7 @@
 using API.DTOs.HostVerification;
 using API.Models;
 using API.Services.HostVerificationRepo;
+using API.Services.NotificationRepository;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -12,9 +13,12 @@ namespace API.Controllers
     public class HostVerificationController : ControllerBase
     {
         private readonly IHostVerificationRepository _hostVerificationRepository;
-        public HostVerificationController(IHostVerificationRepository hostVerificationRepository)
+        private readonly INotificationRepository _notificationRepository;
+
+        public HostVerificationController(IHostVerificationRepository hostVerificationRepository, INotificationRepository notificationRepository)
         {
             _hostVerificationRepository = hostVerificationRepository;
+            _notificationRepository = notificationRepository;
         }
 
         private int GetCurrentUserId()
@@ -117,6 +121,14 @@ namespace API.Controllers
                 if (verification == null)
                     return BadRequest("Failed to create verification.");
                 var host = await _hostVerificationRepository.GetHostByIdAsync(verification.HostId);
+                var notification = new Notification
+                {
+                    UserId = GetCurrentUserId(),
+                    Message = $"Your verification request has been submitted successfully.",
+                    CreatedAt = DateTime.UtcNow,
+                    IsRead = false
+                };
+                await _notificationRepository.CreateNotificationAsync(notification);
                 var dto = new HostVerificationOutputDTO
                 {
                     Id = verification.Id,

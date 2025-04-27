@@ -3,6 +3,7 @@ using AirBnb.BL.Dtos.BookingDtos;
 using API.DTOs.Promotion;
 using API.Models;
 using API.Services.BookingRepo;
+using API.Services.NotificationRepository;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -16,10 +17,12 @@ namespace API.Controllers
     public class BookingController : ControllerBase
     {
         private readonly IBookingRepository _bookingRepo;
+        private readonly INotificationRepository _notificationRepo;
 
-        public BookingController(IBookingRepository bookingRepo)
+        public BookingController(IBookingRepository bookingRepo, INotificationRepository notificationRepository)
         {
             _bookingRepo = bookingRepo;
+            _notificationRepo = notificationRepository;
         }
 
         private int GetCurrentUserId()
@@ -230,6 +233,15 @@ namespace API.Controllers
                 var success = await _bookingRepo.UpdateBookingStatusAsync(bookingId, BookingStatus.Confirmed.ToString());
                 if (!success)
                     return BadRequest("Failed to confirm the booking.");
+                var notification = new Notification
+                {
+                    UserId = booking.GuestId,
+                    SenderId = hostId,
+                    Message = $"Your booking for property {booking.Property.Title} has been confirmed.",
+                    IsRead = false,
+                    CreatedAt = DateTime.UtcNow
+                };
+                await _notificationRepo.CreateNotificationAsync(notification);
 
                 return Ok(new { Message = "Booking confirmed successfully." });
             }
@@ -529,13 +541,39 @@ namespace API.Controllers
                     UpdatedAt = DateTime.UtcNow
                 };
 
+                var notification1 = new Notification
+                {
+                    UserId = (int)property.Result.HostId,
+                    SenderId = guestId,
+                    Message = $"A new booking has been made for your property {property.Result.Title}.",
+                    IsRead = false,
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                var notification2 = new Notification
+                {
+                    UserId = guestId,
+                    SenderId = (int)property.Result.HostId,
+                    Message = $"Your booking for property {property.Result.Title} has been confirmed.",
+                    IsRead = false,
+                    CreatedAt = DateTime.UtcNow
+                };
+
 
                 if (property.Result.InstantBook == true)
                 {
                     booking.Status = BookingStatus.Confirmed.ToString();
+                    await _notificationRepo.CreateNotificationAsync(notification2);
+                }
+                else
+                {
+                    notification2.Message = $"Your booking for property {property.Result.Title} is pending confirmation.";
+                    await _notificationRepo.CreateNotificationAsync(notification2);
                 }
 
                 await _bookingRepo.CreateBookingAndUpdateAvailabilityAsync(booking);
+                await _notificationRepo.CreateNotificationAsync(notification1);
+
                 var usedPromotion = new UserUsedPromotion
                 {
                     PromotionId = promotion != null ? promotion.Id : 0,
@@ -546,7 +584,15 @@ namespace API.Controllers
                 };
                 if (promotion != null)
                 {
-                await _bookingRepo.AddUserUsedPromotionAsync(usedPromotion);
+                    await _bookingRepo.AddUserUsedPromotionAsync(usedPromotion);
+                    var notification3 = new Notification
+                    {
+                        UserId = guestId,
+                        Message = $"You got {discountedPrice} discount on your booking on property {property.Result.Title}",
+                        IsRead = false,
+                        CreatedAt = DateTime.UtcNow
+                    };
+                    await _notificationRepo.CreateNotificationAsync(notification3);
                 }
 
 
@@ -692,16 +738,35 @@ namespace API.Controllers
         {
             try
             {
-                var booking = await _bookingRepo.GetByIdAsync(id);
+                var booking = await _bookingRepo.getBookingByIdWithData(id);
                 if (booking == null)
                     return NotFound("Booking not found.");
-
+                
                 var userId = GetCurrentUserId();
+                var hostId = booking.Property.HostId;
+                
 
                 if (booking.GuestId != userId)
                     return Forbid("You are not authorized to delete this booking.");
 
                 await _bookingRepo.DeleteBookingAndUpdateAvailabilityAsync(id);
+                var notification1 = new Notification
+                {
+                    UserId = userId,
+                    Message = $"Your booking for property {booking.Property.Title} has been canceled.",
+                    IsRead = false,
+                    CreatedAt = DateTime.UtcNow
+                };
+                var notification2 = new Notification
+                {
+                    UserId = hostId,
+                    Message = $"Booking for your property {booking.Property.Title} has been canceled.",
+                    IsRead = false,
+                    CreatedAt = DateTime.UtcNow
+                };
+                await _notificationRepo.CreateNotificationAsync(notification1);
+                await _notificationRepo.CreateNotificationAsync(notification2);
+
 
                 return NoContent();
             }
