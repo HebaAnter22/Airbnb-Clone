@@ -22,7 +22,9 @@ using API.Services.AdminRepo;
 using API.Services.HostVerificationRepo;
 using Stripe;
 using API.Hubs;
+using API.Services.NotificationRepository;
 using System.Text.Json.Serialization;
+using API.Services.NotificationRepository;
 
 namespace API
 {
@@ -164,6 +166,8 @@ namespace API
             builder.Services.AddScoped<IPropertyAvailabilityRepository, PropertyAvailabilityRepository>();
             builder.Services.AddScoped<IAdminRepository, AdminRepository>();
             builder.Services.AddScoped<IHostVerificationRepository, HostVerificationRepository>();
+            builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
+
 
             // Add AI Services
             builder.Services.Configure<AIConfiguration>(builder.Configuration.GetSection("OpenAI"));

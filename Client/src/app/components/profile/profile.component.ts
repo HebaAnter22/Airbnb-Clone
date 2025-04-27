@@ -12,12 +12,12 @@ import { MessageUserButtonComponent } from '../chat/message-user-button/message-
   selector: 'app-profile',
   templateUrl: './profile.component.html',
   standalone: true,
-  imports: [CommonModule,MainNavbarComponent,MessageUserButtonComponent],
+  imports: [CommonModule, MainNavbarComponent, MessageUserButtonComponent],
   styleUrls: ['./profile.component.css']
 })
 export class ProfileComponent implements OnInit {
   isCurrentUserProfile: boolean = false;
- backendBaseUrl = 'https://localhost:7228';
+  backendBaseUrl = 'https://localhost:7228';
   userProfile: any;
   hostProfile: any;
   reviews: any[] = [];
@@ -26,24 +26,24 @@ export class ProfileComponent implements OnInit {
   activeTab: string = 'about';
   currentUserId = 0;
 
-  
-  profileId :number= 0;
+
+  profileId: number = 0;
 
   selectedFile: File | null = null;
   uploadProgress: number = 0;
   isUploading: boolean = false;
   emailVerified: boolean = false;
-  idVerified: boolean = false;
+  idVerified: boolean = true;
   Listings: any[] = [];
 
   constructor(
-    private profileService: ProfileService, 
+    private profileService: ProfileService,
     private router: Router,
     private authService: AuthService,
     private http: HttpClient,
     private route: ActivatedRoute,
-  ) {}
-  
+  ) { }
+
   ngOnInit(): void {
 
     this.currentUserId = parseInt(this.authService.userId || '0');
@@ -52,24 +52,24 @@ export class ProfileComponent implements OnInit {
 
     const currentUserId: string = this.authService.userId || '';
     this.isCurrentUserProfile = profileUserId === currentUserId;
-    
+
     this.loadUserProfile(profileUserId);
     this.loadUserReviews(profileUserId);
     this.loadUserListings(profileUserId);
     this.assignVerificationStatus();
   }
   assignVerificationStatus(): void {
-    this.authService.checkEmailVerificationStatus(this.route.snapshot.paramMap.get('id')||'' ).subscribe({
+    this.authService.checkEmailVerificationStatus(this.route.snapshot.paramMap.get('id') || '').subscribe({
       next: (isVerified: boolean) => {
         this.emailVerified = isVerified;
         console.log('Email verification status:', isVerified);
       },
-      error: (err:any) => {
+      error: (err: any) => {
         console.error('Error checking email verification status:', err);
       }
     });
   }
-  
+
   goToVerificationPage(): void {
     this.router.navigate(['/verification']);
   }
@@ -77,7 +77,7 @@ export class ProfileComponent implements OnInit {
   goToEditProfile(): void {
     this.router.navigate(['/editProfile', this.userProfile.id]);
   }
-  
+
   loadUserListings(userId: string): void {
     this.profileService.getUserListings(userId).subscribe({
       next: (listings: any[]) => {
@@ -125,24 +125,24 @@ export class ProfileComponent implements OnInit {
       this.hostProfile.obsessedWith,
       this.hostProfile.pets
     ];
-  
+
     const emptyCount = fieldsToCheck.filter(field => !field).length;
     return emptyCount > 7;
   }
-  
+
   getProfileImageUrl(): string {
     if (this.userProfile?.profilePictureUrl) {
       return this.backendBaseUrl + this.userProfile.profilePictureUrl;
     }
     return 'assets/images/default.png'; // Default image if none is set
   }
-  
+
   loadUserProfile(userId: string): void {
     this.profileService.getUserProfile(userId).subscribe({
       next: (profile) => {
         this.userProfile = profile;
         console.log('User Profile:', this.userProfile);
-        
+
         if (this.userProfile.role != 'Guest') {
           this.loadHostProfile(userId);
         } else {
@@ -159,7 +159,7 @@ export class ProfileComponent implements OnInit {
       }
     });
   }
-  
+
   // Create a default host profile structure for guests
   createDefaultHostProfile(): void {
     this.hostProfile = {
@@ -178,7 +178,7 @@ export class ProfileComponent implements OnInit {
       isVerified: false,
       properties: []
     };
-    
+
     // Once reviews are loaded, update the rating
     if (this.reviews.length > 0) {
       this.hostProfile.rating = this.calculateUserRatingFromReviews();
@@ -195,13 +195,13 @@ export class ProfileComponent implements OnInit {
         this.errorMessage = 'Only JPG, PNG, and GIF images are allowed';
         return;
       }
-      
+
       // Validate file size (5MB)
       if (file.size > 5 * 1024 * 1024) {
         this.errorMessage = 'File size exceeds 5MB limit';
         return;
       }
-      
+
       this.selectedFile = file;
       this.errorMessage = '';
     }
@@ -209,10 +209,10 @@ export class ProfileComponent implements OnInit {
 
   uploadProfilePicture(): void {
     if (!this.selectedFile) return;
-    
+
     this.isUploading = true;
     this.uploadProgress = 0;
-    
+
     this.profileService.uploadProfilePicture(this.selectedFile).subscribe({
       next: (response: any) => {
         this.userProfile.profilePictureUrl = response.fileUrl;
@@ -238,13 +238,13 @@ export class ProfileComponent implements OnInit {
         if (!this.hostProfile.work) this.hostProfile.work = '';
         if (!this.hostProfile.education) this.hostProfile.education = '';
         if (!this.hostProfile.languages) this.hostProfile.languages = '';
-        
+
         // Update with review data if available
         if (this.reviews.length > 0) {
           this.hostProfile.rating = this.calculateUserRatingFromReviews();
           this.hostProfile.totalReviews = this.reviews.length;
         }
-        
+
         this.isLoading = false;
       },
       error: (err) => {
@@ -255,29 +255,29 @@ export class ProfileComponent implements OnInit {
       }
     });
   }
-  
+
   calculateUserRatingFromReviews(): number {
     if (this.reviews.length === 0) return 0;
     const totalRating = this.reviews.reduce((acc, review) => acc + review.rating, 0);
     return totalRating / this.reviews.length;
   }
-  
+
   getHostingYears(): number {
     if (!this.hostProfile?.startDate) return 1; // Default value for guests or new hosts
     const startDate = new Date(this.hostProfile.startDate);
     const currentDate = new Date();
     return currentDate.getFullYear() - startDate.getFullYear();
   }
-  
+
   setActiveTab(tab: string): void {
     window.scrollTo(0, 0);
     this.activeTab = tab;
   }
-  
+
   goToPropertyPage(listingId: string): void {
     this.router.navigate(['/property', listingId]);
   }
-  
+
 
   logout(): void {
     this.authService.logout();

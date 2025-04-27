@@ -30,16 +30,16 @@ export class VerificationComponent implements OnInit, OnDestroy {
   idBackImage: File | null = null;
   idFrontPreviewUrl: string | null = null; // New property for front image preview
   idBackPreviewUrl: string | null = null;  // New property for back image preview
-  
+
   emailVerified: boolean = false;
   phoneVerified: boolean = false;
-  idVerified: boolean = false;
+  idVerified: boolean = true;
   isLoading: boolean = false;
   errorMessage: string = '';
   userId: string = ''; // User ID from Firebase Auth
   apiUrl: string = environment.apiUrl; // Base URL for your backend API
   private userSubscription: Subscription | null = null;
-  
+
   // This would be filled with country codes in a real implementation
   countryCodes = [
     { code: '+1', name: 'United States (+1)' },
@@ -52,8 +52,8 @@ export class VerificationComponent implements OnInit, OnDestroy {
     private authService: FirebaseAuthService,
     private http: HttpClient,
     private auth: AuthService,
-    private router:Router
-  ) {}
+    private router: Router
+  ) { }
 
   ngOnInit(): void {
     // Check email verification status from your backend API
@@ -66,7 +66,7 @@ export class VerificationComponent implements OnInit, OnDestroy {
     if (this.userSubscription) {
       this.userSubscription.unsubscribe();
     }
-    
+
     // Clean up image preview URLs
     if (this.idFrontPreviewUrl) {
       URL.revokeObjectURL(this.idFrontPreviewUrl);
@@ -80,52 +80,52 @@ export class VerificationComponent implements OnInit, OnDestroy {
     this.currentStep = step;
     this.errorMessage = '';
   }
-  
+
   goToProfilePage(): void {
     this.router.navigate(['/profile', this.userId]); // Navigate to the profile page with the user ID
   }
-  
+
   async verifyEmail(): Promise<void> {
     if (!this.email || !this.email.includes('@')) {
       this.errorMessage = 'Please enter a valid email address';
       return;
     }
-    
+
     this.isLoading = true;
     this.errorMessage = '';
-    
+
     try {
       this.password = 'Temp' + Math.random().toString(36).substring(2, 10);
-      
+
       // First, update the email in your backend database
       await this.updateUserEmail(this.email);
-      
+
       // Then, send the verification email through Firebase
       const success = await this.authService.sendVerificationEmail(this.email, this.password);
-      
+
       if (success) {
         this.navigateTo('email-sent');
       } else {
         this.errorMessage = 'Failed to send verification email. Please try again.';
       }
     } catch (error) {
-      
+
       console.error('Error during email verification:', error);
-      if(this.errorMessage === '') {
-      this.errorMessage = 'An error occurred. Please try again later.';
+      if (this.errorMessage === '') {
+        this.errorMessage = 'An error occurred. Please try again later.';
       }
     } finally {
       this.isLoading = false;
     }
   }
-  
+
   async resendVerificationEmail(): Promise<void> {
     this.isLoading = true;
     this.errorMessage = '';
-    
+
     try {
       const success = await this.authService.resendVerificationEmail();
-      
+
       if (!success) {
         this.errorMessage = 'Failed to resend verification email. Please try again.';
       }
@@ -136,11 +136,11 @@ export class VerificationComponent implements OnInit, OnDestroy {
       this.isLoading = false;
     }
   }
-  
+
   checkEmailVerification(): void {
     // Check if email has been verified from your backend API
     this.isLoading = true;
-    
+
     // First, have Firebase reload the user to check verification status
     this.authService.getCurrentUser()?.reload()
       .then(() => {
@@ -168,12 +168,12 @@ export class VerificationComponent implements OnInit, OnDestroy {
         this.isLoading = false;
       });
   }
-  
+
   // Check email verification status from your backend API
   private checkEmailVerificationStatus(): void {
     this.isLoading = true;
-    
-    this.http.get<{isEmailVerified: boolean}>(`${this.apiUrl}/Profile/user/email-verification-status`)
+
+    this.http.get<{ isEmailVerified: boolean }>(`${this.apiUrl}/Profile/user/email-verification-status`)
       .subscribe({
         next: (response) => {
           this.emailVerified = response.isEmailVerified;
@@ -185,8 +185,8 @@ export class VerificationComponent implements OnInit, OnDestroy {
         }
       });
   }
-  
-  
+
+
   // Update the email in your backend database
   private updateUserEmail(email: string): Promise<void> {
     return new Promise((resolve, reject) => {
@@ -205,7 +205,7 @@ export class VerificationComponent implements OnInit, OnDestroy {
         });
     });
   }
-  
+
   // Update the email verification status in your backend database
   private updateEmailVerificationStatus(isVerified: boolean): Promise<void> {
     console.log(isVerified)
@@ -220,13 +220,13 @@ export class VerificationComponent implements OnInit, OnDestroy {
         });
     });
   }
-  
+
   requestPhoneVerification(): void {
     // Mock SMS verification code request
     // In a real app, you would integrate with Firebase Phone Auth or another SMS service
     if (this.phoneNumber) {
       this.isLoading = true;
-      
+
       // Simulate API call
       setTimeout(() => {
         this.isLoading = false;
@@ -236,12 +236,12 @@ export class VerificationComponent implements OnInit, OnDestroy {
       this.errorMessage = 'Please enter a valid phone number';
     }
   }
-  
+
   submitVerificationCode(): void {
     // Mock verification code validation
     if (this.verificationCode && this.verificationCode.length === 4) {
       this.isLoading = true;
-      
+
       // Simulate API call
       setTimeout(() => {
         this.isLoading = false;
@@ -252,12 +252,12 @@ export class VerificationComponent implements OnInit, OnDestroy {
       this.errorMessage = 'Please enter a valid 4-digit verification code';
     }
   }
-  
+
   onIdFrontSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
       this.idFrontImage = input.files[0];
-      
+
       // Create preview URL for the front image
       if (this.idFrontPreviewUrl) {
         URL.revokeObjectURL(this.idFrontPreviewUrl);
@@ -265,12 +265,12 @@ export class VerificationComponent implements OnInit, OnDestroy {
       this.idFrontPreviewUrl = URL.createObjectURL(this.idFrontImage);
     }
   }
-  
+
   onIdBackSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
       this.idBackImage = input.files[0];
-      
+
       // Create preview URL for the back image
       if (this.idBackPreviewUrl) {
         URL.revokeObjectURL(this.idBackPreviewUrl);
@@ -278,18 +278,18 @@ export class VerificationComponent implements OnInit, OnDestroy {
       this.idBackPreviewUrl = URL.createObjectURL(this.idBackImage);
     }
   }
-  
+
   submitIdVerification(): void {
     if (this.idFrontImage && this.idBackImage) {
       this.isLoading = true;
       this.errorMessage = '';
-      
+
       // Create a FormData object to send the files
       const formData = new FormData();
-// Use the same field name 'files' and append multiple files
-      formData.append('files', this.idFrontImage); 
+      // Use the same field name 'files' and append multiple files
+      formData.append('files', this.idFrontImage);
       formData.append('files', this.idBackImage);
-      
+
       // Make the POST request to the host verification endpoint
       this.http.post(`${this.apiUrl}/HostVerification/CreateVerification`, formData)
         .subscribe({
@@ -312,16 +312,16 @@ export class VerificationComponent implements OnInit, OnDestroy {
   }
   resendVerificationCode(): void {
     this.isLoading = true;
-    
+
     // Simulate API call
     setTimeout(() => {
       this.isLoading = false;
     }, 1000);
   }
-  
+
   requestCall(): void {
     this.isLoading = true;
-    
+
     // Simulate API call
     setTimeout(() => {
       this.isLoading = false;
