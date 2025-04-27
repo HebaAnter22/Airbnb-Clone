@@ -20,7 +20,6 @@ import { BookingComponent } from './components/bookings/bookings.component';
 import { VerificationComponent } from './components/verifications/verifications.component';
 import { HostVerificationComponent } from './components/host-verification/host-verification.component';
 import { AdminComponent } from './components/admin/admin.component';
-import { HostDashboardComponent } from './components/host/host-dashboard/host-dashboard.component';
 import { BookingDetailsComponent } from './components/host/booking-details/booking-details.component';
 import { PropertyBookingDetailsComponent } from './components/host/property-booking-details/property-booking-details.component';
 import { VerifinghostComponent } from './components/admin/verifinghost/verifinghost.component';
@@ -29,6 +28,7 @@ import { PropertyListingsComponent } from './components/home/property-listing/pr
 import { CheckoutComponent } from './components/checkout/checkout.component';
 import { PaymentSuccessComponent } from './components/payment-success/payment-success.component';
 import { HostPayoutComponent } from './components/host-payout/host-payout.component';
+import { HostDashboardComponent } from './components/host/host-dashboard/host-dashboard.component';
 export const routes: Routes = [
   {path: 'home', component: PropertyListingsComponent},
   {path: '', redirectTo: 'home', pathMatch: 'full'},
@@ -79,11 +79,18 @@ export const routes: Routes = [
       data: { role: 'Host' }
     },
     {
-      path: 'Booking/details/:id',
+      path: 'property/bookings/:id',
       component: PropertyBookingDetailsComponent,
       canActivate: [authGuard, roleGuard],
-      data: { role: 'Host' }
+      data: { role: 'Admin' }
     },
+    
+    // {
+    //   path: 'Booking/details/:id',
+    //   component: PropertyBookingDetailsComponent,
+    //   canActivate: [authGuard, roleGuard],
+    //   data: { role: ['Host', 'Admin'] }
+    // },
     {path: 'booking/:bookingId',
       component: BookingDetailsComponent,
       canActivate: [authGuard]

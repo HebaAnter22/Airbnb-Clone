@@ -325,12 +325,21 @@ namespace API.Controllers
         {
             try
             {
+                Console.WriteLine($"Search request - Country: '{country}', StartDate: {startDate}, EndDate: {endDate}, MaxGuests: {maxGuests}");
+                
                 var properties = await _propertyService.SearchPropertiesAsync(title, country, minNights, maxNights, startDate, endDate, maxGuests);
+                
+                Console.WriteLine($"Search results - Found {properties.Count} properties");
 
-                return Ok(properties);
+                return Ok(new
+                {
+                    properties = properties,
+                    total = properties.Count
+                });
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"Search error: {ex.Message}");
                 return StatusCode(500, $"An error occurred: {ex.Message}");
             }
         }

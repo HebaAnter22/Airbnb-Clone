@@ -110,46 +110,57 @@ namespace API.Controllers
 
         // Get detailed bookings for a property.
         [HttpGet("property/details/{propertyId}")]
-        [Authorize(Roles = "Host")]
+        [Authorize(Roles = "Host,Admin")]
         public async Task<IActionResult> GetPropertyBookingDetails(int propertyId)
         {
-            var bookings = await _bookingRepo.GetPropertyBookingDetails(propertyId);
-            var hostId = GetCurrentUserId();
-            foreach (var booking in bookings)
-            {
-                var IsHostAuthorized = await _bookingRepo.IsBookingOwnedByHostAsync(booking.Id, hostId);
-                if (!IsHostAuthorized)
-                    return Forbid("You are not authorized to view this booking.");
-            }
-
-
-            var dtos = bookings.Select(b => new BookingDetailsDTO
-            {
-                Id = b.Id,
-                PropertyId = b.PropertyId,
-                GuestId = b.GuestId,
-                StartDate = b.StartDate,
-                EndDate = b.EndDate,
-                CheckInStatus = b.CheckInStatus,
-                CheckOutStatus = b.CheckOutStatus,
-                Status = b.Status,
-                TotalAmount = b.TotalAmount,
-                PromotionId = b.PromotionId,
-                CreatedAt = b.CreatedAt,
-                UpdatedAt = b.UpdatedAt,
-                GuestName = $"{b.Guest.FirstName} {b.Guest.LastName}",
-                PropertyTitle = b.Property.Title,
-                Payments = b.Payments.Select(p => new PaymentDTO
+            try {
+                var bookings = await _bookingRepo.GetPropertyBookingDetails(propertyId);
+                
+                // If user is admin, skip the host authorization check
+                var userRole = User.FindFirst(ClaimTypes.Role)?.Value;
+                if (userRole != "Admin")
                 {
-                    Id = p.Id,
-                    Amount = p.Amount,
-                    PaymentMethodType = p.PaymentMethodType,
-                    Status = p.Status,
-                    CreatedAt = p.CreatedAt
-                }).ToList()
-            });
+                    var hostId = GetCurrentUserId();
+                    foreach (var booking in bookings)
+                    {
+                        var isHostAuthorized = await _bookingRepo.IsBookingOwnedByHostAsync(booking.Id, hostId);
+                        if (!isHostAuthorized)
+                            return Forbid("You are not authorized to view this booking.");
+                    }
+                }
 
-            return Ok(dtos);
+                var dtos = bookings.Select(b => new BookingDetailsDTO
+                {
+                    Id = b.Id,
+                    PropertyId = b.PropertyId,
+                    GuestId = b.GuestId,
+                    StartDate = b.StartDate,
+                    EndDate = b.EndDate,
+                    CheckInStatus = b.CheckInStatus,
+                    CheckOutStatus = b.CheckOutStatus,
+                    Status = b.Status,
+                    TotalAmount = b.TotalAmount,
+                    PromotionId = b.PromotionId,
+                    CreatedAt = b.CreatedAt,
+                    UpdatedAt = b.UpdatedAt,
+                    GuestName = $"{b.Guest.FirstName} {b.Guest.LastName}",
+                    PropertyTitle = b.Property.Title,
+                    Payments = b.Payments.Select(p => new PaymentDTO
+                    {
+                        Id = p.Id,
+                        Amount = p.Amount,
+                        PaymentMethodType = p.PaymentMethodType,
+                        Status = p.Status,
+                        CreatedAt = p.CreatedAt
+                    }).ToList()
+                });
+
+                return Ok(dtos);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"An unexpected error occurred: {ex.Message}");
+            }
         }
 
 

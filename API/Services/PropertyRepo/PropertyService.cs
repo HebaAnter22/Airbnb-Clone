@@ -638,10 +638,21 @@ namespace API.Services
 
         public async Task<List<PropertyDto>> SearchPropertiesAsync(string title = null, string country = null, int? minNights = null, int? maxNights = null, DateTime? startDate = null, DateTime? endDate = null, int? maxGuests = null)
         {
+            // Start with all active properties
             var query = _context.Properties
                 .Where(p => p.Status == "Active")
                 .AsQueryable();
 
+            // If no specific search criteria, return all active properties (limited filtering)
+            bool hasSearchCriteria = !string.IsNullOrWhiteSpace(title) || 
+                                    !string.IsNullOrWhiteSpace(country) ||
+                                    minNights.HasValue || 
+                                    maxNights.HasValue || 
+                                    startDate.HasValue || 
+                                    endDate.HasValue || 
+                                    maxGuests.HasValue;
+
+            // Apply filters only if specific criteria are provided
             if (!string.IsNullOrWhiteSpace(title))
             {
                 query = query.Where(p => p.Title.Contains(title));
@@ -649,7 +660,7 @@ namespace API.Services
 
             if (!string.IsNullOrWhiteSpace(country))
             {
-                query = query.Where(p => p.Country.Equals(country));
+                query = query.Where(p => p.Country.ToLower() == country.ToLower());
             }
 
             if (minNights.HasValue && maxNights.HasValue)

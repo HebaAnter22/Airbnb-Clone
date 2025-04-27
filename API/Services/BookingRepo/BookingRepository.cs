@@ -419,24 +419,44 @@ using WebApiDotNet.Repos;
             }
 
         public async Task<decimal> GetTotalIncomeForHostAsync(int hostId)
-            {
-                var totalIncome = await _context.Bookings.Include(b => b.Property)
-                    .Where(b => b.Property.HostId == hostId) 
-                    .SelectMany(b => b.Payments) 
-                    .SumAsync(p => p.Amount); 
+        {
+            // Sum booking amounts where the host is the specified hostId
+            var bookingAmounts = await _context.Bookings
+                
+                .Where(b => b.Property.HostId == hostId && b.Status == "Confirmed")
+                .Include(b => b.Payments)
+                .SumAsync(b => b.TotalAmount);
 
-                return totalIncome;
-            }
+            // Sum payment amounts for the host
+            var paymentAmounts = await _context.Bookings
+                .Where(b => b.Property.HostId == hostId)
+                .Include(b => b.Payments)
+                .SelectMany(b => b.Payments)
+                .Where(p => p.Status == "succeeded")
+                .SumAsync(p => p.Amount);
 
-            public async Task<decimal> GetTotalSpentByGuestAsync(int guestId)
-            {
-                var totalSpent = await _context.Bookings
-                    .Where(b => b.GuestId == guestId)
-                    .SelectMany(b => b.Payments)
-                    .SumAsync(p => p.Amount); 
+            // Return the total of both sums
+            return bookingAmounts + paymentAmounts;
+        }
 
-                return totalSpent;
-            }
+        public async Task<decimal> GetTotalSpentByGuestAsync(int guestId)
+        {
+            // Sum confirmed booking amounts
+            var bookingAmounts = await _context.Bookings
+                .Where(b => b.GuestId == guestId && b.Status == "Confirmed")
+                .SumAsync(b => b.TotalAmount);
+
+            // Sum payment amounts
+            var paymentAmounts = await _context.Bookings
+                .Where(b => b.GuestId == guestId)
+                .Include(b => b.Payments)
+                .SelectMany(b => b.Payments)
+                .Where(p => p.Status == "succeeded")
+                .SumAsync(p => p.Amount);
+
+            // Return the total of both sums
+            return bookingAmounts + paymentAmounts;
+        }
 
         public async Task<PaymentIntent> CreatePaymentIntentAsync(decimal amount, int bookingId)
         {

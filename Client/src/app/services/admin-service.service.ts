@@ -116,6 +116,10 @@ export class AdminServiceService {
     return this.http.get<HostDto[]>(`${this.API_URL}/hosts`);
   }
 
+  getTopPaidHosts(count: number = 5): Observable<HostDto[]> {
+    return this.http.get<HostDto[]>(`${this.API_URL}/hosts/top-paid?count=${count}`);
+  }
+
   getVerifiedHosts(): Observable<HostDto[]> {
     return this.http.get<HostDto[]>(`${this.API_URL}/hosts/verified`);
   }
@@ -139,6 +143,10 @@ export class AdminServiceService {
   // Guest Management
   getAllGuests(): Observable<GuestDto[]> {
     return this.http.get<GuestDto[]>(`${this.API_URL}/guests`);
+  }
+
+  getTopSpendingGuests(count: number = 5): Observable<GuestDto[]> {
+    return this.http.get<GuestDto[]>(`${this.API_URL}/guests/top-spending?count=${count}`);
   }
 
   // User Management

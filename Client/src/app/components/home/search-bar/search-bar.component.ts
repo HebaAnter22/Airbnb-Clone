@@ -34,8 +34,8 @@ export class SearchBarComponent implements OnInit, AfterViewInit {
   isMobile: boolean = false;
 
   // Date picker properties
-  currentDate: Date = new Date(2025, 4, 1); // April 2025
-  nextMonthDate: Date = new Date(2025, 5, 1); // May 2025
+  currentDate: Date = new Date(2025, 3, 1); // April 2025
+  nextMonthDate: Date = new Date(2025, 4, 1); // May 2025
   daysInMonth: number[] = [];
   daysInNextMonth: number[] = [];
   emptyDaysBefore: number[] = [];
@@ -248,15 +248,20 @@ export class SearchBarComponent implements OnInit, AfterViewInit {
   }
 
   onSearch(): void {
-    if (!this.destination) {
-      console.log('Search failed: No destination provided');
+    if (!this.destination && !this.checkIn && !this.checkOut && (!this.guests.adults || this.guests.adults === 0)) {
+      console.log('Search failed: No search criteria provided');
       return;
     }
 
-    const searchParams = {
-      country: this.destination,
-      maxGuests: this.guests.adults
-    } as any;
+    const searchParams = {} as any;
+    
+    if (this.destination) {
+      searchParams.country = this.destination;
+    }
+    
+    if (this.guests.adults > 0) {
+      searchParams.maxGuests = this.guests.adults;
+    }
 
     if (this.checkIn) {
       searchParams.startDate = this.checkIn;
@@ -271,7 +276,7 @@ export class SearchBarComponent implements OnInit, AfterViewInit {
       next: (properties) => {
         console.log('Search Results:', properties);
         this.searchPerformed.emit({
-          destination: this.destination,
+          destination: this.destination || 'All Properties',
           checkIn: this.checkIn,
           checkOut: this.checkOut,
           guests: this.guests,

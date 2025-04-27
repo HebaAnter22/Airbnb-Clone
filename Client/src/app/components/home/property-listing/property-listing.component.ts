@@ -257,4 +257,29 @@ export class PropertyListingsComponent implements OnInit {
     }
     return pages;
   }
+
+  // Add method to handle search results
+  handleSearchResults(searchResults: any): void {
+    console.log('Handling search results:', searchResults);
+    
+    if (searchResults && searchResults.properties) {
+      this.properties = searchResults.properties.properties; // Extract properties from the nested structure
+      this.totalItems = searchResults.properties.total;
+      this.totalPages = Math.ceil(this.totalItems / this.itemsPerPage);
+      
+      // Reset image indices for the new properties
+      this.properties.forEach(property => {
+        this.currentImageIndices[property.id] = 0;
+      });
+      
+      // Update active filter to reflect the search
+      this.activeFilter = `Results for "${searchResults.destination}"`;
+      
+      console.log('Updated properties:', this.properties);
+      console.log('Total items:', this.totalItems);
+    } else {
+      console.error('Invalid search results structure:', searchResults);
+      this.showError('Failed to process search results');
+    }
+  }
 }

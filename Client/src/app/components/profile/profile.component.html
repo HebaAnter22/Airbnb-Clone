@@ -444,7 +444,7 @@
               <div class="review-author">
                 <!-- add guest avatar -->
                 <div class="reviewer-img">
-                  <img [src]="review?.guestAvatar ? (backendBaseUrl + review.guestAvatar) : 'assets/default-avatar.jpg'" alt="Profile picture">
+                  <img [src]="review?.guestAvatar ? (review.guestAvatar) : 'assets/default-avatar.jpg'" alt="Profile picture">
                 </div>
                 <strong>{{ review.guestName }}</strong>
                 <span>{{ review.createdAt |  date:'MMMM yyyy'  }}</span>
@@ -518,7 +518,7 @@
             <div class="review-card" *ngFor="let review of reviews">
               <div class="review-header">
                 <div class="reviewer-img">
-                  <img [src]="review.guestAvatar ? (backendBaseUrl + review.guestAvatar) : 'assets/default-avatar.jpg'" 
+                  <img [src]="review.guestAvatar ? (review.guestAvatar) : 'assets/default-avatar.jpg'" 
                        [alt]="review.guestName">
                 </div>
                 <div class="reviewer-info">

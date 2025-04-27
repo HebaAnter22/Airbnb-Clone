@@ -12,6 +12,9 @@ import { PropertyCategory, Amenity } from '../../../models/property';
 import { LocationMapComponent } from '../../map/location-map.component';
 import { ImageUploadComponent } from '../image-upload/image-upload.component';
 import { AuthService } from '../../../services/auth.service';
+import { ValidationErrorComponent } from '../../common/validation-error/validation-error.component';
+import { InputValidators } from '../../../validators/input-validators';
+import { ValidatedFormDirective } from '../../../directives/validated-form.directive';
 
 interface InvalidField {
   field: string;
@@ -39,7 +42,9 @@ interface LocationData {
     MatInputModule,
     MatProgressSpinnerModule,
     LocationMapComponent,
-    ImageUploadComponent
+    ImageUploadComponent,
+    ValidationErrorComponent,
+    ValidatedFormDirective
   ],
   templateUrl: './add-property.component.html',
   styleUrls: ['./add-property.component.css']
@@ -114,22 +119,22 @@ export class AddPropertyComponent implements OnInit {
       categoryId: ['', Validators.required],
       propertyType: ['', Validators.required],
       sharingType: ['', Validators.required],
-      title: ['', [Validators.required, Validators.minLength(10)]],
-      description: ['', [Validators.required, Validators.minLength(20)]],
+      title: ['', [Validators.required, Validators.minLength(10), Validators.maxLength(100)]],
+      description: ['', [Validators.required, Validators.minLength(20), Validators.maxLength(1000)]],
       address: ['', Validators.required],
-      city: ['', Validators.required],
-      country: ['', Validators.required],
-      postalCode: [''],
+      city: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(50), InputValidators.lettersOnly]],
+      country: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(50), InputValidators.lettersOnly]],
+      postalCode: ['', [Validators.maxLength(20)]],
       latitude: [0, Validators.required],
       longitude: [0, Validators.required],
-      pricePerNight: [0, [Validators.required, Validators.min(1)]],
-      cleaningFee: [0, [Validators.required, Validators.min(0)]],
-      serviceFee: [0, [Validators.required, Validators.min(0)]],
-      minNights: [1, [Validators.required, Validators.min(1)]],
-      maxNights: [30, [Validators.required, Validators.min(1)]],
-      bedrooms: [1, [Validators.required, Validators.min(1)]],
-      bathrooms: [1, [Validators.required, Validators.min(1)]],
-      maxGuests: [1, [Validators.required, Validators.min(1)]],
+      pricePerNight: [0, [Validators.required, Validators.min(1), Validators.max(10000)]],
+      cleaningFee: [0, [Validators.required, Validators.min(0), Validators.max(1000)]],
+      serviceFee: [0, [Validators.required, Validators.min(0), Validators.max(1000)]],
+      minNights: [1, [Validators.required, Validators.min(1), Validators.max(365)]],
+      maxNights: [30, [Validators.required, Validators.min(1), Validators.max(365)]],
+      bedrooms: [1, [Validators.required, Validators.min(1), Validators.max(20)]],
+      bathrooms: [1, [Validators.required, Validators.min(1), Validators.max(20)]],
+      maxGuests: [1, [Validators.required, Validators.min(1), Validators.max(50)]],
       amenities: [[], Validators.required],
       instantBook: [true],
       cancellationPolicyId: [1],
