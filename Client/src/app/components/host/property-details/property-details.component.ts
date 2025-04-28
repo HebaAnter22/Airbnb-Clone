@@ -10,12 +10,14 @@ import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../../services/auth.service';
 import { MainNavbarComponent } from '../../main-navbar/main-navbar.component';
 import { MessageUserButtonComponent } from '../../chatting/components/message-user-button/message-user-button.component';
+import { ReportViolationComponent } from '../../common/report-violation/report-violation.component';
+import { ReportViolationDirective } from '../../../directives/report-violation.directive';
 
 
 @Component({
   selector: 'app-property-details',
   standalone: true,
-  imports: [CommonModule, NgIf, NgForOf, DatePipe, NgClass, GoogleMapsModule, FormsModule, MainNavbarComponent, MessageUserButtonComponent],
+  imports: [CommonModule, NgIf, NgForOf, DatePipe, NgClass, GoogleMapsModule, FormsModule, MainNavbarComponent, ReportViolationComponent, ReportViolationDirective, MessageUserButtonComponent],
   templateUrl: './property-details.component.html',
 
   styleUrls: ['./property-details.component.scss']
@@ -268,16 +270,16 @@ export class PropertyDetailsComponent implements OnInit {
         }
         if (this.property.instantBook) {
 
-          this.showToast = true;
-          console.log(this.bookingId)
-          this.toastMessage = `🏡 Property added to your Bookings! <a href='/payment/${this.bookingId}'>Now You Can Continue to payment From here</a>`;
+          //   this.showToast = true;
+          //   console.log(this.bookingId)
+          //   this.toastMessage = `🏡 Property added to your Bookings! <a href='/checkout/${this.bookingId}'>Now You Can Continue to payment From here</a>`;
 
-          setTimeout(() => {
-            this.showToast = false;
-          }, 5000);
+          // setTimeout(() => {
+          //   this.showToast = false;
+          // }, 5000);
 
 
-          //this.router.navigate(['/payment', response.bookingId]);
+          this.router.navigate(['/checkout/', this.bookingId]);
         }
       },
       error: (error) => {
@@ -1240,7 +1242,10 @@ export class PropertyDetailsComponent implements OnInit {
     document.removeEventListener('click', this.onDocumentClick);
   }
 
-
-
+  // Add method to handle violation reports
+  onViolationReported(): void {
+    // You can add custom logic here if needed, like showing a thank you message
+    console.log('Violation report submitted for property:', this.property?.id);
+  }
 
 }

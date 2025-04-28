@@ -66,7 +66,7 @@
             <a class="dropdown-item" (click)="setCurrentSection('earnings-chart')">
               <i class="fas fa-chart-line"></i> Earnings Chart
             </a>
-            <a class="dropdown-item" (click)="setCurrentSection('payouts')">
+            <a class="dropdown-item" (click)="navigateToPayouts()">
               <i class="fas fa-money-bill-wave"></i> Payouts
             </a>
           </div>
@@ -85,12 +85,12 @@
       <div class="nav-item dropdown">
         <div class="user-profile" data-bs-toggle="dropdown">
           <span class="profile-icon" >
-            <img *ngIf="  imageUrl  " [src]="imageUrl" alt="Profile" class="profile-image"  />
-              <div *ngIf="  !imageUrl " class="profile-avatar">
+            <img *ngIf="imageUrl" [src]="imageUrl" alt="Profile" class="profile-image" />
+            <div *ngIf="  !imageUrl " class="profile-avatar">
                 <div class="profile-placeholder">{{ userFirstName ? userFirstName[0] : 'G' }}</div>
               </div>
           </span>
-          <span class="user-name">{{userName}}</span>
+          <!-- <span class="user-name">{{userName}}</span> -->
         </div>
         <ul class="dropdown-menu dropdown-menu-end">
           <li>
@@ -143,28 +143,7 @@
 
 <!-- Payouts Section -->
 <div *ngIf="currentSection === 'payouts'" class="content-section">
-  <h2>Payouts</h2>
-  <div class="payouts-container">
-    <div class="payout-summary">
-      <div class="payout-card">
-        <h3>Available Balance</h3>
-        <p class="amount">$0.00</p>
-        <button class="btn btn-primary">Request Payout</button>
-      </div>
-      <div class="payout-card">
-        <h3>Next Payout</h3>
-        <p class="amount">$0.00</p>
-        <p class="date">Not scheduled</p>
-      </div>
-    </div>
-    <div class="payout-history">
-      <h3>Payout History</h3>
-      <div class="empty-state">
-        <i class="fas fa-money-bill-wave"></i>
-        <p>No payout history available</p>
-      </div>
-    </div>
-  </div>
+  <app-host-payout></app-host-payout>
 </div>
 
     <!-- Account Section -->

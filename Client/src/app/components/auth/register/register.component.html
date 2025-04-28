@@ -8,18 +8,32 @@
         
         <div class="form-group">
           <label>First Name</label>
-          <input type="text" formControlName="firstName" class="form-control" placeholder="First Name">
-          <div *ngIf="registerForm.get('firstName')?.invalid && registerForm.get('firstName')?.touched" class="error-message">
-            First name is required
-          </div>
+          <input 
+            type="text" 
+            formControlName="firstName" 
+            class="form-control" 
+            [class.is-invalid]="registerForm.get('firstName')?.invalid && registerForm.get('firstName')?.touched"
+            placeholder="First Name">
+          <app-validation-error 
+            [errors]="registerForm.get('firstName')!.errors" 
+            [fieldName]="'First name'" 
+            *ngIf="registerForm.get('firstName')?.invalid && registerForm.get('firstName')?.touched">
+          </app-validation-error>
         </div>
         
         <div class="form-group">
           <label>Last Name</label>
-          <input type="text" formControlName="lastName" class="form-control" placeholder="Last Name">
-          <div *ngIf="registerForm.get('lastName')?.invalid && registerForm.get('lastName')?.touched" class="error-message">
-            Last name is required
-          </div>
+          <input 
+            type="text" 
+            formControlName="lastName" 
+            class="form-control" 
+            [class.is-invalid]="registerForm.get('lastName')?.invalid && registerForm.get('lastName')?.touched"
+            placeholder="Last Name">
+          <app-validation-error 
+            [errors]="registerForm.get('lastName')!.errors" 
+            [fieldName]="'Last name'" 
+            *ngIf="registerForm.get('lastName')?.invalid && registerForm.get('lastName')?.touched">
+          </app-validation-error>
         </div>
 
         
@@ -39,11 +53,17 @@
         </div>-->
         <div class="form-group">
           <label>Email</label>
-          <input type="email" formControlName="email" class="form-control" placeholder="Email">
-          <div *ngIf="registerForm.get('email')?.invalid && registerForm.get('email')?.touched" class="error-message">
-            <span *ngIf="registerForm.get('email')?.errors?.['required']">Email is required</span>
-            <span *ngIf="registerForm.get('email')?.errors?.['email']">Please enter a valid email</span>
-          </div>
+          <input 
+            type="email" 
+            formControlName="email" 
+            class="form-control" 
+            [class.is-invalid]="registerForm.get('email')?.invalid && registerForm.get('email')?.touched"
+            placeholder="Email">
+          <app-validation-error 
+            [errors]="registerForm.get('email')!.errors" 
+            [fieldName]="'Email'" 
+            *ngIf="registerForm.get('email')?.invalid && registerForm.get('email')?.touched">
+          </app-validation-error>
         </div>
 
         
@@ -51,11 +71,11 @@
         <div class="form-group">
           <label>Password</label>
           <div class="password-input-container">
-
-          <input
+            <input
               [type]="showPassword ? 'text' : 'password'"
               formControlName="password"
               class="form-control"
+              [class.is-invalid]="registerForm.get('password')?.invalid && registerForm.get('password')?.touched"
               placeholder="Enter your password">
             <button 
               type="button" 
@@ -65,10 +85,11 @@
               <i class="fa" [ngClass]="showPassword ? 'fa-eye-slash' : 'fa-eye'"></i>
             </button>
           </div>
-          <div *ngIf="registerForm.get('password')?.invalid && registerForm.get('password')?.touched" class="error-message">
-            <span *ngIf="registerForm.get('password')?.errors?.['required']">Password is required</span>
-            <span *ngIf="registerForm.get('password')?.errors?.['minlength']">Password must be at least 6 characters</span>
-          </div>
+          <app-validation-error 
+            [errors]="registerForm.get('password')!.errors" 
+            [fieldName]="'Password'" 
+            *ngIf="registerForm.get('password')?.invalid && registerForm.get('password')?.touched">
+          </app-validation-error>
         </div>
 
         <div class="form-group">
@@ -78,40 +99,41 @@
               [type]="showPassword ? 'text' : 'password'"
               formControlName="confirmPassword"
               class="form-control"
+              [class.is-invalid]="(registerForm.get('confirmPassword')?.invalid || registerForm.errors?.['passwordMismatch']) && registerForm.get('confirmPassword')?.touched"
               placeholder="Confirm your password">
-            
           </div>
-                    <div *ngIf="registerForm.get('confirmPassword')?.errors?.['passwordMismatch'] && registerForm.get('confirmPassword')?.touched" class="error-message">
-            Passwords do not match
-          </div>
+          <app-validation-error 
+            [errors]="registerForm.get('confirmPassword')!.errors" 
+            [fieldName]="'Confirm password'" 
+            *ngIf="registerForm.get('confirmPassword')?.invalid && registerForm.get('confirmPassword')?.touched">
+          </app-validation-error>
+          <app-validation-error 
+            [errors]="registerForm.errors" 
+            *ngIf="registerForm.errors?.['passwordMismatch'] && registerForm.get('confirmPassword')?.touched">
+          </app-validation-error>
         </div>
 
-        <button type="submit" class="btn-primary" [disabled]="!registerForm.valid">Continue</button>
+        <div *ngIf="errorMessage" class="alert alert-danger">
+          {{ errorMessage }}
+        </div>
+
+        <button type="submit" class="btn-primary">Continue</button>
       </form>
       
       <div class="divider">
         <span>or</span>
       </div>
       
-      <div class="btn-social google-btn" >
-        
-        <asl-google-signin-button class="google-btn ">
-          
-        </asl-google-signin-button>
-        <span>
-          Continue with Google
-        </span> 
-      </div>
+      <button class="btn-social " (click)="signInWithGoogle()">
+        <i class="fab fa-google"></i> Continue with Google
+      </button>
+      
       <button class="btn-social">
-        <i class="fab fa-apple"></i> Continue with Apple
+        <i class="fab fa-facebook"></i> Continue with Facebook
       </button>
       
       <div class="login-link">
         Already have an account? <a (click)="goToLogin()">Log in</a>
-      </div>
-      
-      <div *ngIf="errorMessage" class="alert alert-danger">
-        {{ errorMessage }}
       </div>
     </div>
   </div>

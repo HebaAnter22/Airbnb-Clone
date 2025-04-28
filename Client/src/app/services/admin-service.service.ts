@@ -99,12 +99,29 @@ export interface BookingDto {
   updatedAt: Date;
 }
 
+export interface ViolationDto {
+  id: number;
+  reportedById: number;
+  reporterName: string;
+  reportedPropertyId: number;
+  reportedPropertyTitle: string;
+  reportedHostId: number;
+  reportedHostName: string;
+  violationType: string;
+  description: string;
+  status: string;
+  createdAt: Date;
+  resolvedAt?: Date;
+  adminNotes?: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class AdminServiceService {
   private readonly API_URL = 'https://localhost:7228/api/admin';
   private readonly Base_url = 'https://localhost:7228/api/proprties'; // Replace with your actual API URL
+  private readonly VIOLATIONS_URL = 'https://localhost:7228/api/violations';
 
   constructor(
     private http: HttpClient,
@@ -114,6 +131,10 @@ export class AdminServiceService {
   // Host Management
   getAllHosts(): Observable<HostDto[]> {
     return this.http.get<HostDto[]>(`${this.API_URL}/hosts`);
+  }
+
+  getTopPaidHosts(count: number = 5): Observable<HostDto[]> {
+    return this.http.get<HostDto[]>(`${this.API_URL}/hosts/top-paid?count=${count}`);
   }
 
   getVerifiedHosts(): Observable<HostDto[]> {
@@ -139,6 +160,10 @@ export class AdminServiceService {
   // Guest Management
   getAllGuests(): Observable<GuestDto[]> {
     return this.http.get<GuestDto[]>(`${this.API_URL}/guests`);
+  }
+
+  getTopSpendingGuests(count: number = 5): Observable<GuestDto[]> {
+    return this.http.get<GuestDto[]>(`${this.API_URL}/guests/top-spending?count=${count}`);
   }
 
   // User Management
@@ -183,5 +208,18 @@ export class AdminServiceService {
     }
     const decoded = this.authService.decodeToken(user.accessToken);
     return Promise.resolve(parseInt(decoded.nameid));
+  }
+
+  // Host violations and blocking
+  getHostViolations(hostId: number): Observable<ViolationDto[]> {
+    return this.http.get<ViolationDto[]>(`${this.VIOLATIONS_URL}/host/${hostId}`);
+  }
+
+  blockHost(hostId: number): Observable<any> {
+    return this.http.put<any>(`${this.VIOLATIONS_URL}/block-host/${hostId}`, {});
+  }
+  
+  getBlockedHosts(): Observable<HostDto[]> {
+    return this.http.get<HostDto[]>(`${this.API_URL}/hosts/blocked`);
   }
 }

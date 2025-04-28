@@ -5,6 +5,7 @@ using API.Models;
 using AutoMapper;
 using API.DTOs.Amenity;
 using API.DTOs.Review;
+using AirBnb.BL.Dtos.BookingDtos;
 
 public class PropertyProfile : Profile
 {
@@ -12,6 +13,14 @@ public class PropertyProfile : Profile
     {
         CreateMap<Property, PropertyDto>()
             .ForMember(dest => dest.Images, opt => opt.MapFrom(src => src.PropertyImages))
+            .ForMember(dest=> dest.cancellationPolicyId, opt => opt.MapFrom(src => src.CancellationPolicyId))
+            .ForMember(dest => dest.CancellationPolicy, opt => opt.MapFrom(src => src.CancellationPolicy != null ? new CancellationPolicyDTO
+            {
+                Id = src.CancellationPolicy.Id,
+                Name = src.CancellationPolicy.Name,
+                Description = src.CancellationPolicy.Description,
+                RefundPercentage = src.CancellationPolicy.RefundPercentage
+            } : null))
             //.ForMember(dest => dest.Amenities, opt => opt.MapFrom(src => src.Amenities)) // Uncommented
             .ForMember(dest => dest.Reviews, opt => opt.MapFrom(src => src.Bookings.Select(b => b.Review).Where(r => r != null)))
             .ForMember(dest => dest.HostName, opt => opt.MapFrom(src => $"{src.Host.User.FirstName} {src.Host.User.LastName}"))

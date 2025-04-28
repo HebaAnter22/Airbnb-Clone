@@ -1,0 +1,51 @@
+<button (click)="openModal()" class="report-btn">
+  <i class="fa fa-flag"></i> Report Violation
+</button>
+
+<!-- Modal -->
+<div class="modal-overlay" *ngIf="showModal">
+  <div class="modal-container">
+    <div class="modal-header">
+      <h3>Report a Violation</h3>
+      <button (click)="closeModal()" class="close-btn">&times;</button>
+    </div>
+    
+    <div class="modal-body">
+      <div *ngIf="error" class="error-message">
+        {{ error }}
+      </div>
+      <div *ngIf="success" class="success-message">
+        {{ success }}
+      </div>
+      
+      <form (ngSubmit)="submitReport()">
+        <div class="form-group">
+          <label for="violationType">Violation Type*</label>
+          <select id="violationType" name="violationType" [(ngModel)]="formData.violationType" required>
+            <option value="" disabled>Select a violation type</option>
+            <option *ngFor="let type of violationTypes" [value]="type.value">{{ type.label }}</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label for="description">Description*</label>
+          <textarea 
+            id="description" 
+            name="description" 
+            [(ngModel)]="formData.description"
+            rows="4"
+            placeholder="Please provide details about the violation..."
+            required
+          ></textarea>
+        </div>
+        
+        <div class="form-actions">
+          <button type="button" (click)="closeModal()" class="cancel-btn">Cancel</button>
+          <button type="submit" [disabled]="isSubmitting" class="submit-btn">
+            {{ isSubmitting ? 'Submitting...' : 'Submit Report' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div> 

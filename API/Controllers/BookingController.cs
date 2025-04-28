@@ -113,46 +113,57 @@ namespace API.Controllers
 
         // Get detailed bookings for a property.
         [HttpGet("property/details/{propertyId}")]
-        [Authorize(Roles = "Host")]
+        [Authorize(Roles = "Host,Admin")]
         public async Task<IActionResult> GetPropertyBookingDetails(int propertyId)
         {
-            var bookings = await _bookingRepo.GetPropertyBookingDetails(propertyId);
-            var hostId = GetCurrentUserId();
-            foreach (var booking in bookings)
-            {
-                var IsHostAuthorized = await _bookingRepo.IsBookingOwnedByHostAsync(booking.Id, hostId);
-                if (!IsHostAuthorized)
-                    return Forbid("You are not authorized to view this booking.");
-            }
-
-
-            var dtos = bookings.Select(b => new BookingDetailsDTO
-            {
-                Id = b.Id,
-                PropertyId = b.PropertyId,
-                GuestId = b.GuestId,
-                StartDate = b.StartDate,
-                EndDate = b.EndDate,
-                CheckInStatus = b.CheckInStatus,
-                CheckOutStatus = b.CheckOutStatus,
-                Status = b.Status,
-                TotalAmount = b.TotalAmount,
-                PromotionId = b.PromotionId,
-                CreatedAt = b.CreatedAt,
-                UpdatedAt = b.UpdatedAt,
-                GuestName = $"{b.Guest.FirstName} {b.Guest.LastName}",
-                PropertyTitle = b.Property.Title,
-                Payments = b.Payments.Select(p => new PaymentDTO
+            try {
+                var bookings = await _bookingRepo.GetPropertyBookingDetails(propertyId);
+                
+                // If user is admin, skip the host authorization check
+                var userRole = User.FindFirst(ClaimTypes.Role)?.Value;
+                if (userRole != "Admin")
                 {
-                    Id = p.Id,
-                    Amount = p.Amount,
-                    PaymentMethodType = p.PaymentMethodType,
-                    Status = p.Status,
-                    CreatedAt = p.CreatedAt
-                }).ToList()
-            });
+                    var hostId = GetCurrentUserId();
+                    foreach (var booking in bookings)
+                    {
+                        var isHostAuthorized = await _bookingRepo.IsBookingOwnedByHostAsync(booking.Id, hostId);
+                        if (!isHostAuthorized)
+                            return Forbid("You are not authorized to view this booking.");
+                    }
+                }
 
-            return Ok(dtos);
+                var dtos = bookings.Select(b => new BookingDetailsDTO
+                {
+                    Id = b.Id,
+                    PropertyId = b.PropertyId,
+                    GuestId = b.GuestId,
+                    StartDate = b.StartDate,
+                    EndDate = b.EndDate,
+                    CheckInStatus = b.CheckInStatus,
+                    CheckOutStatus = b.CheckOutStatus,
+                    Status = b.Status,
+                    TotalAmount = b.TotalAmount,
+                    PromotionId = b.PromotionId,
+                    CreatedAt = b.CreatedAt,
+                    UpdatedAt = b.UpdatedAt,
+                    GuestName = $"{b.Guest.FirstName} {b.Guest.LastName}",
+                    PropertyTitle = b.Property.Title,
+                    Payments = b.Payments.Select(p => new PaymentDTO
+                    {
+                        Id = p.Id,
+                        Amount = p.Amount,
+                        PaymentMethodType = p.PaymentMethodType,
+                        Status = p.Status,
+                        CreatedAt = p.CreatedAt
+                    }).ToList()
+                });
+
+                return Ok(dtos);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"An unexpected error occurred: {ex.Message}");
+            }
         }
 
 
@@ -331,44 +342,67 @@ namespace API.Controllers
 
         // Get detailed information about a specific booking
         [HttpGet("{bookingId}/details")]
-        [Authorize(Roles = "Guest")]
+        [Authorize(Roles = "Guest,Admin")]
         public async Task<IActionResult> GetUserBookingDetails(int bookingId)
         {
-            var userId = GetCurrentUserId();
-            var booking = await _bookingRepo.GetUserBookingetails(bookingId);
-
-            if (booking == null)
-                return NotFound("Booking not found.");
-            if (booking.GuestId != userId)
-                return Forbid("You are not authorized to view this booking.");
-
-            var dto = new BookingDetailsDTO
+            try
             {
-                Id = booking.Id,
-                PropertyId = booking.PropertyId,
-                GuestId = booking.GuestId,
-                StartDate = booking.StartDate,
-                EndDate = booking.EndDate,
-                CheckInStatus = booking.CheckInStatus,
-                CheckOutStatus = booking.CheckOutStatus,
-                Status = booking.Status,
-                TotalAmount = booking.TotalAmount,
-                PromotionId = booking.PromotionId,
-                CreatedAt = booking.CreatedAt,
-                UpdatedAt = booking.UpdatedAt,
-                GuestName = $"{booking.Guest.FirstName} {booking.Guest.LastName}",
-                PropertyTitle = booking.Property.Title,
-                Payments = booking.Payments.Select(p => new PaymentDTO
-                {
-                    Id = p.Id,
-                    Amount = p.Amount,
-                    PaymentMethodType = p.PaymentMethodType,
-                    Status = p.Status,
-                    CreatedAt = p.CreatedAt
-                }).ToList()
-            };
+                var userId = GetCurrentUserId();
+                var booking = await _bookingRepo.GetUserBookingetails(bookingId);
 
-            return Ok(dto);
+                if (booking == null)
+                    return NotFound($"Booking with ID {bookingId} not found.");
+
+                // Allow admin to view any booking or guest to view their own booking
+                var userRole = User.FindFirst(ClaimTypes.Role)?.Value;
+                if (userRole != "Admin" && booking.GuestId != userId)
+                    return StatusCode(403, "You are not authorized to view this booking. Only the booking guest or an admin can access this information.");
+
+                var dto = new BookingDetailsDTO
+                {
+                    Id = booking.Id,
+                    PropertyId = booking.PropertyId,
+                    GuestId = booking.GuestId,
+                    StartDate = booking.StartDate,
+                    EndDate = booking.EndDate,
+                    CheckInStatus = booking.CheckInStatus,
+                    CheckOutStatus = booking.CheckOutStatus,
+                    Status = booking.Status,
+                    TotalAmount = booking.TotalAmount,
+                    PromotionId = booking.PromotionId,
+                    CreatedAt = booking.CreatedAt,
+                    UpdatedAt = booking.UpdatedAt,
+                    GuestName = $"{booking.Guest.FirstName} {booking.Guest.LastName}",
+                    PropertyTitle = booking.Property.Title,
+                    Payments = booking.Payments.Select(p => new PaymentDTO
+                    {
+                        Id = p.Id,
+                        Amount = p.Amount,
+                        PaymentMethodType = p.PaymentMethodType,
+                        Status = p.Status,
+                        CreatedAt = p.CreatedAt
+                    }).ToList(),
+                    CancellationPolicy = booking.Property?.CancellationPolicy != null 
+                        ? new CancellationPolicyDTO
+                        {
+                            Id = booking.Property.CancellationPolicy.Id,
+                            Name = booking.Property.CancellationPolicy.Name,
+                            Description = booking.Property.CancellationPolicy.Description,
+                            RefundPercentage = booking.Property.CancellationPolicy.RefundPercentage
+                        } 
+                        : null
+                };
+
+                return Ok(dto);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized($"Authentication error: {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"An unexpected error occurred: {ex.Message}");
+            }
         }
 
         [HttpPost("{bookingId}/apply-promotion")]
@@ -536,7 +570,7 @@ namespace API.Controllers
                     EndDate = input.EndDate,
                     TotalAmount = discountedPrice,
                     PromotionId = input.PromotionId,
-                    Status = BookingStatus.Pending.ToString(),
+                    Status = "Pending",
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
                 };
@@ -558,18 +592,9 @@ namespace API.Controllers
                     IsRead = false,
                     CreatedAt = DateTime.UtcNow
                 };
-
-
-                if (property.Result.InstantBook == true)
-                {
-                    booking.Status = BookingStatus.Confirmed.ToString();
                     await _notificationRepo.CreateNotificationAsync(notification2);
-                }
-                else
-                {
-                    notification2.Message = $"Your booking for property {property.Result.Title} is pending confirmation.";
-                    await _notificationRepo.CreateNotificationAsync(notification2);
-                }
+                
+              
 
 
                 await _bookingRepo.CreateBookingAndUpdateAvailabilityAsync(booking);
@@ -734,21 +759,22 @@ namespace API.Controllers
 
         // Delete a booking.
         [HttpDelete("{id}")]
-        [Authorize(Roles = "Guest")]
+        [Authorize(Roles = "Guest,Admin")]
         public async Task<IActionResult> DeleteBooking(int id)
         {
             try
             {
                 var booking = await _bookingRepo.getBookingByIdWithData(id);
                 if (booking == null)
-                    return NotFound("Booking not found.");
-                
+                    return NotFound($"Booking with ID {id} not found.");
+
                 var userId = GetCurrentUserId();
                 var hostId = booking.Property.HostId;
-                
+                var userRole = User.FindFirst(ClaimTypes.Role)?.Value;
 
-                if (booking.GuestId != userId)
-                    return Forbid("You are not authorized to delete this booking.");
+                // Allow admin to delete any booking or guest to delete only their own booking
+                if (userRole != "Admin" && booking.GuestId != userId)
+                    return StatusCode(403, "You are not authorized to delete this booking. Only the booking guest or an admin can delete it.");
 
                 await _bookingRepo.DeleteBookingAndUpdateAvailabilityAsync(id);
                 var notification1 = new Notification
@@ -773,33 +799,50 @@ namespace API.Controllers
             }
             catch (UnauthorizedAccessException ex)
             {
-                return Unauthorized(ex.Message);
+                return Unauthorized($"Authentication error: {ex.Message}");
             }
             catch (Exception ex)
             {
-                return StatusCode(500, "An unexpected error occurred while deleting the booking.");
+                Console.WriteLine($"Error deleting booking {id}: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                if (ex.InnerException != null)
+                {
+                    Console.WriteLine($"Inner exception: {ex.InnerException.Message}");
+                }
+                return StatusCode(500, $"An unexpected error occurred while deleting the booking: {ex.Message}");
             }
         }
 
         #endregion
 
-        [HttpPost("create-payment-intent")]
-        [Authorize(Roles = "Guest")]
-        public async Task<IActionResult> CreatePaymentIntent([FromBody] int bookingId)
-        {
-            try
-            {
-                var booking = await _bookingRepo.GetByIdAsync(bookingId);
-                if (booking == null)
-                    return NotFound("Booking not found.");
-                var paymentIntent = await _bookingRepo.CreatePaymentIntentAsync(booking.TotalAmount);
-                return Ok(new { clientSecret = paymentIntent.ClientSecret, Id = paymentIntent.Id });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"An unexpected error occurred: {ex.Message}");
-            }
-        }
+        //[HttpPost("create-payment-intent")]
+        //[Authorize(Roles = "Guest")]
+        //public async Task<IActionResult> CreatePaymentIntent([FromBody] int bookingId)
+        //{
+        //    try
+        //    {
+        //        var booking = await _bookingRepo.GetByIdAsync(bookingId);
+        //        if (booking == null)
+        //            return NotFound("Booking not found.");
+        //        var paymentIntent = await _bookingRepo.CreatePaymentIntentAsync(booking.TotalAmount);
+        //        return Ok(new { clientSecret = paymentIntent.ClientSecret, Id = paymentIntent.Id });
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return StatusCode(500, $"An unexpected error occurred: {ex.Message}");
+        //    }
+        //}
+
+
+        //[HttpPost("create-payment-intent")]
+        //[Authorize]
+        //public async Task<IActionResult> CreatePaymentIntent([FromBody] CreatePaymentIntentDto createPaymentIntentDto)
+        //{
+        //    var paymentIntent = await _bookingRepo.CreatePaymentIntentAsync(createPaymentIntentDto.Amount, createPaymentIntentDto.BookingId);
+        //    return Ok(new { clientSecret = paymentIntent.ClientSecret });
+        //}
+
+
 
 
         //[HttpPost("create-payment-intent")]

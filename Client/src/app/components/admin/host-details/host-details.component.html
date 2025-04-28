@@ -1,0 +1,167 @@
+<div class="host-details-container">
+  <!-- Loading and error states -->
+  <div *ngIf="loading" class="loading-spinner">Loading...</div>
+  <div *ngIf="error" class="error-message">{{ error }}</div>
+
+  <!-- Back button -->
+  <button class="back-button" (click)="goBack()"><i class="fas fa-arrow-left"></i> Back to Hosts</button>
+
+  <!-- Host Information Section -->
+  <div *ngIf="host" class="host-info-section">
+    <div class="header-with-actions">
+      <h2>Host Details</h2>
+      <button class="block-btn" (click)="blockHost()">Block Host</button>
+    </div>
+
+    <div class="host-profile">
+      <div class="profile-picture">
+        <img [src]="host?.profilePictureUrl || 'assets/images/default-avatar.png'" alt="Host profile picture">
+      </div>
+      <div class="profile-details">
+        <h3>{{ host?.firstName }} {{ host?.lastName }}</h3>
+        <div class="detail-row">
+          <span class="label">Email:</span>
+          <span class="value">{{ host?.email }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Phone:</span>
+          <span class="value">{{ host?.phoneNumber }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Host Since:</span>
+          <span class="value">{{ formatDate(host?.startDate) }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Host Metrics -->
+    <div class="metrics-cards">
+      <div class="metric-card">
+        <div class="metric-icon">
+          <i class="fas fa-home"></i>
+        </div>
+        <div class="metric-details">
+          <h4>Properties</h4>
+          <p class="metric-value">{{ host?.propertiesCount }}</p>
+        </div>
+      </div>
+      
+      <div class="metric-card">
+        <div class="metric-icon">
+          <i class="fas fa-dollar-sign"></i>
+        </div>
+        <div class="metric-details">
+          <h4>Total Earnings</h4>
+          <p class="metric-value">${{ host?.totalIncome }}</p>
+        </div>
+      </div>
+      
+      <div class="metric-card">
+        <div class="metric-icon">
+          <i class="fas fa-star"></i>
+        </div>
+        <div class="metric-details">
+          <h4>Rating</h4>
+          <p class="metric-value">
+            {{ hostRating > 0 ? (hostRating | number:'1.1-1') : (host?.Rating | number:'1.1-1') }}/5 
+            <span class="small-text">({{ hostReviews.length > 0 ? hostReviews.length : host?.totalReviews }} reviews)</span>
+          </p>
+        </div>
+      </div>
+      
+      <div class="metric-card">
+        <div class="metric-icon">
+          <i class="fas fa-flag"></i>
+        </div>
+        <div class="metric-details">
+          <h4>Violations</h4>
+          <p class="metric-value">{{ totalViolations }} <span class="small-text">({{ pendingViolations }} pending)</span></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Host Reviews Section (if available) -->
+  <div *ngIf="host && hostReviews.length > 0" class="reviews-section">
+    <h3>Recent Reviews</h3>
+    <div class="reviews-container">
+      <div *ngFor="let review of hostReviews.slice(0, 3)" class="review-card">
+        <div class="review-header">
+          <div class="reviewer-info">
+            <strong>{{ review.reviewerName || 'Guest' }}</strong>
+            <span class="review-date">{{ formatDate(review.createdAt) }}</span>
+          </div>
+          <div class="review-rating">
+            <span class="star-rating">{{ review.rating }}/5</span>
+            <span class="stars">
+              <i *ngFor="let star of [1,2,3,4,5]" class="fas fa-star" [class.filled]="star <= review.rating"></i>
+            </span>
+          </div>
+        </div>
+        <div class="review-content">
+          <p>{{ review.comment }}</p>
+        </div>
+      </div>
+      <div *ngIf="hostReviews.length > 3" class="more-reviews">
+        <button class="view-more-btn">View All {{ hostReviews.length }} Reviews</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Violation Reports Section -->
+  <div *ngIf="host" class="violations-section">
+    <h3>Report History</h3>
+    
+    <!-- Filter controls -->
+    <div class="filter-controls">
+      <label for="violationStatusFilter">Filter by Status:</label>
+      <select id="violationStatusFilter" [(ngModel)]="violationStatusFilter">
+        <option value="all">All Reports</option>
+        <option value="pending">Pending</option>
+        <option value="resolved">Resolved</option>
+        <option value="dismissed">Dismissed</option>
+      </select>
+    </div>
+    
+    <!-- Violations table -->
+    <div class="table-responsive">
+      <table class="data-table violations-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Reported By</th>
+            <th>Reported Date</th>
+            <th>Status</th>
+            <th>Resolved Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let violation of getFilteredViolations()">
+            <td>{{ violation.id }}</td>
+            <td>
+              <span [class]="'violation-type ' + getViolationTypeClass(violation.violationType)">
+                {{ violation.violationType }}
+              </span>
+            </td>
+            <td>{{ violation.description }}</td>
+            <td>{{ violation.reporterName }}</td>
+            <td>{{ formatDate(violation.createdAt) }}</td>
+            <td>
+              <span class="status-badge" [class.status-pending]="violation.status === 'Pending'"
+                [class.status-resolved]="violation.status === 'Resolved'"
+                [class.status-dismissed]="violation.status === 'Dismissed'">
+                {{ violation.status }}
+              </span>
+            </td>
+            <td>{{ formatDate(violation.resolvedAt) }}</td>
+          </tr>
+          <tr *ngIf="getFilteredViolations().length === 0">
+            <td colspan="7" class="no-data">No violations found</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div> 

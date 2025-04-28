@@ -1,0 +1,505 @@
+.violations-container {
+  padding: 20px;
+}
+
+.section-title {
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 24px;
+  color: #222;
+}
+
+.filters {
+  display: flex;
+  margin-bottom: 20px;
+  gap: 20px;
+  align-items: center;
+}
+
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.filter-group label {
+  font-weight: 500;
+  color: #333;
+}
+
+.filter-group select {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  background-color: white;
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  padding: 20px;
+  color: #666;
+}
+
+.error-message {
+  background-color: #fff3f5;
+  color: #e03151;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  border: 1px solid #ffb3c0;
+}
+
+.success-message {
+  background-color: #f2fbf4;
+  color: #1da75c;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  border: 1px solid #a8e5c2;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 40px;
+  color: #666;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+}
+
+.violations-table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.violations-table th,
+.violations-table td {
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 1px solid #eee;
+}
+
+.violations-table th {
+  background-color: #f9f9f9;
+  font-weight: 600;
+  color: #333;
+}
+
+.violations-table tr:hover {
+  background-color: #f5f5f5;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.status-badge.pending {
+  background-color: #fff7e6;
+  color: #f59f00;
+  border: 1px solid #ffd8a8;
+}
+
+.status-badge.underreview {
+  background-color: #e7f5ff;
+  color: #339af0;
+  border: 1px solid #a5d8ff;
+}
+
+.status-badge.resolved {
+  background-color: #ebfbee;
+  color: #2b8a3e;
+  border: 1px solid #b2f2bb;
+}
+
+.status-badge.dismissed {
+  background-color: #f1f3f5;
+  color: #495057;
+  border: 1px solid #dee2e6;
+}
+
+.view-btn {
+  background-color: #339af0;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 6px 12px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.view-btn:hover {
+  background-color: #1c7ed6;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 20px;
+  gap: 16px;
+}
+
+.page-btn {
+  background-color: #f1f3f5;
+  border: 1px solid #dee2e6;
+  color: #495057;
+  border-radius: 4px;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.page-btn:hover:not(:disabled) {
+  background-color: #e9ecef;
+}
+
+.page-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.page-info {
+  color: #495057;
+  font-size: 14px;
+}
+
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-container {
+  background-color: #fff;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  border-bottom: 1px solid #eee;
+  position: sticky;
+  top: 0;
+  background-color: #fff;
+  z-index: 1;
+}
+
+.modal-header h3 {
+  margin: 0;
+  color: #222;
+  font-size: 18px;
+}
+
+.close-btn {
+  background: transparent;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #717171;
+}
+
+.modal-body {
+  padding: 24px;
+}
+
+.detail-section {
+  margin-bottom: 24px;
+}
+
+.detail-section h4 {
+  margin-top: 0;
+  margin-bottom: 12px;
+  color: #333;
+  font-size: 16px;
+  font-weight: 600;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 8px;
+}
+
+.detail-row {
+  display: flex;
+  margin-bottom: 8px;
+}
+
+.detail-row .label {
+  font-weight: 500;
+  width: 130px;
+  color: #555;
+}
+
+.detail-row .value {
+  flex: 1;
+}
+
+.description {
+  background-color: #f9f9f9;
+  padding: 16px;
+  border-radius: 8px;
+  white-space: pre-line;
+  margin: 0;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.form-group textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+  resize: vertical;
+}
+
+.action-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.status-btn {
+  border: none;
+  border-radius: 6px;
+  padding: 10px 16px;
+  font-weight: 500;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.status-btn.under-review {
+  background-color: #e7f5ff;
+  color: #339af0;
+  border: 1px solid #a5d8ff;
+}
+
+.status-btn.dismissed {
+  background-color: #f1f3f5;
+  color: #495057;
+  border: 1px solid #dee2e6;
+}
+
+.status-btn.resolved {
+  background-color: #ebfbee;
+  color: #2b8a3e;
+  border: 1px solid #b2f2bb;
+}
+
+.status-btn:hover:not(:disabled) {
+  filter: brightness(0.95);
+}
+
+.status-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.block-host-btn {
+  background-color: #ff385c;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 16px;
+  font-weight: 500;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.block-host-btn:hover:not(:disabled) {
+  background-color: #e03151;
+}
+
+.block-host-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Related Bookings Button */
+.related-bookings-btn {
+  background-color: #6b7280;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.related-bookings-btn:hover {
+  background-color: #4b5563;
+}
+
+.related-bookings-btn:disabled {
+  background-color: #d1d5db;
+  cursor: not-allowed;
+}
+
+/* Related Bookings Table */
+.related-bookings {
+  margin-top: 16px;
+}
+
+.bookings-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.bookings-table th,
+.bookings-table td {
+  padding: 8px 12px;
+  text-align: left;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.bookings-table th {
+  background-color: #f9fafb;
+  font-weight: 600;
+  color: #374151;
+}
+
+.bookings-table tbody tr:hover {
+  background-color: #f3f4f6;
+}
+
+.payment-status {
+  font-size: 12px;
+  padding: 2px 6px;
+  border-radius: 9999px;
+  font-weight: 500;
+}
+
+.payment-status.succeeded {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+.payment-status.refunded {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.payment-status.partially_refunded {
+  background-color: #e0f2fe;
+  color: #0369a1;
+}
+
+.refund-btn {
+  background-color: #fca5a5;
+  color: #7f1d1d;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.refund-btn:hover {
+  background-color: #f87171;
+}
+
+/* Refund Modal */
+.refund-modal {
+  max-width: 500px;
+}
+
+.input-with-prefix {
+  display: flex;
+  align-items: center;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.input-with-prefix .prefix {
+  background-color: #f3f4f6;
+  padding: 8px 12px;
+  color: #4b5563;
+  border-right: 1px solid #d1d5db;
+  font-weight: 500;
+}
+
+.input-with-prefix input {
+  flex: 1;
+  border: none;
+  padding: 8px 12px;
+  outline: none;
+}
+
+.refund-process-btn {
+  background-color: #ef4444;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.refund-process-btn:hover {
+  background-color: #dc2626;
+}
+
+.refund-process-btn:disabled {
+  background-color: #fca5a5;
+  cursor: not-allowed;
+}
+
+.cancel-btn {
+  background-color: #e5e7eb;
+  color: #4b5563;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s;
+  margin-right: 8px;
+}
+
+.cancel-btn:hover {
+  background-color: #d1d5db;
+}
+
+small {
+  display: block;
+  margin-top: 4px;
+  color: #6b7280;
+  font-size: 12px;
+} 

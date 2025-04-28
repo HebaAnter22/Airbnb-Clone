@@ -1,86 +1,87 @@
 <!-- Property Details HTML Template -->
 <app-main-navbar></app-main-navbar>
 <div class="container" *ngIf="!loading && property">
-    <!-- Property Title -->
-    <div class="header">
-      <h1>{{ property.title }}</h1>
-      <div class="header-actions">
-        
-        <button class="wishlist-btn" (click)="toggleWishlist(property.id)" [class.active]="inWishList">
-            <i class="fa-heart" [ngClass]="{'fas': inWishList, 'far': !inWishList}"></i>
-            <span>{{ inWishList ? 'Saved' : 'Save' }}</span>
-          </button>
-      </div>
-    </div>
-  
-    <!-- Image Gallery -->
-    <div class="image-gallery">
-      <div class="main-image">
-        <img [src]="mainImage || '/assets/placeholder.jpg'" alt="{{ property.title }}">
-      </div>
-      <div class="secondary-images">
-        <div class="image-grid">
-          <div class="gallery-img" *ngFor="let img of secondaryImages.slice(0, 4)">
-            <img [src]="img" alt="{{ property.title }}">
-          </div>
-        </div>
-        <button class="btn-show-all"  (click)="showAllPhotos()">
-          <i class="fa fa-th"></i> Show all photos
-        </button>
-      </div>
-    </div>
-  
-    <!-- Main Content -->
-    <div class="content-container">
-      <!-- Left Column: Property Info -->
-      <div class="property-info">
-        <div class="property-header">
-          <h2>{{property.categoryName}} in {{ property.city }}, {{ property.country }}</h2>
-          <div class="property-meta">
-            {{ property.maxGuests }} max guests · {{ property.bedrooms }} bedrooms · {{ property.bedrooms }} beds · {{ property.bathrooms }} baths
-          </div>
-          <div class="property-rating" *ngIf="property.reviewCount > 0">
-            <span class="rating">
-              <i class="fa fa-star"></i> {{ property.averageRating }}
-            </span>
-            <span class="review-count">({{ property.reviewCount }} reviews)</span>
-          </div>
-          <div class="property-rating" *ngIf="property.reviewCount === 0">
-            <span class="no-reviews">No reviews yet</span>
-          </div>
-        </div>
-  
-        <hr>
-  
-        <!-- Host Info -->
-        <div class="host-info">
-          <div class="host-avatar">
-            <img [src]="getFullImageUrl(property.hostProfileImage)" alt="{{ property.hostName }}" (click)="scrollDown()">
-          </div>
-          <div class="host-details">
-            <h3 >Hosted by {{ property.hostName }}</h3>
-            <p>{{getYearsHosting()}} years hosting
+  <!-- Property Title -->
+  <div class="header">
+    <h1>{{ property.title }}</h1>
+    <div class="header-actions">
 
-            </p>
-          </div>
+      <button class="wishlist-btn" (click)="toggleWishlist(property.id)" [class.active]="inWishList">
+        <i class="fa-heart" [ngClass]="{'fas': inWishList, 'far': !inWishList}"></i>
+        <span>{{ inWishList ? 'Saved' : 'Save' }}</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Image Gallery -->
+  <div class="image-gallery">
+    <div class="main-image">
+      <img [src]="mainImage || '/assets/placeholder.jpg'" alt="{{ property.title }}">
+    </div>
+    <div class="secondary-images">
+      <div class="image-grid">
+        <div class="gallery-img" *ngFor="let img of secondaryImages.slice(0, 4)">
+          <img [src]="img" alt="{{ property.title }}">
         </div>
-  
-        <hr>
-  
-        <!-- Location Info -->
-        <div class="location-info">
-          <div class="location-icon">
-            <i class="fa fa-street-view" aria-hidden="true"></i>
-                    </div>
-          <div class="location-details">
-            <p>{{distance}} From {{property?.address}}</p>
-          </div>
+      </div>
+      <button class="btn-show-all" (click)="showAllPhotos()">
+        <i class="fa fa-th"></i> Show all photos
+      </button>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="content-container">
+    <!-- Left Column: Property Info -->
+    <div class="property-info">
+      <div class="property-header">
+        <h2>{{property.categoryName}} in {{ property.city }}, {{ property.country }}</h2>
+        <div class="property-meta">
+          {{ property.maxGuests }} max guests · {{ property.bedrooms }} bedrooms · {{ property.bedrooms }} beds · {{
+          property.bathrooms }} baths
         </div>
-  
-        <hr>
-  
-        <!-- What this place offers -->
-        <!-- <div class="amenities-section">
+        <div class="property-rating" *ngIf="property.reviewCount > 0">
+          <span class="rating">
+            <i class="fa fa-star"></i> {{ property.averageRating }}
+          </span>
+          <span class="review-count">({{ property.reviewCount }} reviews)</span>
+        </div>
+        <div class="property-rating" *ngIf="property.reviewCount === 0">
+          <span class="no-reviews">No reviews yet</span>
+        </div>
+      </div>
+
+      <hr>
+
+      <!-- Host Info -->
+      <div class="host-info">
+        <div class="host-avatar">
+          <img [src]="getFullImageUrl(property.hostProfileImage)" alt="{{ property.hostName }}" (click)="scrollDown()">
+        </div>
+        <div class="host-details">
+          <h3>Hosted by {{ property.hostName }}</h3>
+          <p>{{getYearsHosting()}} years hosting
+
+          </p>
+        </div>
+      </div>
+
+      <hr>
+
+      <!-- Location Info -->
+      <div class="location-info">
+        <div class="location-icon">
+          <i class="fa fa-street-view" aria-hidden="true"></i>
+        </div>
+        <div class="location-details">
+          <p>{{distance}} From {{property?.address}}</p>
+        </div>
+      </div>
+
+      <hr>
+
+      <!-- What this place offers -->
+      <!-- <div class="amenities-section">
           <h3>What this place offers</h3>
           <div class="amenities-grid">
             <div class="amenity" *ngFor="let amenity of property.amenities?.slice(0, 8)">
@@ -92,8 +93,8 @@
           </div>
           <button class="btn-amenities">Show all {{ property.amenities?.length || 0 }} amenities</button>
         </div> -->
-  
-        <!-- <div class="amenities-section">
+
+      <!-- <div class="amenities-section">
             <h3>What this place offers</h3>
             <div class="amenities-grid">
               <div class="amenity" *ngFor="let amenity of (showAll ? property.amenities : property.amenities?.slice(0, 8))">
@@ -113,66 +114,66 @@
 
 
 
-          <div class="amenities-section">
-            <h3>What this place offers</h3>
-            <div class="amenities-grid">
-              <div class="amenity" *ngFor="let amenity of property.amenities?.slice(0, 8)">
-                <div class="amenity-icon">
-                  <img [src]="amenity.iconUrl"  alt="{{ amenity.name }}">
-                </div>
-                <div class="amenity-name">{{ amenity.name }}</div>
-              </div>
+      <div class="amenities-section">
+        <h3>What this place offers</h3>
+        <div class="amenities-grid">
+          <div class="amenity" *ngFor="let amenity of property.amenities?.slice(0, 8)">
+            <div class="amenity-icon">
+              <img [src]="amenity.iconUrl" alt="{{ amenity.name }}">
             </div>
-            <button class="btn-amenities" (click)="openAmenitiesModal()">
-              Show all {{ property.amenities?.length || 0 }} amenities
-            </button>
+            <div class="amenity-name">{{ amenity.name }}</div>
           </div>
-          
-          <!-- Amenities Modal -->
-          <div class="amenities-modal" *ngIf="isModalOpen" (click)="closeModal($event)">
-            <div class="modal-content">
-              <div class="modal-header">
-                <h3>All Amenities</h3>
-                <button class="close-btn" (click)="closeModal()">&times;</button>
+        </div>
+        <button class="btn-amenities" (click)="openAmenitiesModal()">
+          Show all {{ property.amenities?.length || 0 }} amenities
+        </button>
+      </div>
+
+      <!-- Amenities Modal -->
+      <div class="amenities-modal" *ngIf="isModalOpen" (click)="closeModal($event)">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h3>All Amenities</h3>
+            <button class="close-btn" (click)="closeModal()">&times;</button>
+          </div>
+          <div class="amenities-grid-modal">
+            <div class="amenity" *ngFor="let amenity of property.amenities">
+              <div class="amenity-icon">
+                <img [src]="amenity.iconUrl" class="amenity-icon-modal" alt="{{ amenity.name }}">
               </div>
-              <div class="amenities-grid-modal">
-                <div class="amenity" *ngFor="let amenity of property.amenities">
-                  <div class="amenity-icon">
-                    <img [src]="amenity.iconUrl" class="amenity-icon-modal" alt="{{ amenity.name }}">
-                  </div>
-                  <div class="amenity-name">{{ amenity.name }}</div>
-                </div>
-              </div>
+              <div class="amenity-name">{{ amenity.name }}</div>
             </div>
           </div>
+        </div>
+      </div>
 
 
 
-        <!-- Description -->
-        <div class="description">
+      <!-- Description -->
+      <div class="description">
+        <h3>About this place</h3>
+        <p [class.truncated]="!showFullDescription">{{ property.description }}</p>
+
+        <button class="btn-read-more" *ngIf="shouldShowReadMore()" (click)="openDescriptionModal()">
+          {{ showFullDescription ? 'Show less' : 'Show more ' }}
+        </button> >
+      </div>
+
+      <!-- Description Modal -->
+      <div class="description-modal" *ngIf="isDescriptionModalOpen" (click)="closeDescriptionModal($event)">
+        <div class="modal-content">
+          <div class="modal-header">
             <h3>About this place</h3>
-            <p [class.truncated]="!showFullDescription">{{ property.description }}</p>
-            
-            <button class="btn-read-more" *ngIf="shouldShowReadMore()" (click)="openDescriptionModal()">
-              {{ showFullDescription ? 'Show less' : 'Show more ' }}
-            </button> >
+            <button class="close-btn" (click)="closeDescriptionModal()">&times;</button>
           </div>
-          
-          <!-- Description Modal -->
-          <div class="description-modal" *ngIf="isDescriptionModalOpen" (click)="closeDescriptionModal($event)">
-            <div class="modal-content">
-              <div class="modal-header">
-                <h3>About this place</h3>
-                <button class="close-btn" (click)="closeDescriptionModal()">&times;</button>
-              </div>
-              <div class="modal-body">
-                <p>{{ property.description }}</p>
-              </div>
-            </div>
+          <div class="modal-body">
+            <p>{{ property.description }}</p>
           </div>
-  
-        <!-- Where you'll sleep section -->
-        <!-- <div class="where-youll-sleep">
+        </div>
+      </div>
+
+      <!-- Where you'll sleep section -->
+      <!-- <div class="where-youll-sleep">
           <h3>Where you'll sleep</h3>
           <div class="bedrooms-container">
             <div class="bedroom-card">
@@ -187,9 +188,9 @@
             </div>
           </div>
         </div> -->
-  
-        <!-- Reviews section -->
-        <!-- <div class="reviews-section" *ngIf="property.reviews && property.reviews.length > 0">
+
+      <!-- Reviews section -->
+      <!-- <div class="reviews-section" *ngIf="property.reviews && property.reviews.length > 0">
           <h3>
             <i class="fa fa-star"></i> 
             {{ property.averageRating.toFixed(1) }} · {{ property.reviewCount }} reviews
@@ -220,116 +221,117 @@
             Show all {{ property.reviewCount }} reviews
           </button>
         </div> -->
-      
-    <!-- Modify the reviews section in your main HTML -->
-<div class="reviews-section" *ngIf="property.reviews && property.reviews.length > 0">
-    <h3>
-      <i class="fa fa-star"></i> 
-      {{ property.averageRating.toFixed(1) }} · {{ property.reviewCount }} reviews
-    </h3>
-    
-    <div class="reviews-grid">
-      <div class="review-card" *ngFor="let review of property.reviews.slice(0, 6)">
-        <div class="reviewer-info">
-          <div class="reviewer-avatar">
-            <div class="avatar-placeholder">{{ review.reviewerName ? review.reviewerName[0] : 'G' }}</div>
-          </div>
-          <div class="reviewer-details">
-            <h4>{{ review.reviewerName || 'Guest' }}</h4>
-            <p>{{ review.createdAt | date:'MMMM yyyy' }}</p>
-          </div>
-        </div>
-        <div class="review-rating">
-          <span *ngFor="let star of [1,2,3,4,5]">
-            <i class="fa" [ngClass]="star <= review.rating ? 'fa-star' : 'fa-star-o'"></i>
-          </span>
-        </div>
-        <p class="review-comment">{{ review.comment }}</p>
-        <button class="btn-show-more" *ngIf="review.comment.length > 150" (click)="openReviewsModal()">Show more</button>
-      </div>
-    </div>
-    
-    <button class="btn-all-reviews"  (click)="openReviewsModal()">
-      Show Total {{ property.reviewCount }} reviews
-    </button>
-  </div>
-  
-    <!-- Modify the existing reviews section button to open the modal -->
-<button class="btn-all-reviews" *ngIf="property.reviewCount > 6" (click)="openReviewsModal()">
-    Show all {{ property.reviewCount }} reviews
-  </button>
-  
-  <!-- Add this at the end of your template -->
-  <!-- Reviews Modal -->
-  <div class="reviews-modal" *ngIf="isReviewsModalOpen" (click)="closeReviewsModal($event)">
-    <div class="modal-content">
-      <div class="modal-header">
+
+      <!-- Modify the reviews section in your main HTML -->
+      <div class="reviews-section" *ngIf="property.reviews && property.reviews.length > 0">
         <h3>
-          <i class="fa fa-star"></i> 
+          <i class="fa fa-star"></i>
           {{ property.averageRating.toFixed(1) }} · {{ property.reviewCount }} reviews
         </h3>
-        <button class="close-btn" (click)="closeReviewsModal()">&times;</button>
-      </div>
-      
-      <div class="modal-body">
-        <div class="reviews-modal-layout">
-          <!-- Left side: Rating stats -->
-          <div class="rating-stats">
-            <div class="overall-rating">
-              <h4>Overall rating</h4>
-              <div class="rating-number">
-                <i class="fa fa-star"></i> 
-                {{ property.averageRating.toFixed(1) }}
+
+        <div class="reviews-grid">
+          <div class="review-card" *ngFor="let review of property.reviews.slice(0, 6)">
+            <div class="reviewer-info">
+              <div class="reviewer-avatar">
+                <div class="avatar-placeholder">{{ review.reviewerName ? review.reviewerName[0] : 'G' }}</div>
+              </div>
+              <div class="reviewer-details">
+                <h4>{{ review.reviewerName || 'Guest' }}</h4>
+                <p>{{ review.createdAt | date:'MMMM yyyy' }}</p>
               </div>
             </div>
-            
-            <div class="rating-bars">
-              <div class="rating-bar-item" *ngFor="let rating of [5,4,3,2,1]">
-                <div class="rating-label">{{ rating }}</div>
-                <div class="rating-bar-container">
-                  <div class="rating-bar-fill" [style.width.%]="getRatingPercentage(rating)"></div>
-                </div>
-                <div class="rating-count">{{ getRatingDistribution()[rating] || 0 }}</div>
-              </div>
+            <div class="review-rating">
+              <span *ngFor="let star of [1,2,3,4,5]">
+                <i class="fa" [ngClass]="star <= review.rating ? 'fa-star' : 'fa-star-o'"></i>
+              </span>
             </div>
+            <p class="review-comment">{{ review.comment }}</p>
+            <button class="btn-show-more" *ngIf="review.comment.length > 150" (click)="openReviewsModal()">Show
+              more</button>
           </div>
-          
-          <!-- Right side: All reviews with full text -->
-          <div class="reviews-list">
-            <div class="review-item" *ngFor="let review of property.reviews">
-              <div class="reviewer-info">
-                <div class="reviewer-avatar">
-                  <div class="avatar-placeholder">{{ review.reviewerName ? review.reviewerName[0] : 'G' }}</div>
+        </div>
+
+        <button class="btn-all-reviews" (click)="openReviewsModal()">
+          Show Total {{ property.reviewCount }} reviews
+        </button>
+      </div>
+
+      <!-- Modify the existing reviews section button to open the modal -->
+      <button class="btn-all-reviews" *ngIf="property.reviewCount > 6" (click)="openReviewsModal()">
+        Show all {{ property.reviewCount }} reviews
+      </button>
+
+      <!-- Add this at the end of your template -->
+      <!-- Reviews Modal -->
+      <div class="reviews-modal" *ngIf="isReviewsModalOpen" (click)="closeReviewsModal($event)">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h3>
+              <i class="fa fa-star"></i>
+              {{ property.averageRating.toFixed(1) }} · {{ property.reviewCount }} reviews
+            </h3>
+            <button class="close-btn" (click)="closeReviewsModal()">&times;</button>
+          </div>
+
+          <div class="modal-body">
+            <div class="reviews-modal-layout">
+              <!-- Left side: Rating stats -->
+              <div class="rating-stats">
+                <div class="overall-rating">
+                  <h4>Overall rating</h4>
+                  <div class="rating-number">
+                    <i class="fa fa-star"></i>
+                    {{ property.averageRating.toFixed(1) }}
+                  </div>
                 </div>
-                <div class="reviewer-details">
-                  <h4>{{ review.reviewerName || 'Guest' }}</h4>
-                  <p>{{ review.createdAt | date:'MMMM yyyy' }}</p>
+
+                <div class="rating-bars">
+                  <div class="rating-bar-item" *ngFor="let rating of [5,4,3,2,1]">
+                    <div class="rating-label">{{ rating }}</div>
+                    <div class="rating-bar-container">
+                      <div class="rating-bar-fill" [style.width.%]="getRatingPercentage(rating)"></div>
+                    </div>
+                    <div class="rating-count">{{ getRatingDistribution()[rating] || 0 }}</div>
+                  </div>
                 </div>
               </div>
-              <div class="review-rating">
-                <span *ngFor="let star of [1,2,3,4,5]">
-                  <i class="fa" [ngClass]="star <= review.rating ? 'fa-star' : 'fa-star-o'"></i>
-                </span>
+
+              <!-- Right side: All reviews with full text -->
+              <div class="reviews-list">
+                <div class="review-item" *ngFor="let review of property.reviews">
+                  <div class="reviewer-info">
+                    <div class="reviewer-avatar">
+                      <div class="avatar-placeholder">{{ review.reviewerName ? review.reviewerName[0] : 'G' }}</div>
+                    </div>
+                    <div class="reviewer-details">
+                      <h4>{{ review.reviewerName || 'Guest' }}</h4>
+                      <p>{{ review.createdAt | date:'MMMM yyyy' }}</p>
+                    </div>
+                  </div>
+                  <div class="review-rating">
+                    <span *ngFor="let star of [1,2,3,4,5]">
+                      <i class="fa" [ngClass]="star <= review.rating ? 'fa-star' : 'fa-star-o'"></i>
+                    </span>
+                  </div>
+                  <!-- Full review text without truncation -->
+                  <p class="review-comment-full">{{ review.comment }}</p>
+                </div>
               </div>
-              <!-- Full review text without truncation -->
-              <p class="review-comment-full">{{ review.comment }}</p>
             </div>
           </div>
         </div>
       </div>
+
     </div>
-  </div>
-  
-    </div>
-  
-      <!-- Right Column: Booking Details -->
-      <div class="booking-card" [ngClass]="{'host-view': userRole=='Host'} ">
-        <div class="booking-price">
-          <h2>{{ formatPrice(property?.pricePerNight+property.cleaningFee+property.serviceFee)}}</h2>
-          <span class="per-night">per night</span>
-        </div>
-  
-        <!-- <div class="booking-form">
+
+    <!-- Right Column: Booking Details -->
+    <div class="booking-card" [ngClass]="{'host-view': userRole=='Host'} ">
+      <div class="booking-price">
+        <h2>{{ formatPrice(property?.pricePerNight+property.cleaningFee+property.serviceFee)}}</h2>
+        <span class="per-night">per night</span>
+      </div>
+
+      <!-- <div class="booking-form">
           <div class="dates-container">
             <div class="check-in">
               <label>CHECK-IN</label>
@@ -340,219 +342,196 @@
               <div class="date-input">{{ checkOutDate }}</div>
             </div>
           </div> -->
-  
 
-          <!-- Booking Form -->
-<div class="booking-form" >
-    <div class="dates-container">
-      <div class="check-in" (click)="openCalendar('checkIn')">
-        <label>CHECK-IN</label>
-        <div class="date-input">{{ checkInDate || 'Add date' }}</div>
-      </div>
-      <div class="check-out" (click)="openCalendar('checkOut')">
-        <label>CHECKOUT</label>
-        <div class="date-input">{{ checkOutDate || 'Add date' }}</div>
-      </div>
-    </div>
-    
-    <div class="guests-dropdown">
-      <label>GUESTS</label>
-      <div class="guest-selector" (click)="toggleGuestDropdown($event)">
-        <span>{{ guests }} {{ guests === 1 ? 'guest' : 'guests' }}</span>
-        <i class="fas fa-chevron-down"></i>
-      </div>
-      
-      <!-- Dropdown menu -->
-      <div class="guest-dropdown-menu" *ngIf="isGuestDropdownOpen">
-        <div class="guest-type">
-          <div class="guest-label">
-            <div class="guest-title">Guests</div>
-            <div class="guest-subtitle"></div>
+
+      <!-- Booking Form -->
+      <div class="booking-form">
+        <div class="dates-container">
+          <div class="check-in" (click)="openCalendar('checkIn')">
+            <label>CHECK-IN</label>
+            <div class="date-input">{{ checkInDate || 'Add date' }}</div>
           </div>
-          <div class="guest-counter">
-            <button 
-              class="counter-btn" 
-              [ngClass]="{'disabled': guests <= 1}" 
-              (click)="updateGuestCount(-1)">
-              <i class="fas fa-minus"></i>
-            </button>
-            <span class="guest-count">{{ guests }}</span>
-            <button 
-              class="counter-btn" 
-              [ngClass]="{'disabled': guests >= maxGuests}" 
-              (click)="updateGuestCount(1)">
-              <i class="fas fa-plus"></i>
-            </button>
+          <div class="check-out" (click)="openCalendar('checkOut')">
+            <label>CHECKOUT</label>
+            <div class="date-input">{{ checkOutDate || 'Add date' }}</div>
           </div>
         </div>
-        <div class="dropdown-footer">
-          <button class="close-dropdown" (click)="closeGuestDropdown()">Close</button>
-        </div>
-      </div>
-    </div>
-    <div class="promo-code-section">
-      <div class="promo-code-header" (click)="togglePromoCodeSection()">
-        <span>Have a promo code?</span>
-        <i class="fas" [ngClass]="isPromoCodeSectionOpen ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
-      </div>
-      
-      <div class="promo-code-content" *ngIf="isPromoCodeSectionOpen">
-        <div class="promo-input-container" [ngClass]="{'success': promoCodeApplied, 'error': promoCodeError}">
-          <input 
-            type="text" 
-            placeholder="Enter promo code" 
-            [(ngModel)]="promoCode" 
-            [disabled]="promoCodeApplied"
-            class="promo-input">
-          <button 
-            class="promo-apply-btn" 
-            [ngClass]="{'applied': promoCodeApplied}" 
-            [disabled]="!promoCode || promoCodeLoading || promoCodeApplied"
-            (click)="applyPromoCode()">
-            <span *ngIf="!promoCodeLoading && !promoCodeApplied">Apply</span>
-            <span *ngIf="promoCodeLoading"><i class="fas fa-spinner fa-spin"></i></span>
-            <span *ngIf="promoCodeApplied"><i class="fas fa-check"></i> Applied</span>
-          </button>
-        </div>
-        
-        <div *ngIf="promoCodeError" class="promo-error-message">
-          {{ promoCodeError }}
-        </div>
-        
-        <div *ngIf="promoCodeApplied" class="promo-success">
-          <div class="promo-badge">
-            <i class="fas fa-tag"></i>
-            <span>{{ promotion.code }}</span>
+
+        <div class="guests-dropdown">
+          <label>GUESTS</label>
+          <div class="guest-selector" (click)="toggleGuestDropdown($event)">
+            <span>{{ guests }} {{ guests === 1 ? 'guest' : 'guests' }}</span>
+            <i class="fas fa-chevron-down"></i>
           </div>
-          <div class="promo-info">
-            <div class="discount-info">
-              {{ getDiscountText() }}
+
+          <!-- Dropdown menu -->
+          <div class="guest-dropdown-menu" *ngIf="isGuestDropdownOpen">
+            <div class="guest-type">
+              <div class="guest-label">
+                <div class="guest-title">Guests</div>
+                <div class="guest-subtitle"></div>
+              </div>
+              <div class="guest-counter">
+                <button class="counter-btn" [ngClass]="{'disabled': guests <= 1}" (click)="updateGuestCount(-1)">
+                  <i class="fas fa-minus"></i>
+                </button>
+                <span class="guest-count">{{ guests }}</span>
+                <button class="counter-btn" [ngClass]="{'disabled': guests >= maxGuests}" (click)="updateGuestCount(1)">
+                  <i class="fas fa-plus"></i>
+                </button>
+              </div>
             </div>
-            <button class="remove-promo" (click)="removePromoCode()">
-              <i class="fas fa-times"></i>
-            </button>
+            <div class="dropdown-footer">
+              <button class="close-dropdown" (click)="closeGuestDropdown()">Close</button>
+            </div>
           </div>
         </div>
-      </div>
-    </div>
-    
-    <!-- Update price details to include discount row -->
-    <div class="price-details">
-      <div class="price-row">
-        <span>{{ formatPrice(property?.pricePerNight+property.cleaningFee+property.serviceFee) }} x {{ getDaysInRange() }} nights</span>
-        <span>{{ formatPrice(getSubtotalPrice()) }}</span>
-      </div>
-      
-      <!-- Add discount row when promo is applied -->
-      <div class="price-row discount-row" *ngIf="promoCodeApplied">
-        <span>Discount ({{ promotion.code }})</span>
-        <span class="discount-amount">-{{ formatPrice(getDiscountAmount()) }}</span>
-      </div>
-    </div>
-    
-    <div class="total-price">
-      <span>Total</span>
-      <span>{{ formatPrice(getTotalPrice()) }}</span>
-    </div>
-    <button class="btn-reserve" (click)="reserve()">Reserve</button>
-    
-    <div class="no-charge-yet">You won't be charged yet</div>
-    
-   
-<!--     
+        <div class="promo-code-section">
+          <div class="promo-code-header" (click)="togglePromoCodeSection()">
+            <span>Have a promo code?</span>
+            <i class="fas" [ngClass]="isPromoCodeSectionOpen ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+          </div>
+
+          <div class="promo-code-content" *ngIf="isPromoCodeSectionOpen">
+            <div class="promo-input-container" [ngClass]="{'success': promoCodeApplied, 'error': promoCodeError}">
+              <input type="text" placeholder="Enter promo code" [(ngModel)]="promoCode" [disabled]="promoCodeApplied"
+                class="promo-input">
+              <button class="promo-apply-btn" [ngClass]="{'applied': promoCodeApplied}"
+                [disabled]="!promoCode || promoCodeLoading || promoCodeApplied" (click)="applyPromoCode()">
+                <span *ngIf="!promoCodeLoading && !promoCodeApplied">Apply</span>
+                <span *ngIf="promoCodeLoading"><i class="fas fa-spinner fa-spin"></i></span>
+                <span *ngIf="promoCodeApplied"><i class="fas fa-check"></i> Applied</span>
+              </button>
+            </div>
+
+            <div *ngIf="promoCodeError" class="promo-error-message">
+              {{ promoCodeError }}
+            </div>
+
+            <div *ngIf="promoCodeApplied" class="promo-success">
+              <div class="promo-badge">
+                <i class="fas fa-tag"></i>
+                <span>{{ promotion.code }}</span>
+              </div>
+              <div class="promo-info">
+                <div class="discount-info">
+                  {{ getDiscountText() }}
+                </div>
+                <button class="remove-promo" (click)="removePromoCode()">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Update price details to include discount row -->
+        <div class="price-details">
+          <div class="price-row">
+            <span>{{ formatPrice(property?.pricePerNight+property.cleaningFee+property.serviceFee) }} x {{
+              getDaysInRange() }} nights</span>
+            <span>{{ formatPrice(getSubtotalPrice()) }}</span>
+          </div>
+
+          <!-- Add discount row when promo is applied -->
+          <div class="price-row discount-row" *ngIf="promoCodeApplied">
+            <span>Discount ({{ promotion.code }})</span>
+            <span class="discount-amount">-{{ formatPrice(getDiscountAmount()) }}</span>
+          </div>
+        </div>
+
+        <div class="total-price">
+          <span>Total</span>
+          <span>{{ formatPrice(getTotalPrice()) }}</span>
+        </div>
+        <button class="btn-reserve" (click)="reserve()">Reserve</button>
+
+        <div class="no-charge-yet">You won't be charged yet</div>
+
+
+        <!--     
     <div class="total-price">
       <span>Total</span>
       <span>{{ formatPrice(getTotalPrice()) }}</span>
     </div> -->
-  
-  <!-- Calendar Modal -->
-  <div *ngIf="showCalendar" class="calendar-modal-overlay" (click)="closeCalendar(true)">
-    <div class="calendar-modal" (click)="$event.stopPropagation()">
-      <div class="calendar-header">
-        <div class="selected-dates">
-          <div class="nights-count" *ngIf="getDaysInRange() > 0">
-            {{ getDaysInRange() }} nights
-          </div>
-          <div class="date-range">
-            {{ checkInDate || 'Add date' }} - {{ checkOutDate || 'Add date' }}
-          </div>
-        </div>
-        
-        <div class="calendar-tabs">
-          <div 
-            class="tab" 
-            [ngClass]="{'active': currentDateSelection === 'checkIn'}"
-            (click)="currentDateSelection = 'checkIn'"
-          >
-            <div class="tab-label">CHECK-IN</div>
-            <div class="tab-value">{{ checkInDate || 'Add date' }}</div>
-          </div>
-          <div 
-            class="tab" 
-            [ngClass]="{'active': currentDateSelection === 'checkOut'}"
-            (click)="currentDateSelection = 'checkOut'"
-          >
-            <div class="tab-label">CHECKOUT</div>
-            <div class="tab-value">{{ checkOutDate || 'Add date' }}</div>
-          </div>
-        </div>
-      </div>
-      
-      <div class="calendar-container">
-        <div class="calendar-navigation">
-          <button class="nav-btn prev" (click)="navigateMonth('prev')">
-            <i class="fas fa-chevron-left"></i>
-          </button>
-          <button class="nav-btn next" (click)="navigateMonth('next')">
-            <i class="fas fa-chevron-right"></i>
-          </button>
-        </div>
-        
-        <div class="calendars-wrapper">
-          <div class="calendar" *ngFor="let monthData of months">
-            <div class="month-header">
-              {{ getMonthName(monthData.month) }} {{ getYearFromDate(monthData.month) }}
+
+        <!-- Calendar Modal -->
+        <div *ngIf="showCalendar" class="calendar-modal-overlay" (click)="closeCalendar(true)">
+          <div class="calendar-modal" (click)="$event.stopPropagation()">
+            <div class="calendar-header">
+              <div class="selected-dates">
+                <div class="nights-count" *ngIf="getDaysInRange() > 0">
+                  {{ getDaysInRange() }} nights
+                </div>
+                <div class="date-range">
+                  {{ checkInDate || 'Add date' }} - {{ checkOutDate || 'Add date' }}
+                </div>
+              </div>
+
+              <div class="calendar-tabs">
+                <div class="tab" [ngClass]="{'active': currentDateSelection === 'checkIn'}"
+                  (click)="currentDateSelection = 'checkIn'">
+                  <div class="tab-label">CHECK-IN</div>
+                  <div class="tab-value">{{ checkInDate || 'Add date' }}</div>
+                </div>
+                <div class="tab" [ngClass]="{'active': currentDateSelection === 'checkOut'}"
+                  (click)="currentDateSelection = 'checkOut'">
+                  <div class="tab-label">CHECKOUT</div>
+                  <div class="tab-value">{{ checkOutDate || 'Add date' }}</div>
+                </div>
+              </div>
             </div>
-            
-            <div class="weekday-header">
-              <div class="weekday">Su</div>
-              <div class="weekday">Mo</div>
-              <div class="weekday">Tu</div>
-              <div class="weekday">We</div>
-              <div class="weekday">Th</div>
-              <div class="weekday">Fr</div>
-              <div class="weekday">Sa</div>
-            </div>
-            
-            <div class="days-grid">
-              <div 
-                *ngFor="let day of monthData.days" 
-                class="day-cell"
-                [ngClass]="{
+
+            <div class="calendar-container">
+              <div class="calendar-navigation">
+                <button class="nav-btn prev" (click)="navigateMonth('prev')">
+                  <i class="fas fa-chevron-left"></i>
+                </button>
+                <button class="nav-btn next" (click)="navigateMonth('next')">
+                  <i class="fas fa-chevron-right"></i>
+                </button>
+              </div>
+
+              <div class="calendars-wrapper">
+                <div class="calendar" *ngFor="let monthData of months">
+                  <div class="month-header">
+                    {{ getMonthName(monthData.month) }} {{ getYearFromDate(monthData.month) }}
+                  </div>
+
+                  <div class="weekday-header">
+                    <div class="weekday">Su</div>
+                    <div class="weekday">Mo</div>
+                    <div class="weekday">Tu</div>
+                    <div class="weekday">We</div>
+                    <div class="weekday">Th</div>
+                    <div class="weekday">Fr</div>
+                    <div class="weekday">Sa</div>
+                  </div>
+
+                  <div class="days-grid">
+                    <div *ngFor="let day of monthData.days" class="day-cell" [ngClass]="{
                   'other-month': day.date.getMonth() !== monthData.month.getMonth(),
                   'selected': day.isSelected,
                   'in-range': day.isInRange,
                   'disabled': day.isDisabled,
                   'start-date': selectedDates.start && isSameDay(day.date, selectedDates.start),
                   'end-date': selectedDates.end && isSameDay(day.date, selectedDates.end)
-                }"
-                (click)="selectDate(day.date)"
-              >
-                <span class="day-number">{{ day.date.getDate() }}</span>
+                }" (click)="selectDate(day.date)">
+                      <span class="day-number">{{ day.date.getDate() }}</span>
+                    </div>
+                  </div>
+                </div>
               </div>
+            </div>
+
+            <div class="calendar-footer">
+              <button class="clear-btn" (click)="clearDates()">Clear dates</button>
+              <button class="close-btn" (click)="closeCalendar(true)">Close</button>
             </div>
           </div>
         </div>
-      </div>
-      
-      <div class="calendar-footer">
-        <button class="clear-btn" (click)="clearDates()">Clear dates</button>
-        <button class="close-btn" (click)="closeCalendar(true)">Close</button>
-      </div>
-    </div>
-  </div>
 
-<!-- 
+        <!-- 
 
           <div class="guests-dropdown">
             <label>GUESTS</label>
@@ -577,32 +556,33 @@
             <span>Total</span>
             <span>{{ formatPrice(getTotalPrice()) }}</span>
           </div> -->
-        </div>
-        <div class="host-message-overlay" *ngIf="userRole=='Host'">
-          <div class="host-message-ribbon"></div>
-          <div class="host-message-content">
-            <div class="host-message-icon">
-              <i class="fas fa-user-lock"></i>
-            </div>
-            <h3 class="host-message-title">Host Account Detected</h3>
-            <p class="host-message-text">You need to login as a guest to make reservations. Please switch to a guest account to continue.</p>
-            <button class="host-message-button" (click)="switchToGuestAccount()">Switch to Guest Mode</button>
-          </div>
-        </div>
-        
       </div>
+      <div class="host-message-overlay" *ngIf="userRole=='Host'">
+        <div class="host-message-ribbon"></div>
+        <div class="host-message-content">
+          <div class="host-message-icon">
+            <i class="fas fa-user-lock"></i>
+          </div>
+          <h3 class="host-message-title">Host Account Detected</h3>
+          <p class="host-message-text">You need to login as a guest to make reservations. Please switch to a guest
+            account to continue.</p>
+          <button class="host-message-button" (click)="switchToGuestAccount()">Switch to Guest Mode</button>
+        </div>
+      </div>
+
     </div>
-  
-    
-    
+  </div>
 
 
 
 
 
-<!-- Add this to your property-details.component.html -->
 
-<!-- <section class="property-map-section">
+
+
+  <!-- Add this to your property-details.component.html -->
+
+  <!-- <section class="property-map-section">
     <h2 class="section-title">Where you'll be</h2>
     <p class="location-text">{{ property?.address || 'Second Al Sheikh Zayed, Giza Governorate, Egypt' }}</p>
     
@@ -644,17 +624,16 @@
   <section class="property-map-section">
     <h2 class="section-title">Where you'll be</h2>
     <p class="location-text">{{ property?.address || 'Second Al Sheikh Zayed, Giza Governorate, Egypt' }}</p>
-    
+
     <div class="map-container">
       <!-- Replace Google Map with Leaflet Map -->
       <div id="map" style="height: 400px; width: 100%;"></div>
-      
+
       <div class="location-notice">
         <span>Exact location provided after booking.</span>
       </div>
     </div>
   </section>
-  
 
 
 
@@ -664,22 +643,24 @@
 
 
 
-    <!-- Meet your host section - Add this after the host-info section in your HTML -->
-<div class="meet-your-host-section">
+
+  <!-- Meet your host section - Add this after the host-info section in your HTML -->
+  <div class="meet-your-host-section">
     <h2 class="section-title">Meet your host</h2>
-  
+
     <div class="host-card">
       <div class="host-profile">
         <div class="host-avatar">
           <img [src]="getFullImageUrl(property.hostProfileImage)" alt="{{ property.hostName }} ">
           <div class="verified-badge" *ngIf="hostProfile?.isVerified">
             <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <circle cx="12" cy="12" r="12" fill="#FF385C"/>
-              <path d="M7 12L10.5 15.5L17 9" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="12" cy="12" r="12" fill="#FF385C" />
+              <path d="M7 12L10.5 15.5L17 9" stroke="white" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round" />
             </svg>
           </div>
         </div>
-        
+
         <div class="host-stats">
           <div class="stat-item">
             <div class="stat-value">{{ hostProfile?.totalReviews || 0 }}</div>
@@ -694,28 +675,25 @@
             <div class="stat-label">Years hosting</div>
           </div>
         </div>
-        
-        <h2 class="host-name"  (click)='goToHostPage()'>{{ property.hostName }}</h2>
+
+        <h2 class="host-name" (click)='goToHostPage()'>{{ property.hostName }}</h2>
         <div class="superhost-badge" *ngIf="isSuperhost()">
           <i class="fa fa-award"></i> Superhost
         </div>
       </div>
-      
+
       <div class="host-info-details">
         <div class="superhost-info" *ngIf="isSuperhost()">
           <h3>{{ property.hostName }} is a Superhost</h3>
           <p>Superhosts are experienced, highly rated hosts who are committed to providing great stays for guests.</p>
         </div>
-        
-       
-      
-        
-          <app-message-user-button 
-          [userId]="property.hostId" 
-          buttonText="Message Host" 
-          buttonClass="Dark">
+
+
+
+
+        <app-message-user-button [userId]="property.hostId" buttonText="Message Host" buttonClass="Dark">
         </app-message-user-button>
-        
+
         <div class="host-attributes">
           <div class="host-attribute" *ngIf="hostProfile?.work">
             <i class="fa fa-briefcase"></i> My work: {{ hostProfile?.work }}
@@ -724,12 +702,13 @@
             <i class="fa fa-language"></i> Speaks {{ formatLanguages(hostProfile?.languages) }}
           </div>
         </div>
-        
+
         <div class="host-bio" *ngIf="hostProfile?.aboutMe">
           <p>{{ truncateBio(hostProfile?.aboutMe, 150) }}</p>
-          <span class="show-more" *ngIf="hostProfile?.aboutMe.length > 150" (click)="openHostBioModal()">Show more</span>
+          <span class="show-more" *ngIf="hostProfile?.aboutMe.length > 150" (click)="openHostBioModal()">Show
+            more</span>
         </div>
-        
+
         <div class="airbnb-protection-note">
           <i class="fa fa-shield-alt"></i>
           To help protect your payment, always use Airbnb to send money and communicate with hosts.
@@ -737,7 +716,7 @@
       </div>
     </div>
   </div>
-  
+
   <!-- Host Bio Modal -->
   <div class="host-bio-modal" *ngIf="isHostBioModalOpen" (click)="closeHostBioModal($event)">
     <div class="modal-content">
@@ -747,7 +726,7 @@
       </div>
       <div class="modal-body">
         <p>{{ hostProfile?.aboutMe }}</p>
-        
+
         <div class="host-details-grid">
           <div class="host-detail-item" *ngIf="hostProfile?.joinDate">
             <div class="detail-label">Host since</div>
@@ -785,28 +764,39 @@
       </div>
     </div>
   </div>
-    <!-- Report Listing link -->
-    <div class="report-listing">
-      <a href="#">
+  <!-- Report Listing link -->
+  <div class="report-listing">
+    <!-- <a href="#">
         <i class="fa fa-flag"></i> Report this listing
-      </a>
-    </div>
+      </a> -->
   </div>
-  
-  <div class="loading" *ngIf="loading">
-    <div class="spinner-border text-primary" role="status">
-      <span class="visually-hidden">Loading...</span>
-    </div>
-  </div>
-  
-  <div class="error" *ngIf="error">
-    <p>{{ error }}</p>
-  </div>
+</div>
 
-  <!-- In your component template -->
+<div class="loading" *ngIf="loading">
+  <div class="spinner-border text-primary" role="status">
+    <span class="visually-hidden">Loading...</span>
+  </div>
+</div>
+
+<div class="error" *ngIf="error">
+  <p>{{ error }}</p>
+</div>
+
+<!-- In your component template -->
 <!-- property-details.component.html -->
 
 <div *ngIf="showToast" class="toast-container">
   <div class="toast" [innerHTML]="toastMessage">
   </div>
 </div>
+
+<!-- Add report violation button in the host info section -->
+<div class="host-actions">
+  <!-- Existing buttons/actions... -->
+  <app-report-violation [propertyId]="property?.id" [hostId]="property?.hostId"
+    (reportSubmitted)="onViolationReported()">
+  </app-report-violation>
+</div>
+
+<!-- Example of directive-based approach for reporting violations -->
+<!-- <div class="property-footer" appReportViolation [propertyId]="property?.id" [hostId]="property?.hostId"></div> -->

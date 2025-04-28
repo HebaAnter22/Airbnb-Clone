@@ -1,0 +1,23 @@
+.success-container {
+    max-width: 500px;
+    margin: 0 auto;
+    padding: 20px;
+    text-align: center;
+}
+
+.payment-status {
+    margin-top: 20px;
+    padding: 10px;
+    background-color: #e7f3fe;
+    border: 1px solid #b3d7ff;
+    border-radius: 5px;
+}
+
+.error-message {
+    margin-top: 20px;
+    padding: 10px;
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    border-radius: 5px;
+    color: #721c24;
+}

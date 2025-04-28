@@ -132,9 +132,9 @@ export class ProfileComponent implements OnInit {
 
   getProfileImageUrl(): string {
     if (this.userProfile?.profilePictureUrl) {
-      return this.backendBaseUrl + this.userProfile.profilePictureUrl;
+      return this.userProfile.profilePictureUrl;
     }
-    return 'assets/images/default.png'; // Default image if none is set
+    return this.userProfile.profilePictureUrl; // Default image if none is set
   }
 
   loadUserProfile(userId: string): void {

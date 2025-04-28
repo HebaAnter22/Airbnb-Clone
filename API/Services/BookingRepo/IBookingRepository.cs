@@ -33,6 +33,6 @@ namespace API.Services.BookingRepo
         Task<decimal> GetTotalIncomeForHostAsync(int hostId);
         Task<decimal> GetTotalSpentByGuestAsync(int guestId);
 
-        Task<PaymentIntent> CreatePaymentIntentAsync(decimal amount);
+        Task<PaymentIntent> CreatePaymentIntentAsync(decimal amount, int bookingId);
     }
 }

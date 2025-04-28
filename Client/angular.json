@@ -61,9 +61,6 @@
           "defaultConfiguration": "production"
         },
         "serve": {
-          "options": {
-            "proxyConfig": "proxy.conf.json"
-          },
           "builder": "@angular-devkit/build-angular:dev-server",
           "configurations": {
             "production": {
@@ -73,7 +70,10 @@
               "buildTarget": "Airbnb:build:development"
             }
           },
-          "defaultConfiguration": "development"
+          "defaultConfiguration": "development",
+          "options": {
+            "proxyConfig": "proxy.conf.json"
+          }
         },
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n"

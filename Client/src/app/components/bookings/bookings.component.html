@@ -21,7 +21,7 @@
     <div *ngIf="!loading && bookings.length > 0" class="grid">
       <div *ngFor="let booking of bookings" class="booking-card">
         <!-- Cancel Button -->
-        <button *ngIf="!isPastBooking(booking)" (click)="cancelBooking(booking.id)" class="cancel-btn">
+        <button *ngIf="!isPastBooking(booking)" (click)="openCancellationModal(booking)" class="cancel-btn">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
           </svg>
@@ -67,6 +67,31 @@
         </div>
       </div>
     </div>
+
+    <!-- Pagination -->
+    <div *ngIf="!loading && totalCount > 0" class="pagination-container">
+      <div class="pagination">
+        <button [disabled]="currentPage === 1" (click)="prevPage()" class="pagination-btn">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+        
+        <div class="pagination-info">
+          Page {{ currentPage }} of {{ Math.ceil(totalCount / pageSize) }}
+        </div>
+        
+        <button [disabled]="currentPage >= Math.ceil(totalCount / pageSize)" (click)="nextPage()" class="pagination-btn">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+      </div>
+      
+      <div class="pagination-details">
+        Showing {{ (currentPage - 1) * pageSize + 1 }}-{{ Math.min(currentPage * pageSize, totalCount) }} of {{ totalCount }} bookings
+      </div>
+    </div>
   </div>
   
   <!-- Review Modal -->
@@ -74,7 +99,6 @@
     <div class="review-modal-content">
       <!-- Close button -->
       <button class="close-modal" (click)="closeReviewModal()">
-
         <i class="fa fa-times" aria-hidden="true"></i>
       </button>
   
@@ -144,6 +168,90 @@
           </svg>
         </div>
         <div class="toast-message">{{ toastMessage }}</div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Cancellation Modal -->
+  <div class="cancellation-modal" *ngIf="showCancellationModal">
+    <div class="cancellation-modal-content">
+      <!-- Close button -->
+      <button class="close-modal" (click)="closeCancellationModal()">
+        <i class="fa fa-times" aria-hidden="true"></i>
+      </button>
+  
+      <!-- Modal Content -->
+      <div class="cancellation-content">
+        <h2 class="modal-title">Cancel your booking</h2>
+        
+        <div *ngIf="cancellationLoading" class="text-center">
+          <div class="spinner-border text-primary" role="status"></div>
+          <p>Calculating refund amount...</p>
+        </div>
+        
+        <div *ngIf="!cancellationLoading">
+          <div class="booking-summary">
+            <div *ngIf="selectedBooking?.property">
+              <h3>{{ selectedBooking?.property?.title || 'Booking' }}</h3>
+              <p>{{ formatDateRange(selectedBooking?.startDate, selectedBooking?.endDate) }}</p>
+            </div>
+          </div>
+  
+          <div class="policy-info">
+            <div *ngIf="refundInfo?.policyName !== 'Unknown'; else unknownPolicy">
+              <h4>Cancellation Policy: {{ refundInfo?.policyName }}</h4>
+              <p>{{ refundInfo?.policyDescription }}</p>
+            </div>
+
+            <ng-template #unknownPolicy>
+              <div class="policy-info-box">
+                <h4>Cancellation Information</h4>
+                <p>{{ refundInfo?.policyDescription || 'This booking may be eligible for a refund based on the property\'s cancellation policy. If you proceed with cancellation, any applicable refund will be processed automatically.' }}</p>
+                <div class="info-message">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="info-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span>The system will automatically apply the property's cancellation policy when you cancel.</span>
+                </div>
+              </div>
+            </ng-template>
+  
+            <div class="refund-details" *ngIf="refundInfo">
+              <div *ngIf="refundInfo?.isEligibleForRefund === true; else noRefund">
+                <p>
+                  <span class="highlight">{{ refundInfo?.daysUntilCheckIn || 0 }}</span> days until check-in
+                </p>
+                <p class="refund-amount">
+                  <span class="highlight">{{ refundInfo?.refundPercentage || 0 }}%</span> refund: 
+                  <span class="money">${{ (refundInfo?.refundAmount || 0).toFixed(2) }}</span>
+                </p>
+              </div>
+              
+              <ng-template #noRefund>
+                <p class="no-refund">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                  No refund available
+                </p>
+                <p>Based on the {{ refundInfo?.policyName !== 'Unknown' ? (refundInfo?.policyName || 'standard') + ' policy' : 'booking terms' }} and your cancellation timing, you are not eligible for a refund.</p>
+              </ng-template>
+            </div>
+          </div>
+  
+          <div class="confirmation-question">
+            <p>Are you sure you want to cancel this booking?</p>
+            
+            <div class="action-buttons">
+              <button class="cancel-action-btn secondary" (click)="closeCancellationModal()">
+                Keep reservation
+              </button>
+              <button class="cancel-action-btn primary" (click)="confirmCancellation()">
+                Yes, cancel booking
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>

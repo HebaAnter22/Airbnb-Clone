@@ -101,9 +101,12 @@
 .header-center {
     position: relative;
     transition: all 0.3s ease;
-    left: 90px;
+    left: 50px;
 }
-
+.header-right {
+    position: relative;
+    left: 10px;
+}
 .header.scrolled .header-center {
     transform: scale(0.9);
 }
@@ -111,7 +114,7 @@
 /* Add transitions for navbar components */
 app-navbar {
     transition: all 0.3s ease;
-    margin-left: 10px;
+    margin-left: 0px;
 }
 
 .header.scrolled app-navbar {

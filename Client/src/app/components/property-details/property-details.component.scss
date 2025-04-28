@@ -1,0 +1,14 @@
+.property-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+  margin-bottom: 24px;
+}
+
+/* Make sure report button aligns well with other elements */
+::ng-deep .property-actions .report-btn {
+  font-size: 14px;
+  padding: 8px 12px;
+} 

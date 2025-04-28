@@ -97,11 +97,20 @@
         </div>
       </div>
 
+
+        <!-- Sidebar section for violations -->
+        <div class="nav-item" (click)="setCurrentSection('violations')">
+          <i class="fas fa-flag"></i>
+          <span *ngIf="!isSidebarCollapsed">Violations</span>
+        </div>
+        
       <!-- Account Details -->
       <div class="nav-item" (click)="setCurrentSection('account')" [class.active]="currentSection === 'account'" data-tooltip="Account Details">
         <i class="fas fa-user-circle"></i>
         <span *ngIf="!isSidebarCollapsed">Account Details</span>
       </div>
+
+    
     </nav>
 
     <!-- Logout Button -->
@@ -147,7 +156,7 @@
               <td>{{ host?.phoneNumber }}</td>
               <td>{{ host?.propertiesCount ?? 0 }}</td>
               <td>${{ host?.totalIncome ?? 0 }}</td>
-              <td>{{ host?.Rating ?? 0 }}/5 ({{ host?.totalReviews ?? 0 }})</td>
+              <td>{{ host?.Rating ?? 0 | number:'1.1-1' }}/5 ({{ host?.totalReviews ?? 0 }})</td>
               <td>
                 <span [class]="'status-badge ' + (host?.isVerified ? 'status-verified' : 'status-unverified')">
                   {{ host?.isVerified ? 'Verified' : 'Unverified' }}
@@ -158,12 +167,20 @@
                   <button *ngIf="!host?.isVerified" class="verify-btn" (click)="verifyHost(host?.id ?? 0)">
                     View Verification
                   </button>
+                  <button *ngIf="host?.isVerified && currentSection === 'verified-hosts'" class="view-details-btn" (click)="viewHostDetails(host?.id ?? 0)">
+                    <i class="bi bi-eye-fill"></i> View Details
+                  </button>
                 </div>
               </td>
             </tr>
           </tbody>
         </table>
       </div>
+    </div>
+
+    <!-- Host Details -->
+    <div *ngIf="currentSection === 'host-details'" class="content-section">
+      <app-host-details [hostId]="selectedHostId"></app-host-details>
     </div>
 
     <!-- Property Management -->
@@ -303,7 +320,7 @@
           </div>
           <div class="card">
             <span class="card-icon"><i class="fas fa-dollar-sign"></i></span>
-            <h3>Top Paid Guest</h3>
+            <h3>Top Paying   Guest</h3>
             <p>
               <span *ngIf="analytics?.topPaidGuests?.length">
                 {{ analytics?.topPaidGuests[0]?.firstName }} {{ analytics?.topPaidGuests[0]?.lastName }}
@@ -327,16 +344,25 @@
             <h3>Top 3 Rated Hosts</h3>
             <ul>
               <li *ngFor="let host of analytics?.topRatedHosts">
-                {{ host?.firstName }} {{ host?.lastName }} (Rating: {{ host?.rating }}/5, Properties: {{ host?.propertiesCount }})
+                {{ host?.firstName }} {{ host?.lastName }} (Rating: {{ host?.Rating | number:'1.2-2' }}/5, Properties: {{ host?.propertiesCount }})
               </li>
               <li *ngIf="!analytics?.topRatedHosts?.length">No data available</li>
+            </ul>
+          </div>
+          <div class="top-item">
+            <h3>Top 3 Paid Hosts</h3>
+            <ul>
+              <li *ngFor="let host of analytics?.topPaidHosts">
+                {{ host?.firstName }} {{ host?.lastName }} (${{ host?.totalIncome | number:'1.2-2' }})
+              </li>
+              <li *ngIf="!analytics?.topPaidHosts?.length">No data available</li>
             </ul>
           </div>
           <div class="top-item">
             <h3>Top 3 Paid Guests</h3>
             <ul>
               <li *ngFor="let guest of analytics?.topPaidGuests">
-                {{ guest?.firstName }} {{ guest?.lastName }} (${{ guest?.totalSpent }})
+                {{ guest?.firstName }} {{ guest?.lastName }} (${{ guest?.totalSpent | number:'1.2-2' }})
               </li>
               <li *ngIf="!analytics?.topPaidGuests?.length">No data available</li>
             </ul>
@@ -344,108 +370,123 @@
         </div>
         <div class="charts-section">
           <div class="chart">
-            <h3>Guests Analytics</h3>
+            <!-- <h3>Guests Analytics</h3> -->
             <canvas #guestsAnalyticsChart></canvas>
           </div>
           <div class="chart">
-            <h3>Hosts Analytics</h3>
+            <!-- <h3>Hosts Analytics</h3> -->
             <canvas #hostsAnalyticsChart></canvas>
           </div>
         </div>
       </div>
     </div>
 
-<!-- Properties Analytics Section -->
-<div *ngIf="currentSection === 'Properties'" class="content-section">
-  <h2>Properties Analytics</h2>
-  <div class="analytics-container">
-    <div class="summary-cards">
-      <div class="card">
-        <span class="card-icon"><i class="fas fa-home"></i></span>
-        <h3>Total Properties</h3>
-        <p>{{ analytics?.propertiesCount }}</p>
-      </div>
-      <div class="card">
-        <span class="card-icon"><i class="fas fa-star"></i></span>
-        <h3>Top Rated Property</h3>
-        <p>
-          <span *ngIf="analytics?.topRatedProperties?.length">
-            <!-- <img [src]="analytics?.topRatedProperties[0]?.getPropertyImage()|| 'assets/images/default-property.jpg'" alt="Top Rated Property" class="property-image"> -->
-            <span class="highlight">({{ analytics?.topRatedProperties[0]?.averageRating | number:'1.1-2' }}/5)</span>
-          </span>
-          <span *ngIf="!analytics?.topRatedProperties?.length">N/A</span>
-        </p>
-      </div>
-      <div class="card">
-        <span class="card-icon"><i class="fas fa-fire"></i></span>
-        <h3>Most Booked Property</h3>
-        <p>
-          <span *ngIf="analytics?.topBookedProperties?.length">
-            <img [src]="analytics?.topBookedProperties[0]?.images[0] || 'assets/images/default-property.jpg'" alt="Most Booked Property" class="property-image">
-            <br>
-            <!-- <span class="highlight">({{ analytics?.topBookedProperties[0]?.title }})</span> -->
-            <br>
-
-            <span class="highlight">({{ analytics?.topBookedProperties[0]?.bookingsCount }} bookings)</span>
-          </span>
-          <span *ngIf="!analytics?.topBookedProperties?.length">N/A</span>
-        </p>
+    <!-- Properties Analytics Section -->
+    <div *ngIf="currentSection === 'Properties'" class="content-section">
+      <h2>Properties Analytics</h2>
+      <div class="analytics-container">
+        <!-- Summary cards -->
+        <div class="summary-cards">
+          <div class="card">
+            <span class="card-icon"><i class="fas fa-home"></i></span>
+            <h3>Total Properties</h3>
+            <p>{{ analytics?.propertiesCount }}</p>
+          </div>
+          <div class="card clickable" *ngIf="analytics?.topRatedProperties?.length" (click)="navigateToPropertyDetails(analytics.topRatedProperties[0]?.id)">
+            <span class="card-icon"><i class="fas fa-star"></i></span>
+            <h3>Top Rated Property</h3>
+            <div *ngIf="analytics?.topRatedProperties?.length">
+              <img [src]="getPropertyImageUrl(analytics.topRatedProperties[0])" alt="Top Rated Property" class="property-image">
+              <p>
+                <span class="highlight">({{ analytics?.topRatedProperties[0]?.averageRating | number:'1.2-2' }}/5)</span>
+              </p>
+            </div>
+            <p *ngIf="!analytics?.topRatedProperties?.length">N/A</p>
+          </div>
+          <div class="card clickable" *ngIf="analytics?.topBookedProperties?.length" (click)="navigateToPropertyDetails(analytics.topBookedProperties[0]?.id)">
+            <span class="card-icon"><i class="fas fa-fire"></i></span>
+            <h3>Most Booked Property</h3>
+            <div *ngIf="analytics?.topBookedProperties?.length">
+              <img [src]="getPropertyImageUrl(analytics.topBookedProperties[0])" alt="Most Booked Property" class="property-image">
+              <p>
+                <span class="highlight">({{ analytics?.topBookedProperties[0]?.bookingsCount }} bookings)</span>
+              </p>
+            </div>
+            <p *ngIf="!analytics?.topBookedProperties?.length">N/A</p>
+          </div>
+        </div>
+        
+        <!-- Filter by Country -->
+        <div class="filter-section">
+          <label for="countryFilter">Filter Properties by Country:</label>
+          <select id="countryFilter" [(ngModel)]="selectedCountry" (change)="filterPropertiesByCountry()">
+            <option value="">All Countries</option>
+            <option *ngFor="let country of countries" [value]="country">{{ country }}</option>
+          </select>
+        </div>
+        
+        <!-- Charts side by side with countries on right -->
+        <div class="charts-container">
+          <!-- Properties Overview Chart -->
+          <div class="chart-panel main-chart">
+            <!-- <h3>Properties Overview</h3> -->
+            <canvas #propertiesAnalyticsChart></canvas>
+          </div>
+          
+          <!-- Countries Chart on right -->
+          <div class="chart-panel countries-panel">
+            <!-- <h3>Properties by Country</h3> -->
+            <canvas #countriesAnalyticsChart></canvas>
+          </div>
+        </div>
+        
+        <!-- Top items section -->
+        <div class="top-items-section">
+          <div class="top-item">
+            <h3>Top 3 Rated Properties</h3>
+            <ul>
+              <li *ngFor="let property of analytics?.topRatedProperties" class="clickable-property" (click)="navigateToPropertyDetails(property?.id)">
+                <img [src]="getPropertyImageUrl(property)" alt="{{ property?.title }}" class="property-image-small">
+                <span class="property-details">
+                  (Rating: {{ property?.averageRating | number:'1.2-2' }}/5, {{ property?.city }}, {{ property?.country || 'Unknown' }})
+                </span>
+              </li>
+              <li *ngIf="!analytics?.topRatedProperties?.length">No data available</li>
+            </ul>
+          </div>
+          <div class="top-item">
+            <h3>Top 3 Booked Properties</h3>
+            <ul>
+              <li *ngFor="let property of analytics?.topBookedProperties" class="clickable-property" (click)="navigateToPropertyDetails(property?.id)">
+                <img [src]="getPropertyImageUrl(property)" alt="{{ property?.title }}" class="property-image-small">
+                <span class="property-details">
+                  ({{ property?.bookingsCount }} bookings, {{ property?.city }}, {{ property?.country || 'Unknown' }})
+                </span>
+              </li>
+              <li *ngIf="!analytics?.topBookedProperties?.length">No data available</li>
+            </ul>
+          </div>
+          <div class="top-item">
+            <h3>Top Rated Properties by Country</h3>
+            <ul>
+              <li *ngFor="let country of countries | slice:0:5">
+                {{ country }} (Avg Rating: {{ analytics?.topRatedPropertiesByCountry[country]?.avgRating | number:'1.1-2' }}, {{ analytics?.propertiesByCountry[country] }} properties)
+              </li>
+              <li *ngIf="!countries?.length">No data available</li>
+            </ul>
+          </div>
+        </div>
       </div>
     </div>
-    <!-- Filter by Country -->
-    <div class="filter-section">
-      <label for="countryFilter">Filter Properties by Country:</label>
-      <select id="countryFilter" [(ngModel)]="selectedCountry" (change)="filterPropertiesByCountry()">
-        <option value="">All Countries</option>
-        <option *ngFor="let country of countries" [value]="country">{{ country }}</option>
-      </select>
-    </div>
-    <div class="top-items-section">
-      <div class="top-item">
-        <h3>Top 3 Rated Properties</h3>
-        <ul>
-          <li *ngFor="let property of analytics?.topRatedProperties">
-            <img [src]="property?.images[0] || 'assets/images/default-property.jpg'" alt="{{ property?.title }}" class="property-image-small">
-            <span class="property-details">
-              (Rating: {{ property?.averageRating | number:'1.1-2' }}/5, {{ property?.city }}, {{ property?.country || 'Unknown' }})
-            </span>
-          </li>
-          <li *ngIf="!analytics?.topRatedProperties?.length">No data available</li>
-        </ul>
-      </div>
-      <div class="top-item">
-        <h3>Top 3 Booked Properties</h3>
-        <ul>
-          <li *ngFor="let property of analytics?.topBookedProperties">
-            <img [src]="property?.images[0] || 'assets/images/default-property.jpg'" alt="{{ property?.title }}" class="property-image-small">
-            <span class="property-details">
-              ({{ property?.bookingsCount }} bookings, {{ property?.city }}, {{ property?.country || 'Unknown' }})
-            </span>
-          </li>
-          <li *ngIf="!analytics?.topBookedProperties?.length">No data available</li>
-        </ul>
-      </div>
-      <div class="top-item">
-        <h3>Top Rated Properties by Country</h3>
-        <ul>
-          <li *ngFor="let country of countries | slice:0:5">
-            {{ country }} (Avg Rating: {{ analytics?.topRatedPropertiesByCountry[country]?.avgRating | number:'1.1-2' }}, {{ analytics?.propertiesByCountry[country] }} properties)
-          </li>
-          <li *ngIf="!countries?.length">No data available</li>
-        </ul>
-      </div>
-    </div>
-    <div class="charts-section">
-      <div class="chart">
-        <canvas #propertiesAnalyticsChart></canvas>
-      </div>
-    </div>
-  </div>
-</div>
 
     <!-- Account Details -->
     <div *ngIf="currentSection === 'account'" class="content-section">
       <app-profile></app-profile>
+    </div>
+
+    <!-- Violations Management Section -->
+    <div *ngIf="currentSection === 'violations'" class="content-section violations-section">
+      <app-violations-management></app-violations-management>
     </div>
   </div>
 </div>

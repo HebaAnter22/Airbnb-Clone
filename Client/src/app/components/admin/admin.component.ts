@@ -5,11 +5,25 @@ import { FormsModule } from '@angular/forms';
 import { ProfileComponent } from '../profile/profile.component';
 import { AdminServiceService, HostDto, GuestDto, PropertyDto, BookingDto } from '../../services/admin-service.service';
 import Chart from 'chart.js/auto';
+import { NgIf } from '@angular/common';
+import { ProfileService } from '../../services/profile.service';
+import { ViolationsManagementComponent } from './violations-management/violations-management.component';
+import { HostDetailsComponent } from './host-details/host-details.component';
+import { firstValueFrom } from 'rxjs';
+// import { HostProfileComponent } from '../host/host-profile/host-profile.component';
+// import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-admin',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule, ProfileComponent],
+  imports: [
+    CommonModule, 
+    RouterModule, 
+    FormsModule, 
+    ProfileComponent, 
+    ViolationsManagementComponent,
+    HostDetailsComponent
+  ],
   templateUrl: './admin.component.html',
   styleUrls: ['./admin.component.css']
 })
@@ -18,6 +32,7 @@ export class AdminComponent implements OnInit, AfterViewInit {
   adminPicture: string = 'assets/images/admin-avatar.png';
   currentSection: string = 'all-hosts';
   isSidebarCollapsed: boolean = false;
+  selectedHostId: number | null = null;
 
   // Host management sections
   hostSections = {
@@ -47,6 +62,8 @@ export class AdminComponent implements OnInit, AfterViewInit {
   bookings: BookingDto[] = [];
   loading: boolean = false;
   error: string | null = null;
+  hostProfile: any = null;
+
 
   analytics: any = {
     propertiesCount: 0,
@@ -70,17 +87,23 @@ export class AdminComponent implements OnInit, AfterViewInit {
   guestsAnalyticsChart: any;
   hostsAnalyticsChart: any;
   propertiesAnalyticsChart: any;
+  countriesAnalyticsChart: any;
   propertyBookingsCount: { [key: number]: number } = {};
+  hostRating: number = 0;
 
   @ViewChild('guestsAnalyticsChart') guestsAnalyticsChartRef!: ElementRef<HTMLCanvasElement>;
   @ViewChild('hostsAnalyticsChart') hostsAnalyticsChartRef!: ElementRef<HTMLCanvasElement>;
   @ViewChild('propertiesAnalyticsChart') propertiesAnalyticsChartRef!: ElementRef<HTMLCanvasElement>;
+  @ViewChild('countriesAnalyticsChart') countriesAnalyticsChartRef!: ElementRef<HTMLCanvasElement>;
 
-  constructor(private router: Router, private adminService: AdminServiceService) {}
+  constructor(private router: Router, private adminService: AdminServiceService, private profileService: ProfileService) {}
 
   ngOnInit(): void {
     this.loadDataForSection(this.currentSection);
     this.loadAnalytics();
+    if (this.hostProfile) {
+      this.getHostTotalReviewsAndRating(this.hostProfile.id).then(rating => this.hostRating = rating);
+    }
   }
 
   ngAfterViewInit(): void {
@@ -194,6 +217,9 @@ export class AdminComponent implements OnInit, AfterViewInit {
         break;
       case 'Properties':
         this.loadPropertiesAnalytics();
+        break;
+      case 'host-details':
+        this.loadHostDetails(this.selectedHostId);
         break;
       default:
         this.loading = false;
@@ -362,6 +388,33 @@ export class AdminComponent implements OnInit, AfterViewInit {
     return property.images[0]?.imageUrl || 'assets/images/property-placeholder.jpg';
   }
 
+  getPropertyImageUrl(property: any): string {
+    if (!property) {
+      return 'assets/images/property-placeholder.jpg';
+    }
+
+    // Handle different property image formats in the API response
+    if (property.images && Array.isArray(property.images)) {
+      // Case 1: Images array contains objects with imageUrl
+      if (property.images.length > 0 && property.images[0].imageUrl) {
+        return property.images[0].imageUrl;
+      }
+      
+      // Case 2: Images array contains direct URL strings
+      if (property.images.length > 0 && typeof property.images[0] === 'string') {
+        return property.images[0];
+      }
+    }
+    
+    return 'assets/images/property-placeholder.jpg';
+  }
+
+  navigateToPropertyDetails(propertyId: number): void {
+    if (propertyId) {
+      this.router.navigate(['/property/bookings', propertyId]);
+    }
+  }
+
   filterPropertiesByCountry(): void {
     if (this.selectedCountry) {
       this.analytics.topRatedProperties = this.approvedProperties
@@ -396,11 +449,25 @@ export class AdminComponent implements OnInit, AfterViewInit {
     this.loading = true;
     this.error = null;
     this.adminService.getAllHosts().subscribe({
-      next: (hosts: HostDto[]) => {
+      next: async (hosts: HostDto[]) => {
         this.analytics.hostsCount = hosts.length;
-        this.analytics.topRatedHosts = hosts
+        
+        // Load ratings for top rated hosts using profile service
+        const hostsWithRatings = await this.loadHostRatings(hosts);
+        this.analytics.topRatedHosts = hostsWithRatings
           .sort((a, b) => (b.Rating || 0) - (a.Rating || 0))
           .slice(0, 3);
+        
+        // Load top paid hosts
+        this.adminService.getTopPaidHosts(3).subscribe({
+          next: (topPaidHosts: HostDto[]) => {
+            this.analytics.topPaidHosts = topPaidHosts;
+          },
+          error: (error) => {
+            console.error('Error loading top paid hosts:', error);
+          }
+        });
+          
         this.adminService.getAllGuests().subscribe({
           next: (guests: GuestDto[]) => {
             this.analytics.guestsCount = guests.length;
@@ -428,7 +495,38 @@ export class AdminComponent implements OnInit, AfterViewInit {
     });
   }
 
+  // Helper method to load host ratings
+  async loadHostRatings(hosts: HostDto[]): Promise<HostDto[]> {
+    const hostsWithRatings = [...hosts];
+    
+    for (let i = 0; i < hostsWithRatings.length; i++) {
+      const host = hostsWithRatings[i];
+      const rating = await this.getHostRating(host.id);
+      host.Rating = rating;
+    }
+    
+    return hostsWithRatings;
+  }
 
+  // Get host rating using profile service
+  async getHostRating(hostId: number): Promise<number> {
+    return new Promise<number>((resolve) => {
+      this.profileService.getUserReviews(hostId.toString()).subscribe({
+        next: (reviews) => {
+          if (reviews && reviews.length > 0) {
+            const rating = reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length;
+            resolve(rating);
+          } else {
+            resolve(0);
+          }
+        },
+        error: (err) => {
+          console.error('Failed to load host reviews:', err);
+          resolve(0);
+        }
+      });
+    });
+  }
 
   renderCharts(): void {
     if (this.currentSection === 'Users') {
@@ -436,6 +534,7 @@ export class AdminComponent implements OnInit, AfterViewInit {
       this.renderHostsAnalyticsChart();
     } else if (this.currentSection === 'Properties') {
       this.renderPropertiesAnalyticsChart();
+      this.renderCountriesAnalyticsChart();
     }
   }
 
@@ -523,7 +622,7 @@ export class AdminComponent implements OnInit, AfterViewInit {
       this.propertiesAnalyticsChart = new Chart(ctx, {
         type: 'bar',
         data: {
-          labels: ['Total Properties', 'Top Rated Properties', 'Top Booked Properties', ...topCountries],
+          labels: ['Total Properties', 'Top Rated Properties', 'Top Booked Properties'],
           datasets: [{
             label: 'Properties Analytics',
             data: [
@@ -532,8 +631,8 @@ export class AdminComponent implements OnInit, AfterViewInit {
               this.analytics.topBookedProperties.reduce((sum: number, p: any) => sum + p.bookingsCount, 0),
               ...topCountries.map(country => this.analytics.topRatedPropertiesByCountry[country].avgRating || 0)
             ],
-            backgroundColor: ['#FF5A5F', '#FFB400', '#00A699', '#FF385C', '#008489'],
-            borderColor: ['#FF385C', '#FFA000', '#008489', '#FF385C', '#006B5F'],
+            backgroundColor: ['#3f51b5', '#5c6bc0', '#7986cb', '#9fa8da', '#c5cae9', '#e8eaf6'],
+            borderColor: ['#303f9f', '#3949ab', '#5c6bc0', '#7986cb', '#9fa8da', '#c5cae9'],
             borderWidth: 1
           }]
         },
@@ -541,7 +640,7 @@ export class AdminComponent implements OnInit, AfterViewInit {
           responsive: true,
           plugins: {
             legend: { display: false },
-            title: { display: true, text: 'Properties Analytics', color: '#FF5A5F', font: { size: 16 } }
+            title: { display: true, text: 'Properties Analytics', color: '#333', font: { size: 16 } }
           },
           scales: {
             y: { beginAtZero: true, title: { display: true, text: 'Value' } }
@@ -551,13 +650,66 @@ export class AdminComponent implements OnInit, AfterViewInit {
     }
   }
 
+  renderCountriesAnalyticsChart(): void {
+    if (this.countriesAnalyticsChart) {
+      this.countriesAnalyticsChart.destroy();
+    }
+    
+    const ctx = this.countriesAnalyticsChartRef?.nativeElement.getContext('2d');
+    if (ctx) {
+      // Get top countries by property count
+      const topCountriesByCount = Object.entries(this.analytics.propertiesByCountry)
+        .sort(([, a]: any, [, b]: any) => b - a)
+        .slice(0, 6)
+        .map(([country, count]) => ({ country, count }));
+      
+      this.countriesAnalyticsChart = new Chart(ctx, {
+        type: 'pie',
+        data: {
+          labels: topCountriesByCount.map(item => item.country),
+          datasets: [{
+            label: 'Properties by Country',
+            data: topCountriesByCount.map(item => item.count),
+            backgroundColor: ['#3f51b5', '#5c6bc0', '#7986cb', '#9fa8da', '#c5cae9', '#e8eaf6'],
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { 
+              display: true,
+              position: 'right',
+              labels: {
+                boxWidth: 15,
+                padding: 15,
+                font: {
+                  size: 12
+                }
+              }
+            },
+            title: { 
+              display: true, 
+              text: 'Properties by Country', 
+              color: '#333', 
+              font: { size: 16 } 
+            }
+          }
+        }
+      });
+    }
+  }
+
   // Host Management
-  loadHosts(): void {
+  async loadHosts(): Promise<void> {
     this.loading = true;
     this.error = null;
+    
     this.adminService.getAllHosts().subscribe({
-      next: (data) => {
-        this.hosts = data;
+      next: async (hosts) => {
+        // Load ratings for each host using profile service
+        const hostsWithRatings = await this.loadHostRatings(hosts);
+        this.hosts = hostsWithRatings;
         this.loading = false;
       },
       error: (err) => {
@@ -572,8 +724,24 @@ export class AdminComponent implements OnInit, AfterViewInit {
     this.loading = true;
     this.error = null;
     this.adminService.getVerifiedHosts().subscribe({
-      next: (data) => {
-        this.hosts = data;
+      next: async (hosts) => {
+        // Load ratings from ProfileService for each host
+        this.hosts = await Promise.all(hosts.map(async (host) => {
+          try {
+            const reviews = await firstValueFrom(this.profileService.getUserReviews(host.id.toString()));
+            if (reviews && reviews.length > 0) {
+              const avgRating = reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length;
+              return {
+                ...host,
+                Rating: avgRating,
+                totalReviews: reviews.length
+              };
+            }
+          } catch (error) {
+            console.error(`Failed to load reviews for host ${host.id}:`, error);
+          }
+          return host; // Return original host if reviews couldn't be loaded
+        }));
         this.loading = false;
       },
       error: (err) => {
@@ -583,6 +751,23 @@ export class AdminComponent implements OnInit, AfterViewInit {
       }
     });
   }
+
+
+  getHostTotalReviewsAndRating(hostId: number): Promise<number> {
+    return new Promise<number>((resolve) => {
+      this.profileService.getUserReviews(hostId.toString()).subscribe({
+        next: (data) => {
+          const rating = data.reduce((acc: number, review: any) => acc + review.rating, 0) / data.length || 0;
+          resolve(rating);
+        },
+        error: (err) => {
+          console.error('Failed to load host reviews and rating:', err);
+          resolve(0);
+        }
+      });
+    });
+  }
+
 
   loadNotVerifiedHosts(): void {
     this.loading = true;
@@ -774,5 +959,17 @@ export class AdminComponent implements OnInit, AfterViewInit {
         console.error('Error updating booking status:', err);
       }
     });
+  }
+
+  // View host details 
+  viewHostDetails(hostId: number): void {
+    this.selectedHostId = hostId;
+    this.currentSection = 'host-details';
+  }
+  
+  // Load host details data
+  loadHostDetails(hostId: number | null): void {
+    // Nothing to load here as the host-details component handles its own data loading
+    this.loading = false;
   }
 }

@@ -8,7 +8,6 @@ import { roleGuard } from './guards/role.guard';
 import { NotFoundComponent } from './components/not-found/not-found.component';
 import { ProfileComponent } from './components/profile/profile.component';
 import { SearchBarComponent } from './components/home/search-bar/search-bar.component';
-import { PropertyListingsComponent } from './components/home/property-listing/property-listing.component';
 import { HeaderComponent } from './components/home/header/header.component';
 import { AddPropertyComponent } from './components/host/add-property/add-property.component';
 import { HostPropertiesComponent } from './components/host/host-proprties/host-properties.component';
@@ -21,14 +20,15 @@ import { BookingComponent } from './components/bookings/bookings.component';
 import { VerificationComponent } from './components/verifications/verifications.component';
 import { HostVerificationComponent } from './components/host-verification/host-verification.component';
 import { AdminComponent } from './components/admin/admin.component';
-import { HostDashboardComponent } from './components/host/host-dashboard/host-dashboard.component';
 import { BookingDetailsComponent } from './components/host/booking-details/booking-details.component';
 import { PropertyBookingDetailsComponent } from './components/host/property-booking-details/property-booking-details.component';
 import { VerifinghostComponent } from './components/admin/verifinghost/verifinghost.component';
-import { PaymentComponent } from './components/payment/payment.component';
-
-
-
+// import { PaymentComponent } from './components/payment/payment.component';
+import { PropertyListingsComponent } from './components/home/property-listing/property-listing.component';
+import { CheckoutComponent } from './components/checkout/checkout.component';
+import { PaymentSuccessComponent } from './components/payment-success/payment-success.component';
+import { HostPayoutComponent } from './components/host-payout/host-payout.component';
+import { HostDashboardComponent } from './components/host/host-dashboard/host-dashboard.component';
 export const routes: Routes = [
   { path: 'home', component: PropertyListingsComponent },
   { path: '', redirectTo: 'home', pathMatch: 'full' },
@@ -51,13 +51,22 @@ export const routes: Routes = [
     data: { role: 'Host' }
   },
 
+  { path: 'checkout/:bookingId', component: CheckoutComponent },
+  { path: 'payment-success', component: PaymentSuccessComponent },
+  // { path: 'payment-cancel', component: PaymentCancelComponent }, // Optional
+
+  {
+    path: 'host/payouts',
+    component: HostPayoutComponent,
+    canActivate: [authGuard, roleGuard],
+    data: { role: 'Host' }
+  },
   {
     path: 'chat',
     loadChildren: () => import('./components/chatting/chat.module').then(m => m.ChatModule),
     canActivate: [authGuard]
   },
 
-  { path: 'payment/:id', component: PaymentComponent, canActivate: [authGuard] },
   // {
   //   path: 'host/properties',
   //   component: HostPropertiesComponent,
@@ -77,11 +86,18 @@ export const routes: Routes = [
     data: { role: 'Host' }
   },
   {
-    path: 'Booking/details/:id',
+    path: 'property/bookings/:id',
     component: PropertyBookingDetailsComponent,
     canActivate: [authGuard, roleGuard],
-    data: { role: 'Host' }
+    data: { role: 'Admin' }
   },
+
+  // {
+  //   path: 'Booking/details/:id',
+  //   component: PropertyBookingDetailsComponent,
+  //   canActivate: [authGuard, roleGuard],
+  //   data: { role: ['Host', 'Admin'] }
+  // },
   {
     path: 'booking/:bookingId',
     component: BookingDetailsComponent,
@@ -113,6 +129,11 @@ export const routes: Routes = [
     component: VerifinghostComponent,
     // canActivate: [authGuard, roleGuard],
     // data: { role: 'Admin' }
+  },
+  {
+    path: 'profile',
+    component: ProfileComponent,
+    canActivate: [authGuard]
   },
   { path: 'forbidden', component: NotFoundComponent },
 

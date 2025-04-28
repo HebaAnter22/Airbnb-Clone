@@ -45,6 +45,9 @@ export class ProfileService {
       return this.imageUrl; 
     }
   }
+
+
+  
   getUserRole(): string {
     const user = this.authService.currentUserValue;
     if (user && user.role) {
