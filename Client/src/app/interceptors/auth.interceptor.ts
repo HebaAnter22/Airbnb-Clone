@@ -9,7 +9,6 @@ export class AuthInterceptor implements HttpInterceptor {
   private isRefreshing: boolean = false;
 
   constructor(private authService: AuthService) { }
-
   intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     const token = this.authService.currentUserValue?.accessToken;
 
@@ -21,8 +20,15 @@ export class AuthInterceptor implements HttpInterceptor {
       });
     }
 
+    console.log('Interceptor triggered for:', request.url);
     return next.handle(request).pipe(
       catchError((error: HttpErrorResponse) => {
+        console.log('Full error response:', {
+          status: error.status,
+          headers: error.headers,
+          error: error.error,
+          url: error.url
+        });
         if (error.status === 401 && !this.isRefreshing) {
           // Token expired, try to refresh
           console.log('Token expired, refreshing...');
@@ -33,6 +39,7 @@ export class AuthInterceptor implements HttpInterceptor {
               this.isRefreshing = false;
 
               if (tokenResponse) {
+                console.log('Token refreshed successfully:', tokenResponse);
                 // If token refresh succeeded, retry request with new token
                 const newRequest = request.clone({
                   setHeaders: {

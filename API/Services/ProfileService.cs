@@ -44,21 +44,7 @@ namespace API.Services
 
         public async Task UpdateUserAsync(User user)
         {
-            Console.WriteLine(user.ProfilePictureUrl);
-            Console.WriteLine(user.ProfilePictureUrl);
-            Console.WriteLine(user.ProfilePictureUrl);
-            Console.WriteLine(user.ProfilePictureUrl);
-            Console.WriteLine(user.ProfilePictureUrl);
-            Console.WriteLine(user.ProfilePictureUrl);
-            Console.WriteLine(user.ProfilePictureUrl);
-            Console.WriteLine(user.ProfilePictureUrl);
-            Console.WriteLine(user.ProfilePictureUrl);
-            Console.WriteLine(user.ProfilePictureUrl);
-            Console.WriteLine(user.ProfilePictureUrl);
-            Console.WriteLine(user.ProfilePictureUrl);
-            Console.WriteLine(user.ProfilePictureUrl);
-            Console.WriteLine(user.ProfilePictureUrl);
-            Console.WriteLine(user.ProfilePictureUrl);
+            
             _context.Users.Update(user);
             await _context.SaveChangesAsync();
         }

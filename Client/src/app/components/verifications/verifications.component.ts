@@ -30,10 +30,10 @@ export class VerificationComponent implements OnInit, OnDestroy {
   idBackImage: File | null = null;
   idFrontPreviewUrl: string | null = null; // New property for front image preview
   idBackPreviewUrl: string | null = null;  // New property for back image preview
-
+  idVerificationStatus: string = 'notSubmitted';
   emailVerified: boolean = false;
   phoneVerified: boolean = false;
-  idVerified: boolean = true;
+  idVerified: boolean = false;
   isLoading: boolean = false;
   errorMessage: string = '';
   userId: string = ''; // User ID from Firebase Auth
@@ -52,13 +52,15 @@ export class VerificationComponent implements OnInit, OnDestroy {
     private authService: FirebaseAuthService,
     private http: HttpClient,
     private auth: AuthService,
-    private router: Router
+    private router: Router,
   ) { }
 
   ngOnInit(): void {
     // Check email verification status from your backend API
     this.checkEmailVerificationStatus();
+    this.checkIdVerificationStatus();
     this.userId = this.auth.userId || ''; // Get the user ID from your auth service
+
   }
 
   ngOnDestroy(): void {
@@ -75,8 +77,30 @@ export class VerificationComponent implements OnInit, OnDestroy {
       URL.revokeObjectURL(this.idBackPreviewUrl);
     }
   }
+  checkIdVerificationStatus(): void {
+    this.isLoading = true;
+
+    this.http.get(`${this.apiUrl}/HostVerification/get-verification-status`)
+      .subscribe({
+
+        next: (response: any) => {
+          console.log('ID verification status from backend:', response);
+          this.idVerificationStatus = response.status; // Assuming the response has a 'status' field
+          this.idVerified = this.idVerificationStatus === 'verified'; // Update based on your logic
+          this.isLoading = false;
+        },
+        error: (error) => {
+          console.error('Error checking ID verification status:', error);
+          if (error.status === 404) {
+            this.idVerified = false;
+          }
+          this.isLoading = false;
+        }
+      });
+  }
 
   navigateTo(step: 'overview' | 'email' | 'phone' | 'id' | 'email-sent'): void {
+
     this.currentStep = step;
     this.errorMessage = '';
   }
@@ -98,7 +122,12 @@ export class VerificationComponent implements OnInit, OnDestroy {
       this.password = 'Temp' + Math.random().toString(36).substring(2, 10);
 
       // First, update the email in your backend database
-      await this.updateUserEmail(this.email);
+      if (this.email !== this.auth.userEmail) {
+        //update error message to be more user friendly
+        console.log(this.auth.userEmail)
+        this.errorMessage = 'Please use the email associated with your account.';
+        return;
+      }
 
       // Then, send the verification email through Firebase
       const success = await this.authService.sendVerificationEmail(this.email, this.password);
@@ -176,6 +205,7 @@ export class VerificationComponent implements OnInit, OnDestroy {
     this.http.get<{ isEmailVerified: boolean }>(`${this.apiUrl}/Profile/user/email-verification-status`)
       .subscribe({
         next: (response) => {
+          console.log('Email verification status from backend:', response);
           this.emailVerified = response.isEmailVerified;
           this.isLoading = false;
         },
@@ -187,24 +217,7 @@ export class VerificationComponent implements OnInit, OnDestroy {
   }
 
 
-  // Update the email in your backend database
-  private updateUserEmail(email: string): Promise<void> {
-    return new Promise((resolve, reject) => {
-      this.http.put(`${this.apiUrl}/Profile/user/update-email`, { NewEmail: email })
-        .subscribe({
-          next: () => resolve(),
-          error: (error) => {
-            if (error.status === 400 && error.error === "Email already exists") {
-              this.errorMessage = "This email is already registered. Please use a different email.";
-            } else {
-              console.error('Error updating email:', error);
-              this.errorMessage = 'An error occurred while updating your email. Please try again.';
-            }
-            reject(error);
-          }
-        });
-    });
-  }
+
 
   // Update the email verification status in your backend database
   private updateEmailVerificationStatus(isVerified: boolean): Promise<void> {
@@ -295,7 +308,7 @@ export class VerificationComponent implements OnInit, OnDestroy {
         .subscribe({
           next: (response: any) => {
             console.log('ID verification submitted successfully:', response);
-            this.idVerified = true;
+            this.idVerificationStatus = 'pending';
             this.navigateTo('overview');
           },
           error: (error) => {

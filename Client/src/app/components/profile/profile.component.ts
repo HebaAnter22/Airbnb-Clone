@@ -59,7 +59,7 @@ export class ProfileComponent implements OnInit {
     this.assignVerificationStatus();
   }
   assignVerificationStatus(): void {
-    this.authService.checkEmailVerificationStatus(this.route.snapshot.paramMap.get('id') || '').subscribe({
+    this.authService.checkEmailVerificationStatus().subscribe({
       next: (isVerified: boolean) => {
         this.emailVerified = isVerified;
         console.log('Email verification status:', isVerified);

@@ -37,16 +37,16 @@ export class HostDashboardComponent implements OnInit {
   userProfile: any;
 
   constructor(
-    private router: Router, 
+    private router: Router,
     private authService: AuthService,
     private profileService: ProfileService
-  ) {}
+  ) { }
 
   ngOnInit() {
     // Initialize user data
     this.authService.getUserProfile().subscribe((userProfile: any) => {
       console.log('User profile received:', userProfile); // Log the entire object
-      
+
       // Set user data from the profile
       this.userName = userProfile.userName || userProfile.email || '';
       this.userFirstName = userProfile.firstName || '';
@@ -85,7 +85,7 @@ export class HostDashboardComponent implements OnInit {
     }
     return '';
   }
-  
+
   toggleDropdown(dropdown: string) {
     switch (dropdown) {
       case 'listings':
@@ -125,7 +125,7 @@ export class HostDashboardComponent implements OnInit {
 
   goToUserProfile() {
     // Implement navigation
-    this.router.navigate(['/profile']);
+    this.router.navigate(['/profile/' + this.authService.userId]);
   }
 
   logout() {

@@ -14,9 +14,9 @@ export class AuthService {
   private baseUrl = 'https://localhost:7228/api/Auth/';
   private currentUserSubject: BehaviorSubject<User | null>;
   public currentUser: Observable<User | null>;
-  public isLoggedIn:boolean = false;
+  public isLoggedIn: boolean = false;
 
-  public userDetails : User | null = null;
+  public userDetails: User | null = null;
 
 
 
@@ -25,7 +25,7 @@ export class AuthService {
     private socialAuthService: SocialAuthService
 
   ) {
-    
+
     const storedUser = localStorage.getItem('currentUser');
     this.currentUserSubject = new BehaviorSubject<User | null>(
       storedUser ? JSON.parse(storedUser) : null
@@ -42,76 +42,91 @@ export class AuthService {
   }
   signInWithGoogle(): void {
     this.socialAuthService.signIn(GoogleLoginProvider.PROVIDER_ID);
-}
+  }
 
-// auth.service.ts
-switchToHosting(): Observable<TokenResponse> {
-  return this.http.post<TokenResponse>(`${this.baseUrl}switch-to-host`, {}).pipe(
-    tap((response) => {
-      // Decode the new token and update user state
-      const decoded = this.decodeToken(response.accessToken);
-      const updatedUser: User = {
-        email: decoded.unique_name,
-        role: decoded.role,
-        accessToken: response.accessToken,
-        refreshToken: response.refreshToken,
-        firstName: this.currentUserValue?.firstName, // Preserve existing fields
-        lastName: this.currentUserValue?.lastName,
-        imageUrl: this.currentUserValue?.imageUrl,
-      };
-      
-      // Update localStorage and BehaviorSubject
-      localStorage.setItem('currentUser', JSON.stringify(updatedUser));
-      this.currentUserSubject.next(updatedUser);
-    }),
-    catchError((err) => {
-      console.error('Role switch failed', err);
-      return throwError(() => err);
-    })
-  );
-}
+  getUserEmail(
+    userToken: string
+  ): string | null {
+    const decoded = this.decodeToken(userToken);
+    return decoded.unique_name || null;
+  }
+  isAdmin(): boolean {
+
+    const user = this.currentUserSubject.value;
+    return user ? user.role === 'Admin' : false;
+  }
+  // auth.service.ts
+  switchToHosting(): Observable<TokenResponse> {
+    return this.http.post<TokenResponse>(`${this.baseUrl}switch-to-host`, {}).pipe(
+      tap((response) => {
+        // Decode the new token and update user state
+        const decoded = this.decodeToken(response.accessToken);
+        const updatedUser: User = {
+          email: decoded.unique_name,
+          role: decoded.role,
+          accessToken: response.accessToken,
+          refreshToken: response.refreshToken,
+          firstName: this.currentUserValue?.firstName, // Preserve existing fields
+          lastName: this.currentUserValue?.lastName,
+          imageUrl: this.currentUserValue?.imageUrl,
+        };
+
+        // Update localStorage and BehaviorSubject
+        localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+        this.currentUserSubject.next(updatedUser);
+      }),
+      catchError((err) => {
+        console.error('Role switch failed', err);
+        return throwError(() => err);
+      })
+    );
+  }
 
 
-isUserAGuest(): boolean {
-  const user = this.currentUserSubject.value;
-  return user ? user.role === 'Guest' : false;
-}
-private handleGoogleLogin(googleUser: SocialUser): void {
+  isUserAGuest(): boolean {
+    const user = this.currentUserSubject.value;
+    return user ? user.role === 'Guest' : false;
+  }
+  private handleGoogleLogin(googleUser: SocialUser): void {
     this.http.post(`${this.baseUrl}google-auth`, {
-        email: googleUser.email,
-        firstName: googleUser.firstName,
-        lastName: googleUser.lastName,
-        idToken: googleUser.idToken
+      email: googleUser.email,
+      firstName: googleUser.firstName,
+      lastName: googleUser.lastName,
+      idToken: googleUser.idToken
     }).subscribe({
-        next: (response: any) => {
-            const decoded = this.decodeToken(response.accessToken);
-            const user: User = {
-                email: decoded.unique_name,
-                role: decoded.role,
-                accessToken: response.accessToken,
-                refreshToken: response.refreshToken,
-                firstName: googleUser.firstName,
-                lastName: googleUser.lastName,
-                imageUrl: googleUser.photoUrl
-            };
-            
-            localStorage.setItem('currentUser', JSON.stringify(user));
-            this.currentUserSubject.next(user);
-            this.router.navigate(['/home']);
-        },
-        error: (err) => {
-            console.error('Google login error:', err);
-            this.logout();
-        }
+      next: (response: any) => {
+        const decoded = this.decodeToken(response.accessToken);
+        const user: User = {
+          email: decoded.unique_name,
+          role: decoded.role,
+          accessToken: response.accessToken,
+          refreshToken: response.refreshToken,
+          firstName: googleUser.firstName,
+          lastName: googleUser.lastName,
+          imageUrl: googleUser.photoUrl
+        };
+
+        localStorage.setItem('currentUser', JSON.stringify(user));
+        this.currentUserSubject.next(user);
+        this.router.navigate(['/home']);
+      },
+      error: (err) => {
+        console.error('Google login error:', err);
+        this.logout();
+      }
     });
-}
+  }
 
 
-public get userId(): string | null {
-  const user = this.currentUserSubject.value;
-  return user ? this.getUserIdFromToken(user.accessToken) : null;
-}
-  
+  public get userId(): string | null {
+    const user = this.currentUserSubject.value;
+    return user ? this.getUserIdFromToken(user.accessToken) : null;
+  }
+  public get userEmail(): string | null {
+    const user = this.currentUserSubject.value;
+    return user ? this.getUserEmail(user.accessToken) : null;
+  }
+
   public get currentUserValue(): User | null {
     return this.currentUserSubject.value;
   }
@@ -122,8 +137,8 @@ public get userId(): string | null {
         const decoded = this.decodeToken(response.accessToken);
         const user: User = {
           email: decoded.unique_name,
-          role: decoded.role || decoded['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'],     
-               accessToken: response.accessToken,
+          role: decoded.role || decoded['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'],
+          accessToken: response.accessToken,
           refreshToken: response.refreshToken
         };
         localStorage.setItem('currentUser', JSON.stringify(user));
@@ -135,9 +150,9 @@ public get userId(): string | null {
 
 
 
-checkEmailVerificationStatus( profileId: string):
-  Observable<boolean> {
-    return this.http.get<{isEmailVerified: boolean}>(`https://localhost:7228/api/Profile/user/email-verification-status/${profileId}`).pipe(
+  checkEmailVerificationStatus():
+    Observable<boolean> {
+    return this.http.get<{ isEmailVerified: boolean }>(`https://localhost:7228/api/Profile/user/email-verification-status/`).pipe(
       map(response => response.isEmailVerified),
       catchError(error => {
         console.error('Error checking email verification status:', error);
@@ -149,18 +164,19 @@ checkEmailVerificationStatus( profileId: string):
 
 
   register(
-    email: string, firstName: string, lastName: string,  password: string
+    email: string, firstName: string, lastName: string, password: string
   ) {
-    return this.http.post(`${this.baseUrl}register`, {  
+    return this.http.post(`${this.baseUrl}register`, {
       email,
       firstName,
       lastName,
-      password });
+      password
+    });
   }
   logout() {
     // First get the token to ensure it's available for the interceptor
     const token = this.currentUserValue?.accessToken;
-    
+
     if (token) {
       console.log('Logging out with token:', token);
       this.http.post(`${this.baseUrl}logout`, {}).subscribe({
@@ -221,12 +237,12 @@ checkEmailVerificationStatus( profileId: string):
   public decodeToken(token: string): any {
     const decoded = JSON.parse(atob(token.split('.')[1]));
     return {
-        ...decoded,
-        nameid: decoded['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'],
-        unique_name: decoded['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress'],
-        role: decoded['http://schemas.microsoft.com/ws/2008/06/identity/claims/role']
+      ...decoded,
+      nameid: decoded['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'],
+      unique_name: decoded['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress'],
+      role: decoded['http://schemas.microsoft.com/ws/2008/06/identity/claims/role']
     };
-}
+  }
 
   public getUserIdFromToken(token: string): string {
     const decoded = this.decodeToken(token);
@@ -240,16 +256,16 @@ checkEmailVerificationStatus( profileId: string):
     }
     return throwError(() => error);
   }
-getUserProfile(): Observable<any> {
-  return this.http.get(`${this.baseUrl}profile`).pipe(
+  getUserProfile(): Observable<any> {
+    return this.http.get(`${this.baseUrl}profile`).pipe(
 
-    catchError(error => {
-      if (error.status === 401) {
-        this.logout();
-        this.router.navigate(['/login']);
-      }
-      return throwError(() => error);
-    })
-  );
-}
+      catchError(error => {
+        if (error.status === 401) {
+          this.logout();
+          this.router.navigate(['/login']);
+        }
+        return throwError(() => error);
+      })
+    );
+  }
 }
