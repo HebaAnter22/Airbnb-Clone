@@ -134,7 +134,15 @@ namespace API
             builder.Services.AddScoped<IPromotionRepository, PromotionRepository>();
             builder.Services.AddScoped<IHostVerificationRepository, HostVerificationRepository>();
 
-            builder.Services.AddScoped<IBookingRepository, BookingRepository>();
+            builder.Services.AddScoped<IBookingRepository>(sp => 
+                new BookingRepository(
+                    sp.GetRequiredService<AppDbContext>(),
+                    sp.GetRequiredService<IPropertyAvailabilityRepository>(),
+                    sp.GetRequiredService<IPropertyService>(),
+                    sp.GetRequiredService<IPromotionRepository>(),
+                    sp
+                )
+            );
             builder.Services.AddScoped<IBookingPaymentRepository, BookingPaymentRepository>();
             builder.Services.AddScoped<IPayoutService, Services.Payoutrepo.PayoutService>();
             builder.Services.AddScoped<IPropertyAvailabilityRepository, PropertyAvailabilityRepository>();

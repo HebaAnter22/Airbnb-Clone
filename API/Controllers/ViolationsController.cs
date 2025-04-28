@@ -154,5 +154,20 @@ namespace API.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
+
+        [HttpGet("{id}/bookings")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GetBookingsRelatedToViolation(int id)
+        {
+            try
+            {
+                var bookings = await _violationService.GetBookingsRelatedToViolation(id);
+                return Ok(bookings);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
     }
 } 

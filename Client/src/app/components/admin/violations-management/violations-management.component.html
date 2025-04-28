@@ -179,7 +179,161 @@
             (click)="blockHost()">
             Block Host
           </button>
+          
+          <button 
+            class="related-bookings-btn" 
+            [disabled]="loadingBookings"
+            (click)="loadRelatedBookings()">
+            {{ showRelatedBookings ? 'Hide Related Bookings' : 'Show Related Bookings' }}
+          </button>
         </div>
+      </div>
+      
+      <!-- Related Bookings Section -->
+      <div class="detail-section" *ngIf="showRelatedBookings">
+        <h4>Related Bookings</h4>
+        
+        <div *ngIf="loadingBookings" class="loading">Loading related bookings...</div>
+        
+        <div *ngIf="!loadingBookings && relatedBookings.length === 0" class="empty-state">
+          <p>No related bookings found within the last 90 days.</p>
+        </div>
+        
+        <div *ngIf="!loadingBookings && relatedBookings.length > 0" class="related-bookings">
+          <table class="bookings-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Property</th>
+                <th>Guest</th>
+                <th>Dates</th>
+                <th>Status</th>
+                <th>Payment</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let booking of relatedBookings">
+                <td>{{ booking.id }}</td>
+                <td>{{ booking.propertyTitle }}</td>
+                <td>{{ booking.guestName }}</td>
+                <td>
+                  {{ booking.checkInDate | date:'mediumDate' }} - 
+                  {{ booking.checkOutDate | date:'mediumDate' }}
+                </td>
+                <td>{{ booking.status }}</td>
+                <td>
+                  <ng-container *ngIf="booking.paymentId">
+                    ${{ booking.paymentAmount?.toFixed(2) }} 
+                    <span class="payment-status" [ngClass]="booking.paymentStatus?.toLowerCase()">
+                      ({{ booking.paymentStatus }})
+                    </span>
+                  </ng-container>
+                  <span *ngIf="!booking.paymentId">No payment</span>
+                </td>
+                <td>
+                  <button 
+                    *ngIf="booking.canBeRefunded"
+                    class="refund-btn" 
+                    (click)="openRefundModal(booking)">
+                    Refund
+                  </button>
+                  <span *ngIf="!booking.canBeRefunded">
+                    Not refundable
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Refund Modal -->
+<div class="modal-overlay" *ngIf="showRefundModal">
+  <div class="modal-container refund-modal">
+    <div class="modal-header">
+      <h3>Process Refund</h3>
+      <button (click)="closeRefundModal()" class="close-btn">&times;</button>
+    </div>
+    
+    <div class="modal-body" *ngIf="selectedBooking">
+      <div *ngIf="error" class="error-message">{{ error }}</div>
+      <div *ngIf="success" class="success-message">{{ success }}</div>
+      
+      <div class="detail-section">
+        <h4>Booking Details</h4>
+        <div class="detail-row">
+          <span class="label">Booking ID:</span>
+          <span class="value">{{ selectedBooking.id }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Property:</span>
+          <span class="value">{{ selectedBooking.propertyTitle }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Guest:</span>
+          <span class="value">{{ selectedBooking.guestName }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Total Paid:</span>
+          <span class="value">${{ selectedBooking.paymentAmount?.toFixed(2) }}</span>
+        </div>
+      </div>
+      
+      <div class="detail-section">
+        <h4>Refund Information</h4>
+        <div class="form-group">
+          <label for="refundAmount">Refund Amount</label>
+          <div class="input-with-prefix">
+            <span class="prefix">$</span>
+            <input 
+              type="number" 
+              id="refundAmount" 
+              [(ngModel)]="refundAmount" 
+              step="0.01" 
+              min="0.01" 
+              [max]="selectedBooking.paymentAmount || 0"
+              placeholder="Enter refund amount" />
+          </div>
+          <small *ngIf="selectedBooking.paymentAmount">
+            Maximum refund available: ${{ selectedBooking.paymentAmount?.toFixed(2) }}
+          </small>
+        </div>
+        
+        <div class="form-group">
+          <label for="refundReason">Refund Reason</label>
+          <select id="refundReason" [(ngModel)]="refundReason">
+            <option *ngFor="let reason of refundReasons" [value]="reason.value">{{ reason.label }}</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label for="refundNotes">Additional Notes</label>
+          <textarea 
+            id="refundNotes" 
+            [(ngModel)]="adminNotes" 
+            rows="3" 
+            placeholder="Add notes about this refund..."></textarea>
+        </div>
+      </div>
+      
+      <div class="action-buttons">
+        <button 
+          class="cancel-btn" 
+          [disabled]="processingRefund"
+          (click)="closeRefundModal()">
+          Cancel
+        </button>
+        
+        <button 
+          class="refund-process-btn" 
+          [disabled]="processingRefund || !refundAmount || refundAmount <= 0 || refundAmount > (selectedBooking.paymentAmount || 0)"
+          (click)="processRefund()">
+          {{ processingRefund ? 'Processing...' : 'Process Refund' }}
+        </button>
       </div>
     </div>
   </div>

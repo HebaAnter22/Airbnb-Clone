@@ -38,4 +38,21 @@ namespace API.DTOs
         
         public string AdminNotes { get; set; }
     }
+
+    public class BookingDto
+    {
+        public int Id { get; set; }
+        public int PropertyId { get; set; }
+        public string PropertyTitle { get; set; }
+        public int GuestId { get; set; }
+        public string GuestName { get; set; }
+        public DateTime CheckInDate { get; set; }
+        public DateTime CheckOutDate { get; set; }
+        public string Status { get; set; }
+        public decimal TotalPrice { get; set; }
+        public int? PaymentId { get; set; }
+        public decimal? PaymentAmount { get; set; }
+        public string PaymentStatus { get; set; }
+        public bool CanBeRefunded { get; set; }
+    }
 } 

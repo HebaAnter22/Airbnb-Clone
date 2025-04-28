@@ -29,6 +29,22 @@ export interface UpdateViolationStatusDto {
   adminNotes?: string;
 }
 
+export interface BookingDto {
+  id: number;
+  propertyId: number;
+  propertyTitle: string;
+  guestId: number;
+  guestName: string;
+  checkInDate: Date;
+  checkOutDate: Date;
+  status: string;
+  totalPrice: number;
+  paymentId?: number;
+  paymentAmount?: number;
+  paymentStatus?: string;
+  canBeRefunded: boolean;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -63,5 +79,9 @@ export class ViolationService {
 
   blockHost(hostId: number): Observable<any> {
     return this.http.put(`${this.API_URL}/block-host/${hostId}`, {});
+  }
+
+  getRelatedBookings(violationId: number): Observable<BookingDto[]> {
+    return this.http.get<BookingDto[]>(`${this.API_URL}/${violationId}/bookings`);
   }
 } 

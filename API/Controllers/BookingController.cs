@@ -330,44 +330,67 @@ namespace API.Controllers
 
         // Get detailed information about a specific booking
         [HttpGet("{bookingId}/details")]
-        [Authorize(Roles = "Guest")]
+        [Authorize(Roles = "Guest,Admin")]
         public async Task<IActionResult> GetUserBookingDetails(int bookingId)
         {
-            var userId = GetCurrentUserId();
-            var booking = await _bookingRepo.GetUserBookingetails(bookingId);
-
-            if (booking == null)
-                return NotFound("Booking not found.");
-            if (booking.GuestId != userId)
-                return Forbid("You are not authorized to view this booking.");
-
-            var dto = new BookingDetailsDTO
+            try
             {
-                Id = booking.Id,
-                PropertyId = booking.PropertyId,
-                GuestId = booking.GuestId,
-                StartDate = booking.StartDate,
-                EndDate = booking.EndDate,
-                CheckInStatus = booking.CheckInStatus,
-                CheckOutStatus = booking.CheckOutStatus,
-                Status = booking.Status,
-                TotalAmount = booking.TotalAmount,
-                PromotionId = booking.PromotionId,
-                CreatedAt = booking.CreatedAt,
-                UpdatedAt = booking.UpdatedAt,
-                GuestName = $"{booking.Guest.FirstName} {booking.Guest.LastName}",
-                PropertyTitle = booking.Property.Title,
-                Payments = booking.Payments.Select(p => new PaymentDTO
-                {
-                    Id = p.Id,
-                    Amount = p.Amount,
-                    PaymentMethodType = p.PaymentMethodType,
-                    Status = p.Status,
-                    CreatedAt = p.CreatedAt
-                }).ToList()
-            };
+                var userId = GetCurrentUserId();
+                var booking = await _bookingRepo.GetUserBookingetails(bookingId);
 
-            return Ok(dto);
+                if (booking == null)
+                    return NotFound($"Booking with ID {bookingId} not found.");
+
+                // Allow admin to view any booking or guest to view their own booking
+                var userRole = User.FindFirst(ClaimTypes.Role)?.Value;
+                if (userRole != "Admin" && booking.GuestId != userId)
+                    return StatusCode(403, "You are not authorized to view this booking. Only the booking guest or an admin can access this information.");
+
+                var dto = new BookingDetailsDTO
+                {
+                    Id = booking.Id,
+                    PropertyId = booking.PropertyId,
+                    GuestId = booking.GuestId,
+                    StartDate = booking.StartDate,
+                    EndDate = booking.EndDate,
+                    CheckInStatus = booking.CheckInStatus,
+                    CheckOutStatus = booking.CheckOutStatus,
+                    Status = booking.Status,
+                    TotalAmount = booking.TotalAmount,
+                    PromotionId = booking.PromotionId,
+                    CreatedAt = booking.CreatedAt,
+                    UpdatedAt = booking.UpdatedAt,
+                    GuestName = $"{booking.Guest.FirstName} {booking.Guest.LastName}",
+                    PropertyTitle = booking.Property.Title,
+                    Payments = booking.Payments.Select(p => new PaymentDTO
+                    {
+                        Id = p.Id,
+                        Amount = p.Amount,
+                        PaymentMethodType = p.PaymentMethodType,
+                        Status = p.Status,
+                        CreatedAt = p.CreatedAt
+                    }).ToList(),
+                    CancellationPolicy = booking.Property?.CancellationPolicy != null 
+                        ? new CancellationPolicyDTO
+                        {
+                            Id = booking.Property.CancellationPolicy.Id,
+                            Name = booking.Property.CancellationPolicy.Name,
+                            Description = booking.Property.CancellationPolicy.Description,
+                            RefundPercentage = booking.Property.CancellationPolicy.RefundPercentage
+                        } 
+                        : null
+                };
+
+                return Ok(dto);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized($"Authentication error: {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"An unexpected error occurred: {ex.Message}");
+            }
         }
 
         [HttpPost("{bookingId}/apply-promotion")]
@@ -698,19 +721,21 @@ namespace API.Controllers
 
         // Delete a booking.
         [HttpDelete("{id}")]
-        [Authorize(Roles = "Guest")]
+        [Authorize(Roles = "Guest,Admin")]
         public async Task<IActionResult> DeleteBooking(int id)
         {
             try
             {
                 var booking = await _bookingRepo.GetByIdAsync(id);
                 if (booking == null)
-                    return NotFound("Booking not found.");
+                    return NotFound($"Booking with ID {id} not found.");
 
                 var userId = GetCurrentUserId();
+                var userRole = User.FindFirst(ClaimTypes.Role)?.Value;
 
-                if (booking.GuestId != userId)
-                    return Forbid("You are not authorized to delete this booking.");
+                // Allow admin to delete any booking or guest to delete only their own booking
+                if (userRole != "Admin" && booking.GuestId != userId)
+                    return StatusCode(403, "You are not authorized to delete this booking. Only the booking guest or an admin can delete it.");
 
                 await _bookingRepo.DeleteBookingAndUpdateAvailabilityAsync(id);
 
@@ -718,11 +743,17 @@ namespace API.Controllers
             }
             catch (UnauthorizedAccessException ex)
             {
-                return Unauthorized(ex.Message);
+                return Unauthorized($"Authentication error: {ex.Message}");
             }
             catch (Exception ex)
             {
-                return StatusCode(500, "An unexpected error occurred while deleting the booking.");
+                Console.WriteLine($"Error deleting booking {id}: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                if (ex.InnerException != null)
+                {
+                    Console.WriteLine($"Inner exception: {ex.InnerException.Message}");
+                }
+                return StatusCode(500, $"An unexpected error occurred while deleting the booking: {ex.Message}");
             }
         }
 

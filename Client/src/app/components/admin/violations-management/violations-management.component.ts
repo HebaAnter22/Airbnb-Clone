@@ -1,7 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ViolationService, ViolationResponseDto, UpdateViolationStatusDto } from '../../../services/violation.service';
+import { ViolationService, ViolationResponseDto, UpdateViolationStatusDto, BookingDto } from '../../../services/violation.service';
+import { PaymentService, AdminRefundDto } from '../../../services/payment.service';
 
 @Component({
   selector: 'app-violations-management',
@@ -21,6 +22,18 @@ export class ViolationsManagementComponent implements OnInit {
   showDetailsModal = false;
   adminNotes = '';
   
+  // Related bookings
+  relatedBookings: BookingDto[] = [];
+  loadingBookings = false;
+  showRelatedBookings = false;
+  
+  // Refund
+  showRefundModal = false;
+  selectedBooking: BookingDto | null = null;
+  refundAmount: number | null = null;
+  refundReason = 'fraudulent';
+  processingRefund = false;
+  
   // Filters
   statusFilter = 'all';
   
@@ -37,7 +50,16 @@ export class ViolationsManagementComponent implements OnInit {
     { value: 'Dismissed', label: 'Dismissed' }
   ];
   
-  constructor(private violationService: ViolationService) {}
+  refundReasons = [
+    { value: 'duplicate', label: 'Duplicate Charge' },
+    { value: 'fraudulent', label: 'Fraudulent Activity' },
+    { value: 'requested_by_customer', label: 'Customer Request' }
+  ];
+  
+  constructor(
+    private violationService: ViolationService,
+    private paymentService: PaymentService
+  ) {}
   
   ngOnInit(): void {
     this.loadViolations();
@@ -92,11 +114,104 @@ export class ViolationsManagementComponent implements OnInit {
     this.selectedViolation = violation;
     this.adminNotes = '';
     this.showDetailsModal = true;
+    this.showRelatedBookings = false;
+    this.relatedBookings = [];
   }
   
   closeDetailsModal(): void {
     this.showDetailsModal = false;
     this.selectedViolation = null;
+    this.showRelatedBookings = false;
+    this.relatedBookings = [];
+  }
+  
+  loadRelatedBookings(): void {
+    if (!this.selectedViolation) return;
+    
+    this.loadingBookings = true;
+    this.error = null;
+    
+    this.violationService.getRelatedBookings(this.selectedViolation.id)
+      .subscribe({
+        next: (bookings) => {
+          this.relatedBookings = bookings;
+          this.showRelatedBookings = true;
+          this.loadingBookings = false;
+        },
+        error: (err) => {
+          this.error = err.error?.message || 'Failed to load related bookings';
+          this.loadingBookings = false;
+        }
+      });
+  }
+  
+  openRefundModal(booking: BookingDto): void {
+    this.selectedBooking = booking;
+    this.refundAmount = booking.paymentAmount ? booking.paymentAmount - (booking.paymentAmount / 100) : null;
+    this.refundReason = 'fraudulent';
+    this.showRefundModal = true;
+  }
+  
+  closeRefundModal(): void {
+    this.showRefundModal = false;
+    this.selectedBooking = null;
+    this.refundAmount = null;
+  }
+  
+  processRefund(): void {
+    if (!this.selectedViolation || !this.selectedBooking || !this.refundAmount) return;
+    
+    if (this.refundAmount <= 0) {
+      this.error = 'Refund amount must be greater than zero';
+      return;
+    }
+    
+    if (!this.selectedBooking.paymentId) {
+      this.error = 'No payment ID found for this booking';
+      return;
+    }
+    
+    this.processingRefund = true;
+    this.error = null;
+    this.success = null;
+    
+    const refundData: AdminRefundDto = {
+      paymentId: this.selectedBooking.paymentId,
+      refundAmount: this.refundAmount,
+      violationId: this.selectedViolation.id,
+      reason: this.refundReason,
+      adminNotes: this.adminNotes
+    };
+    
+    this.paymentService.processAdminRefund(refundData)
+      .subscribe({
+        next: (response) => {
+          this.success = `Refund of $${this.refundAmount} processed successfully`;
+          this.processingRefund = false;
+          
+          // Close the refund modal after a delay
+          setTimeout(() => {
+            this.closeRefundModal();
+            // Reload related bookings to reflect the change
+            this.loadRelatedBookings();
+            // Reload the violation to reflect updated status
+            this.violationService.getViolationById(this.selectedViolation!.id)
+              .subscribe(updatedViolation => {
+                // Update the violation in the list
+                const index = this.violations.findIndex(v => v.id === updatedViolation.id);
+                if (index !== -1) {
+                  this.violations[index] = updatedViolation;
+                  this.selectedViolation = updatedViolation;
+                }
+                this.applyFilters();
+              });
+          }, 2000);
+        },
+        error: (err) => {
+          this.error = err.error?.error || 'Failed to process refund';
+          this.processingRefund = false;
+        }
+      });
   }
   
   updateStatus(status: string): void {

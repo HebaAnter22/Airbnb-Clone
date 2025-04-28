@@ -13,5 +13,6 @@ namespace API.Services
         Task<ViolationResponseDto> UpdateViolationStatus(int id, UpdateViolationStatusDto dto);
         Task<bool> BlockHost(int hostId);
         Task<List<ViolationResponseDto>> GetViolationsByHostId(int hostId);
+        Task<List<BookingDto>> GetBookingsRelatedToViolation(int violationId);
     }
 } 

@@ -5,6 +5,14 @@ import { catchError, tap } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 import { Stripe, loadStripe } from '@stripe/stripe-js';
 
+export interface AdminRefundDto {
+    paymentId: number;
+    refundAmount: number;
+    violationId: number;
+    reason?: string;
+    adminNotes?: string;
+}
+
 @Injectable({
     providedIn: 'root'
 })
@@ -109,5 +117,22 @@ export class PaymentService {
             console.error('Error redirecting to Checkout:', error);
             throw error;
         }
+    }
+
+    processAdminRefund(refundData: AdminRefundDto): Observable<any> {
+        const url = `${this.apiUrl}/BookingPayment/admin-refund`;
+        const token = localStorage.getItem('token');
+        const headers = new HttpHeaders({
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        });
+
+        return this.http.post(url, refundData, { headers }).pipe(
+            tap(response => console.log('Admin Refund Response:', response)),
+            catchError(error => {
+                console.error('Error processing admin refund:', error);
+                return throwError(error);
+            })
+        );
     }
 }

@@ -1,11 +1,14 @@
 ﻿using API.DTOs.Amenity;
 using API.DTOs.Review;
+using AirBnb.BL.Dtos.BookingDtos;
 
 namespace API.DTOs
 {
     public class PropertyDto
     {
         public int Id { get; set; }
+         
+        public int cancellationPolicyId { get; set; }
         public int? HostId { get; set; }
         public string Title { get; set; }
         public string Description { get; set; }
@@ -32,6 +35,8 @@ namespace API.DTOs
         public string HostName { get; set; }
         public string HostProfileImage { get; set; }
         
+        // Cancellation Policy
+        public CancellationPolicyDTO CancellationPolicy { get; set; }
 
         public int CategoryID { get; set; }
 

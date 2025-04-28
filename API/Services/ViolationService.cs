@@ -162,6 +162,64 @@ namespace API.Services
             return violations.Select(MapToDto).ToList();
         }
 
+        public async Task<List<BookingDto>> GetBookingsRelatedToViolation(int violationId)
+        {
+            var violation = await _context.Violations
+                .Include(v => v.ReportedProperty)
+                .Include(v => v.ReportedHost)
+                .FirstOrDefaultAsync(v => v.Id == violationId);
+
+            if (violation == null)
+                return new List<BookingDto>();
+
+            var query = _context.Bookings
+                .Include(b => b.Property)
+                .Include(b => b.Guest)
+                .Include(b => b.Payments)
+                .AsQueryable();
+
+            // Filter based on property or host
+            if (violation.ReportedPropertyId.HasValue)
+            {
+                query = query.Where(b => b.PropertyId == violation.ReportedPropertyId.Value);
+            }
+            else if (violation.ReportedHostId.HasValue)
+            {
+                query = query.Where(b => b.Property.HostId == violation.ReportedHostId.Value);
+            }
+            else
+            {
+                // No property or host reported, so no related bookings
+                return new List<BookingDto>();
+            }
+
+            // Only include confirmed or completed bookings
+            query = query.Where(b => b.Status == "Confirmed" || b.Status == "Completed");
+
+            // Add a time filter - only include bookings from the last 90 days
+            var cutOffDate = DateTime.UtcNow.AddDays(-90);
+            query = query.Where(b => b.StartDate >= cutOffDate);
+
+            var bookings = await query.ToListAsync();
+
+            return bookings.Select(b => new BookingDto
+            {
+                Id = b.Id,
+                PropertyId = b.PropertyId,
+                PropertyTitle = b.Property?.Title ?? "Unknown Property",
+                GuestId = b.GuestId,
+                GuestName = $"{b.Guest?.FirstName} {b.Guest?.LastName}".Trim(),
+                Status = b.Status,
+                TotalPrice = b.TotalAmount,
+                PaymentId = b.Payments?.FirstOrDefault()?.Id,
+                PaymentAmount = b.Payments?.FirstOrDefault()?.Amount,
+                // A booking can be refunded if it has a successful payment that hasn't been fully refunded
+                CanBeRefunded = b.Payments != null && 
+                               b.Payments.FirstOrDefault()?.Status == "succeeded" &&
+                               (b.Payments?.FirstOrDefault() ?.RefundedAmount < b.Payments?.FirstOrDefault()?.Amount)
+            }).ToList();
+        }
+
         private ViolationResponseDto MapToDto(Violation violation)
         {
             return new ViolationResponseDto

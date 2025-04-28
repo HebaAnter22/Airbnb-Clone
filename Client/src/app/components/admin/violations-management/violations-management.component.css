@@ -344,4 +344,162 @@
 .block-host-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+/* Related Bookings Button */
+.related-bookings-btn {
+  background-color: #6b7280;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.related-bookings-btn:hover {
+  background-color: #4b5563;
+}
+
+.related-bookings-btn:disabled {
+  background-color: #d1d5db;
+  cursor: not-allowed;
+}
+
+/* Related Bookings Table */
+.related-bookings {
+  margin-top: 16px;
+}
+
+.bookings-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.bookings-table th,
+.bookings-table td {
+  padding: 8px 12px;
+  text-align: left;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.bookings-table th {
+  background-color: #f9fafb;
+  font-weight: 600;
+  color: #374151;
+}
+
+.bookings-table tbody tr:hover {
+  background-color: #f3f4f6;
+}
+
+.payment-status {
+  font-size: 12px;
+  padding: 2px 6px;
+  border-radius: 9999px;
+  font-weight: 500;
+}
+
+.payment-status.succeeded {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+.payment-status.refunded {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.payment-status.partially_refunded {
+  background-color: #e0f2fe;
+  color: #0369a1;
+}
+
+.refund-btn {
+  background-color: #fca5a5;
+  color: #7f1d1d;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.refund-btn:hover {
+  background-color: #f87171;
+}
+
+/* Refund Modal */
+.refund-modal {
+  max-width: 500px;
+}
+
+.input-with-prefix {
+  display: flex;
+  align-items: center;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.input-with-prefix .prefix {
+  background-color: #f3f4f6;
+  padding: 8px 12px;
+  color: #4b5563;
+  border-right: 1px solid #d1d5db;
+  font-weight: 500;
+}
+
+.input-with-prefix input {
+  flex: 1;
+  border: none;
+  padding: 8px 12px;
+  outline: none;
+}
+
+.refund-process-btn {
+  background-color: #ef4444;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.refund-process-btn:hover {
+  background-color: #dc2626;
+}
+
+.refund-process-btn:disabled {
+  background-color: #fca5a5;
+  cursor: not-allowed;
+}
+
+.cancel-btn {
+  background-color: #e5e7eb;
+  color: #4b5563;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s;
+  margin-right: 8px;
+}
+
+.cancel-btn:hover {
+  background-color: #d1d5db;
+}
+
+small {
+  display: block;
+  margin-top: 4px;
+  color: #6b7280;
+  font-size: 12px;
 } 
