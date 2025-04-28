@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { ChatDropdownComponent } from './chat-dropdown.component';
+import { ChatMainComponent } from './chat-main.component';
 
-describe('ChatDropdownComponent', () => {
-  let component: ChatDropdownComponent;
-  let fixture: ComponentFixture<ChatDropdownComponent>;
+describe('ChatMainComponent', () => {
+  let component: ChatMainComponent;
+  let fixture: ComponentFixture<ChatMainComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ChatDropdownComponent]
+      imports: [ChatMainComponent]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(ChatDropdownComponent);
+    fixture = TestBed.createComponent(ChatMainComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

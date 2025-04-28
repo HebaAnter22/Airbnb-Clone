@@ -6,7 +6,7 @@ import { ProfileService } from '../../services/profile.service';
 import { Observable } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { MainNavbarComponent } from '../main-navbar/main-navbar.component';
-import { MessageUserButtonComponent } from '../chat/message-user-button/message-user-button.component';
+import { MessageUserButtonComponent } from '../chatting/components/message-user-button/message-user-button.component';
 
 @Component({
   selector: 'app-profile',

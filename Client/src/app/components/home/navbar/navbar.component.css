@@ -146,3 +146,45 @@ a {
   font-size: 0.7rem;
   font-weight: bold;
 }
+
+.message-icon {
+  font-size: 20px;
+  color: #4a5568;
+  transition: color 0.2s;
+}
+
+.message-icon {
+  color: #3182ce;
+}
+
+.message-notification-badge {
+  position: absolute;
+  top: 10px;
+  background-color: #ff5a5f;
+  color: white;
+  border-radius: 50%;
+  font-size: 0.7rem;
+  min-width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3px;
+  transform: translate(30%, -30%);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: translate(30%, -30%) scale(1);
+  }
+
+  50% {
+    transform: translate(30%, -30%) scale(1.1);
+  }
+
+  100% {
+    transform: translate(30%, -30%) scale(1);
+  }
+}

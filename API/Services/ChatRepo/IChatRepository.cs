@@ -13,5 +13,6 @@ namespace API.Services
         Task<Message> SaveMessageAsync(int conversationId, int senderId, string content);
         Task MarkMessageAsReadAsync(int messageId, int userId);
         Task<int> GetUnreadCountAsync(int userId);
+    
     }
 }

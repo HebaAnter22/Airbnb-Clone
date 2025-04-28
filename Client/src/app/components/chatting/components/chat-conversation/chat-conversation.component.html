@@ -1,0 +1,53 @@
+<div class="chat-container">
+    <div class="chat-header" *ngIf="otherUser">
+        <div class="back-button" routerLink="/chat">
+            <i class="fas fa-arrow-left"></i>
+        </div>
+
+        <div class="user-info">
+            <div class="avatar">
+                <img [src]="'https://localhost:7228' +otherUser?.profilePictureUrl || '/assets/default-avatar.png'"
+                    [alt]="otherUser?.firstName">
+            </div>
+            <h2>{{ otherUser?.firstName }} {{ otherUser?.lastName }}</h2>
+        </div>
+    </div>
+
+    <div class="loading-container" *ngIf="loading">
+        <div class="spinner"></div>
+        <p>Loading messages...</p>
+    </div>
+
+    <div #messagesContainer class="messages-container" [class.loading]="loading" (scroll)="onScroll()">
+
+        <div *ngIf="!loading && messages.length === 0" class="no-messages">
+            <p>No messages yet. Send the first message!</p>
+        </div>
+
+        <div class="message-list">
+            <div *ngFor="let message of messages" class="message" [class.outgoing]="isCurrentUserMessage(message)"
+                [class.incoming]="!isCurrentUserMessage(message)">
+
+                <div class="message-bubble">
+                    {{ message.content }}
+                </div>
+
+                <div class="message-info">
+                    <span class="time">{{ formatTime(message.sentAt) }}</span>
+                    <span *ngIf="isCurrentUserMessage(message) && message.readAt" class="read-status">
+                        <i class="fas fa-check-double"></i>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="input-container">
+        <input #messageInput type="text" [formControl]="messageControl" placeholder="Type a message..."
+            autocomplete="off">
+        <button (click)="sendMessage()" [disabled]="messageControl.invalid || sending">
+            <i class="fas fa-paper-plane"></i>
+            <span *ngIf="sending" class="sending-spinner"></span>
+        </button>
+    </div>
+</div>

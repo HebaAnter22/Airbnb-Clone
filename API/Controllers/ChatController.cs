@@ -52,5 +52,13 @@ namespace API.Controllers
             var conversation = await _chatService.GetOrCreateConversationAsync(userId, otherUserId);
             return Ok(conversation);
         }
+
+        [HttpGet("unread-count")]
+        public async Task<ActionResult<int>> GetUnreadMessageCount()
+        {
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+            var count = await _chatService.GetUnreadCountAsync(userId);
+            return Ok(count);
+        }
     }
 }
