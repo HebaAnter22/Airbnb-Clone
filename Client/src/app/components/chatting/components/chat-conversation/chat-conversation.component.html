@@ -6,8 +6,7 @@
 
         <div class="user-info">
             <div class="avatar">
-                <img [src]="'https://localhost:7228' +otherUser?.profilePictureUrl || '/assets/default-avatar.png'"
-                    [alt]="otherUser?.firstName">
+                <img [src]="otherUser?.profilePictureUrl || '/assets/default-avatar.png'" [alt]="otherUser?.firstName">
             </div>
             <h2>{{ otherUser?.firstName }} {{ otherUser?.lastName }}</h2>
         </div>

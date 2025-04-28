@@ -156,7 +156,7 @@ export class EditProfileComponent implements OnInit {
 
     this.profileService.uploadProfilePicture(this.selectedFile).subscribe({
       next: (response) => {
-        this.profileImageUrl = `${response.fileUrl}`;
+        this.profileImageUrl = ` ${response.fileUrl}`;
         this.isUploading = false;
         this.uploadProgress = 100;
       },
@@ -193,7 +193,7 @@ export class EditProfileComponent implements OnInit {
           FirstName: this.profileForm.value.firstName,
           LastName: this.profileForm.value.lastName,
           DateOfBirth: dateOfBirth,
-          ProfilePictureUrl: this.profileImageUrl.split(this.apiBaseUrl)[1] || '',
+          ProfilePictureUrl: this.profileImageUrl || '',
           AboutMe: this.profileForm.value.aboutMe,
           Work: this.profileForm.value.myWork,
           Education: this.profileForm.value.whereIWentToSchool,

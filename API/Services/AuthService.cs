@@ -83,7 +83,7 @@ namespace API.Services
                 user.FirstName = userDto.FirstName;
                 user.LastName = userDto.LastName;
                 user.Role = "Guest";
-                user.ProfilePictureUrl = "/uploads/profile-pictures/default-profile.jpg";
+                user.ProfilePictureUrl = "https://localhost:7228/uploads/profile-pictures/default-profile.jpg";
                 
                 _context.Users.Add(user);
                 await _context.SaveChangesAsync();
@@ -206,7 +206,9 @@ namespace API.Services
                     FirstName = firstName,
                     LastName = lastName,
                     Role = "Guest",
-                    PasswordHash = "" // No password for Google users
+                    PasswordHash = "" ,// No password for Google users,
+                    ProfilePictureUrl= "https://localhost:7228/uploads/profile-pictures/default-profile.jpg"
+
                 };
                 
                 _context.Users.Add(user);

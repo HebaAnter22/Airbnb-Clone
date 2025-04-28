@@ -15,7 +15,7 @@
             [class.unread]="hasUnreadMessages(conversation)" (click)="openConversation(conversation)">
 
             <div class="avatar">
-                <img [src]="'https://localhost:7228' +getOtherUser(conversation)?.profilePictureUrl || '/assets/default-avatar.png'"
+                <img [src]="  getOtherUser(conversation)?.profilePictureUrl || '/assets/default-avatar.png'"
                     [alt]="getOtherUser(conversation)?.firstName + ' ' + getOtherUser(conversation)?.lastName">
             </div>
 

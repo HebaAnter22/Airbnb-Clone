@@ -29,6 +29,7 @@ import { CheckoutComponent } from './components/checkout/checkout.component';
 import { PaymentSuccessComponent } from './components/payment-success/payment-success.component';
 import { HostPayoutComponent } from './components/host-payout/host-payout.component';
 import { HostDashboardComponent } from './components/host/host-dashboard/host-dashboard.component';
+import { AdminGuard } from './guards/admin.guard';
 export const routes: Routes = [
   { path: 'home', component: PropertyListingsComponent },
   { path: '', redirectTo: 'home', pathMatch: 'full' },
@@ -88,7 +89,7 @@ export const routes: Routes = [
   {
     path: 'property/bookings/:id',
     component: PropertyBookingDetailsComponent,
-    canActivate: [authGuard, roleGuard],
+    canActivate: [authGuard, roleGuard, AdminGuard],
     data: { role: 'Admin' }
   },
 
@@ -122,11 +123,13 @@ export const routes: Routes = [
   {
     path: 'admin',
     component: AdminComponent,
+    canActivate: [authGuard, AdminGuard],
     // canActivate: [ roleGuard],
   },
   {
     path: 'admin/verifinghost/:id',
     component: VerifinghostComponent,
+    canActivate: [authGuard, AdminGuard],
     // canActivate: [authGuard, roleGuard],
     // data: { role: 'Admin' }
   },

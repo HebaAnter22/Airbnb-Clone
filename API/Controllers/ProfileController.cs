@@ -282,9 +282,11 @@ namespace API.Controllers
             var reviews = await _profileService.GetUserReviewsAsync(currentUserId);
             return Ok(reviews);
         }
-        [HttpGet("user/email-verification-status/{userId}")]
-        public async Task<IActionResult> GetUserEmailVerificationStatus([FromRoute]string userId)
+        [HttpGet("user/email-verification-status/")]
+        [Authorize]
+        public async Task<IActionResult> GetUserEmailVerificationStatus()
         {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId))
             {
                 return NotFound("UserId not found");

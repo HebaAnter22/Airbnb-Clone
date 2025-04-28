@@ -575,7 +575,7 @@ namespace API.Services
         public async Task<List<PropertyDto>> GetHostPropertiesAsync(int hostId)
         {
             var properties = await _context.Properties
-                .Where(p => p.HostId == hostId && p.Status == "Active" || p.Status == "Pending")
+                .Where(p => p.HostId == hostId &&( p.Status == "Active" || p.Status == "Pending"))
                 .Include(p => p.Category)
                 .Include(p => p.PropertyImages)
                 .Include(p => p.Amenities)

@@ -3,6 +3,7 @@ using API.DTOs.HostVerification;
 using API.Models;
 using API.Services.HostVerificationRepo;
 using API.Services.NotificationRepository;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -156,6 +157,17 @@ namespace API.Controllers
             await _hostVerificationRepository.DeleteAsync(verification.Id);
             return NoContent();
 
+        }
+        [HttpGet("get-verification-status")]
+        [Authorize]
+        public async Task<IActionResult> GetVerificationStatus()
+        {
+
+            var hostId = GetCurrentUserId();
+            var verification = await _hostVerificationRepository.GetVerificationByhostsAsync(hostId);
+            if (verification == null)
+                return NotFound(new { message = "No verification found for this host." });
+            return Ok(new { status = verification.Status });
         }
     }
 }

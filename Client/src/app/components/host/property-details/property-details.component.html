@@ -557,7 +557,7 @@
             <span>{{ formatPrice(getTotalPrice()) }}</span>
           </div> -->
       </div>
-      <div class="host-message-overlay" *ngIf="userRole=='Host'">
+      <div class="host-message-overlay" *ngIf="userRole=='Host'&& property?.status!='Pending'">
         <div class="host-message-ribbon"></div>
         <div class="host-message-content">
           <div class="host-message-icon">
@@ -567,6 +567,18 @@
           <p class="host-message-text">You need to login as a guest to make reservations. Please switch to a guest
             account to continue.</p>
           <button class="host-message-button" (click)="switchToGuestAccount()">Switch to Guest Mode</button>
+        </div>
+      </div>
+      <div class="host-message-overlay" *ngIf="property?.status=='Pending' ">
+        <div class="pending-message-ribbon"></div>
+        <div class="host-message-content">
+          <div class="host-message-icon">
+            <i class="fas fa-user-lock"></i>
+          </div>
+          <h3 class="host-message-title">Property Under Review</h3>
+          <p class="host-message-text">his property is currently being reviewed by our team and is not yet available.
+            Please check back soon!</p>
+          <i class="fas fa-info-circle"></i> Expected approval time: 24-48 hours
         </div>
       </div>
 
