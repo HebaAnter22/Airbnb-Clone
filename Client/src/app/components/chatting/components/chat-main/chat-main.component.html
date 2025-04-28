@@ -1,0 +1,22 @@
+<div class="chat-layout">
+    <!-- Mobile View Navigation -->
+    <div class="mobile-nav" *ngIf="activeConversationId">
+        <button class="back-btn" routerLink="/chat">
+            <i class="fas fa-arrow-left"></i> Back to conversations
+            <span class="unread-badge" *ngIf="unreadCount > 0">{{ unreadCount }}</span>
+        </button>
+    </div>
+
+    <!-- Desktop Layout -->
+    <div class="chat-sidebar" [class.hidden-mobile]="activeConversationId">
+        <div class="sidebar-header">
+            <h1>Messages</h1>
+            <span class="unread-badge" *ngIf="unreadCount > 0">{{ unreadCount }}</span>
+        </div>
+        <app-conversation-list></app-conversation-list>
+    </div>
+
+    <div class="chat-content" [class.hidden-mobile]="!activeConversationId">
+        <router-outlet></router-outlet>
+    </div>
+</div>

@@ -26,96 +26,95 @@ import { BookingDetailsComponent } from './components/host/booking-details/booki
 import { PropertyBookingDetailsComponent } from './components/host/property-booking-details/property-booking-details.component';
 import { VerifinghostComponent } from './components/admin/verifinghost/verifinghost.component';
 import { PaymentComponent } from './components/payment/payment.component';
-import { ChatComponent } from './components/chat/chat.component';
 
 
 
 export const routes: Routes = [
-  {path: 'home', component: PropertyListingsComponent},
-  {path: '', redirectTo: 'home', pathMatch: 'full'},
-  {path: 'host/add-property', component: AddPropertyComponent,
-  canActivate: [authGuard], 
-  data: { role: 'Host' },
+  { path: 'home', component: PropertyListingsComponent },
+  { path: '', redirectTo: 'home', pathMatch: 'full' },
+  {
+    path: 'host/add-property', component: AddPropertyComponent,
+    canActivate: [authGuard],
+    data: { role: 'Host' },
   },
   { path: 'login', component: LoginComponent },
   { path: 'register', component: RegisterComponent },
-  { 
-    path: 'dashboard', 
+  {
+    path: 'dashboard',
     component: DashboardComponent,
-    canActivate: [authGuard] 
+    canActivate: [authGuard]
   },
-  { 
-      path: 'host', 
-      component: HostDashboardComponent,
-      canActivate: [authGuard, roleGuard],
-      data: { role: 'Host' }
-    },
-    {
-      path: 'chat',
-      component: ChatComponent,
-      canActivate: [authGuard]
-    },
-    {
-      path: 'chat/:id',
-      component: ChatComponent,
-      canActivate: [authGuard]
-    },
-    {path:'payment/:id',component:PaymentComponent,canActivate:[authGuard]},
-    // {
-    //   path: 'host/properties',
-    //   component: HostPropertiesComponent,
-    //   canActivate: [authGuard, roleGuard],
-    //   data: { role: 'Host' }
-    // },
-    {path: 'host/edit/:id',
-      component: EditPropertyComponent,
-      canActivate: [authGuard, roleGuard],
-      data: { role: 'Host' }
-    },
-    {
-      path: 'host/bookings/:id',
-      component: PropertyBookingDetailsComponent,
-      canActivate: [authGuard, roleGuard],
-      data: { role: 'Host' }
-    },
-    {
-      path: 'Booking/details/:id',
-      component: PropertyBookingDetailsComponent,
-      canActivate: [authGuard, roleGuard],
-      data: { role: 'Host' }
-    },
-    {path: 'booking/:bookingId',
-      component: BookingDetailsComponent,
-      canActivate: [authGuard]
-    },
+  {
+    path: 'host',
+    component: HostDashboardComponent,
+    canActivate: [authGuard, roleGuard],
+    data: { role: 'Host' }
+  },
 
-    { path: 'property/:id', component: PropertyDetailsComponent },
-    { path: 'profile/:id', component: ProfileComponent },
-    {
-      path: 'property/:id/gallery',
-      component: PropertyGalleryComponent
-    },
-    {
-      path: 'wishlist',
-      component: WishlistComponent,
-      canActivate: [authGuard] // If you have an auth guard
-    },
-    {path: 'bookings', component: BookingComponent, canActivate: [authGuard]},
-    { path: 'verification', component: VerificationComponent, canActivate: [authGuard] },
-   
-    { path: 'editProfile/:id', component: EditProfileComponent, canActivate: [authGuard] },
-{
-  path: 'admin',
-  component: AdminComponent,
-  // canActivate: [ roleGuard],
-},
-{
-  path: 'admin/verifinghost/:id',
-  component: VerifinghostComponent,
-  // canActivate: [authGuard, roleGuard],
-  // data: { role: 'Admin' }
-},
-    { path: 'forbidden', component: NotFoundComponent },
-    
-  { path: '**',component:NotFoundComponent }
+  {
+    path: 'chat',
+    loadChildren: () => import('./components/chatting/chat.module').then(m => m.ChatModule),
+    canActivate: [authGuard]
+  },
+
+  { path: 'payment/:id', component: PaymentComponent, canActivate: [authGuard] },
+  // {
+  //   path: 'host/properties',
+  //   component: HostPropertiesComponent,
+  //   canActivate: [authGuard, roleGuard],
+  //   data: { role: 'Host' }
+  // },
+  {
+    path: 'host/edit/:id',
+    component: EditPropertyComponent,
+    canActivate: [authGuard, roleGuard],
+    data: { role: 'Host' }
+  },
+  {
+    path: 'host/bookings/:id',
+    component: PropertyBookingDetailsComponent,
+    canActivate: [authGuard, roleGuard],
+    data: { role: 'Host' }
+  },
+  {
+    path: 'Booking/details/:id',
+    component: PropertyBookingDetailsComponent,
+    canActivate: [authGuard, roleGuard],
+    data: { role: 'Host' }
+  },
+  {
+    path: 'booking/:bookingId',
+    component: BookingDetailsComponent,
+    canActivate: [authGuard]
+  },
+
+  { path: 'property/:id', component: PropertyDetailsComponent },
+  { path: 'profile/:id', component: ProfileComponent },
+  {
+    path: 'property/:id/gallery',
+    component: PropertyGalleryComponent
+  },
+  {
+    path: 'wishlist',
+    component: WishlistComponent,
+    canActivate: [authGuard] // If you have an auth guard
+  },
+  { path: 'bookings', component: BookingComponent, canActivate: [authGuard] },
+  { path: 'verification', component: VerificationComponent, canActivate: [authGuard] },
+
+  { path: 'editProfile/:id', component: EditProfileComponent, canActivate: [authGuard] },
+  {
+    path: 'admin',
+    component: AdminComponent,
+    // canActivate: [ roleGuard],
+  },
+  {
+    path: 'admin/verifinghost/:id',
+    component: VerifinghostComponent,
+    // canActivate: [authGuard, roleGuard],
+    // data: { role: 'Admin' }
+  },
+  { path: 'forbidden', component: NotFoundComponent },
+
+  { path: '**', component: NotFoundComponent }
 ];

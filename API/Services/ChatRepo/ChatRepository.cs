@@ -115,5 +115,6 @@ namespace API.Services
             return conversations.Sum(c => c.Messages.Count(m =>
                 m.SenderId != userId && m.ReadAt == null));
         }
+
     }
 }

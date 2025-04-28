@@ -3,8 +3,12 @@
   <div class="navbar-right">
 
     <app-notification *ngIf="loggedIn "></app-notification>
-    <app-chat-dropdown *ngIf="loggedIn"></app-chat-dropdown>
-
+    <div *ngIf="loggedIn" class="navbar-icon-container" (click)="navigateToMessages()">
+      <i class="fas fa-envelope message-icon"></i>
+      <span class="message-notification-badge" *ngIf="unreadMessagesCount > 0">
+        {{ unreadMessagesCount > 99 ? '99+' : unreadMessagesCount }}
+      </span>
+    </div>
 
     <div class="menu-profile" (click)="toggleDropdown($event)">
       <span class="menu-icon" style="color: #484848;">☰</span>

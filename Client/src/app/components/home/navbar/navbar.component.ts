@@ -3,14 +3,15 @@ import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../../services/auth.service';
 import { ProfileService } from '../../../services/profile.service';
-import { ChatDropdownComponent } from '../../chat/chat-dropdown/chat-dropdown.component';
 import { NotificationComponent } from '../notification/notification.component';
+import { ChatSignalRService } from '../../../services/chatSignal.service';
+import { Subscription } from 'rxjs';
 
 
 @Component({
   selector: 'app-navbar',
   standalone: true,
-  imports: [CommonModule, ChatDropdownComponent, NotificationComponent],
+  imports: [CommonModule, NotificationComponent],
   templateUrl: './navbar.component.html',
   styleUrls: ['./navbar.component.css']
 })
@@ -22,9 +23,11 @@ export class NavbarComponent implements OnInit {
   imageUrl: string = ''; // Default image URL
   userFirstName: string = '';
   IsUserGuest: boolean = false;
+  unreadMessagesCount = 0;
+  private subscriptions: Subscription[] = [];
 
 
-
+  unreadCount: number = 0;
 
 
 
@@ -36,7 +39,8 @@ export class NavbarComponent implements OnInit {
   }
   constructor(private authService: AuthService,
     private profileService: ProfileService,
-    private router: Router
+    private router: Router,
+    private chatService: ChatSignalRService
   ) {
     if (this.authService.userId) {
       this.loggedIn = true;
@@ -56,6 +60,19 @@ export class NavbarComponent implements OnInit {
       }
     );
 
+
+    this.authService.currentUser.subscribe(user => {
+      this.loggedIn = !!user;
+      if (this.loggedIn) {
+        this.chatService.loadUnreadCount();
+        this.startPolling();
+        this.subscriptions.push(
+          this.chatService.unreadCount$.subscribe(count => {
+            this.unreadMessagesCount = count;
+          })
+        );
+      }
+    });
     this.IsUserGuest = this.authService.isUserAGuest();
   }
 
@@ -64,9 +81,30 @@ export class NavbarComponent implements OnInit {
 
     }
   }
+  private pollingInterval: any;
+
+
+  startPolling() {
+    this.pollingInterval = setInterval(() => {
+      if (this.loggedIn) {
+        this.chatService.loadUnreadCount();
+      }
+    }, 10000); // Every 30 seconds
+  }
 
 
 
+  ngOnDestroy(): void {
+    // Unsubscribe from all subscriptions
+    this.subscriptions.forEach(sub => sub.unsubscribe());
+    if (this.pollingInterval) {
+      clearInterval(this.pollingInterval);
+    }
+  }
+
+  navigateToMessages(): void {
+    this.router.navigate(['/chat']);
+  }
 
   clickOutside(event: Event) {
     // Close notification dropdown when clicking outside

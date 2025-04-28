@@ -2,7 +2,7 @@
 import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { ChatService } from '../../../services/chat.service';
+import { ChatSignalRService } from '../../../../services/chatSignal.service';
 
 @Component({
   selector: 'app-message-user-button',
@@ -17,7 +17,7 @@ export class MessageUserButtonComponent {
   @Input() buttonClass: string = '';
 
   constructor(
-    private chatService: ChatService,
+    private chatService: ChatSignalRService,
     private router: Router
   ) { }
 
