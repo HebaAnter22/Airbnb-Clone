@@ -9,6 +9,9 @@ namespace API.Services.AdminRepo
 
         Task<bool> BlockUserAsync(int userId, bool isBlocked);
         Task<IEnumerable<User>> GetAllHostsAsync();
+        Task<IEnumerable<User>> GetVerifiedHostsAsync();
+        Task<IEnumerable<User>> GetNotVerifiedHostsAsync();
+        Task<IEnumerable<User>> GetBlockedHostsAsync();
 
         Task<IEnumerable<User>> GetAllGuestsAsync();
 

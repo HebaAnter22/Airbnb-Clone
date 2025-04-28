@@ -13,6 +13,11 @@ namespace API.Models
         public string Education { get; set; }
         public string Languages { get; set; }
         public bool IsVerified { get; set; } = false;
+        public decimal TotalEarnings { get; set; } = 0;
+        public decimal AvailableBalance { get; set; } = 0;
+        public string? StripeAccountId { get; set; }
+        public string? DefaultPayoutMethod { get; set; }
+        public string? PayoutAccountDetails { get; set; } // Encrypted account details
 
         public string? LivesIn { get; set; }
         public string? DreamDestination { get; set; }
@@ -21,10 +26,10 @@ namespace API.Models
         public string? ObsessedWith { get; set; }
         public string? SpecialAbout { get; set; }
 
-
         // Navigation Properties
         public virtual User User { get; set; }
         public virtual ICollection<Property> Properties { get; set; }
         public virtual ICollection<HostVerification> Verifications { get; set; }
+        public virtual ICollection<HostPayout> Payouts { get; set; }
     }
 }

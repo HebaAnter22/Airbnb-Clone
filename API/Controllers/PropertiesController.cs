@@ -145,10 +145,24 @@ namespace API.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAllProperties()
+        public async Task<IActionResult> GetAllProperties(
+    [FromQuery] int page = 1,
+    [FromQuery] int pageSize = 12,
+    [FromQuery] int? categoryId = null) // Add categoryId as an optional parameter
         {
-            var properties = await _propertyService.GetAllPropertiesAsync();
-            return Ok(properties);
+            var result = await _propertyService.GetAllPropertiesAsync(page, pageSize, categoryId);
+            return Ok(new
+            {
+                properties = result.Properties,
+                total = result.Total
+            });
+        }
+
+        [HttpGet("countries")]
+        public async Task<IActionResult> GetUniqueCountries()
+        {
+            var countries = await _propertyService.GetUniqueCountriesAsync();
+            return Ok(countries);
         }
 
         [HttpPost("images/upload")]
@@ -311,12 +325,21 @@ namespace API.Controllers
         {
             try
             {
+                Console.WriteLine($"Search request - Country: '{country}', StartDate: {startDate}, EndDate: {endDate}, MaxGuests: {maxGuests}");
+                
                 var properties = await _propertyService.SearchPropertiesAsync(title, country, minNights, maxNights, startDate, endDate, maxGuests);
+                
+                Console.WriteLine($"Search results - Found {properties.Count} properties");
 
-                return Ok(properties);
+                return Ok(new
+                {
+                    properties = properties,
+                    total = properties.Count
+                });
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"Search error: {ex.Message}");
                 return StatusCode(500, $"An error occurred: {ex.Message}");
             }
         }

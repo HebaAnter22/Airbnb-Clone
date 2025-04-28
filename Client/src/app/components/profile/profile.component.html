@@ -1,4 +1,5 @@
-<app-main-navbar></app-main-navbar>
+<!-- <app-main-navbar></app-main-navbar> --> 
+<!-- مش لازم وبتبوظ بروفايل الادمن سماح بليز-->
 <div class="profile-container">
   <div *ngIf="isLoading" class="loading">
     <div class="spinner-border text-primary" role="status">
@@ -31,7 +32,7 @@
 
         <div class="profile-image-container">
           <div class="profile-image">
-            <img [src]="getProfileImageUrl()" alt="Profile picture" onerror="this.src='/assets/default-profile.png'">
+            <img [src]="getProfileImageUrl()" alt="Profile picture">
             <div class="verified-badge" *ngIf="hostProfile?.isVerified">
               <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <circle cx="12" cy="12" r="12" fill="#FF385C" />
@@ -240,7 +241,7 @@
                   d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z">
                 </path>
               </svg>
-            </div>
+            </div> -->
             <div class="about-info">
               <span>Born in {{ userProfile.dateOfBirth | date:'yyyy' }}</span>
             </div>
@@ -455,8 +456,7 @@
               <div class="review-author">
                 <!-- add guest avatar -->
                 <div class="reviewer-img">
-                  <img [src]="review?.guestAvatar ? (backendBaseUrl + review.guestAvatar) : 'assets/default-avatar.jpg'"
-                    alt="Profile picture">
+                  <img [src]="review?.guestAvatar ? (review.guestAvatar) : 'assets/default-avatar.jpg'" alt="Profile picture">
                 </div>
                 <strong>{{ review.guestName }}</strong>
                 <span>{{ review.createdAt | date:'MMMM yyyy' }}</span>
@@ -532,8 +532,8 @@
             <div class="review-card" *ngFor="let review of reviews">
               <div class="review-header">
                 <div class="reviewer-img">
-                  <img [src]="review.guestAvatar ? (backendBaseUrl + review.guestAvatar) : 'assets/default-avatar.jpg'"
-                    [alt]="review.guestName">
+                  <img [src]="review.guestAvatar ? (review.guestAvatar) : 'assets/default-avatar.jpg'" 
+                       [alt]="review.guestName">
                 </div>
                 <div class="reviewer-info">
                   <div class="reviewer-name">{{ review.guestName }}</div>

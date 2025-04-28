@@ -1,0 +1,136 @@
+<div class="container mt-5">
+  <div class="row">
+    <div class="col-md-12">
+      <h2>Host Payouts</h2>
+      <div *ngIf="errorMessage" class="alert alert-danger">{{ errorMessage }}</div>
+      <div *ngIf="successMessage" class="alert alert-success">{{ successMessage }}</div>
+    </div>
+  </div>
+
+  <div class="row mb-4">
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-header">
+          <h4>Available Balance</h4>
+        </div>
+        <div class="card-body">
+          <h2>${{ availableBalance | number:'1.2-2' }}</h2>
+          <p>This is your current available balance that can be withdrawn.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-header">
+          <h4>Payout Method</h4>
+        </div>
+        <div class="card-body">
+          <div *ngIf="!isStripeConnected">
+            <p>You haven't set up a payout method yet.</p>
+            <button class="btn btn-primary" (click)="setupStripeAccount()" [disabled]="isLoading">
+              <span *ngIf="isLoading" class="spinner-border spinner-border-sm mr-2"></span>
+              Set up Stripe Connect
+            </button>
+          </div>
+          <div *ngIf="isStripeConnected">
+            <p><i class="bi bi-check-circle-fill text-success"></i> Your Stripe account is connected.</p>
+            <p>You can receive payouts directly to your linked bank account.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row mb-4">
+    <div class="col-md-12">
+      <div class="card">
+        <div class="card-header">
+          <h4>Request Payout</h4>
+        </div>
+        <div class="card-body">
+          <div *ngIf="!isStripeConnected">
+            <p>You need to set up a payout method before requesting a payout.</p>
+          </div>
+          <div *ngIf="isStripeConnected">
+            <form (ngSubmit)="requestPayout()">
+              <div class="mb-3">
+                <label for="payoutAmount" class="form-label">Payout Amount ($)</label>
+                <input 
+                  type="number" 
+                  class="form-control" 
+                  id="payoutAmount" 
+                  [(ngModel)]="payoutAmount" 
+                  name="payoutAmount"
+                  [max]="availableBalance"
+                  min="0"
+                  step="0.01"
+                  required
+                >
+                <small class="form-text text-muted">
+                  Available: ${{ availableBalance | number:'1.2-2' }}
+                </small>
+              </div>
+              <button 
+                type="submit" 
+                class="btn btn-primary" 
+                [disabled]="payoutAmount <= 0 || payoutAmount > availableBalance || isLoading"
+              >
+                <span *ngIf="isLoading" class="spinner-border spinner-border-sm mr-2"></span>
+                Request Payout
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-12">
+      <div class="card">
+        <div class="card-header">
+          <h4>Payout History</h4>
+        </div>
+        <div class="card-body">
+          <div *ngIf="payouts.length === 0" class="text-center p-3">
+            <p>You don't have any payouts yet.</p>
+          </div>
+          <div *ngIf="payouts.length > 0" class="table-responsive">
+            <table class="table table-striped">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Amount</th>
+                  <th>Status</th>
+                  <th>Method</th>
+                  <th>Transaction ID</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let payout of payouts">
+                  <td>{{ payout.createdAt | date }}</td>
+                  <td>${{ payout.amount | number:'1.2-2' }}</td>
+                  <td>
+                    <span 
+                      [ngClass]="{
+                        'badge bg-warning': payout.status === 'Pending',
+                        'badge bg-info': payout.status === 'Processing',
+                        'badge bg-success': payout.status === 'Completed',
+                        'badge bg-danger': payout.status === 'Failed'
+                      }"
+                    >
+                      {{ payout.status }}
+                    </span>
+                  </td>
+                  <td>{{ payout.payoutMethod }}</td>
+                  <td>{{ payout.transactionId || 'N/A' }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

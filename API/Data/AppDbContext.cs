@@ -9,9 +9,7 @@ namespace API.Data
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
         public AppDbContext() { }
         
-
         public DbSet<User> Users { get; set; }
-        public DbSet<Models.Host> HostProfules { get; set; }
         public DbSet<Property> Properties { get; set; }
         public DbSet<Booking> Bookings { get; set; }
         public DbSet<Review> Reviews { get; set; }
@@ -27,17 +25,18 @@ namespace API.Data
         public DbSet<UserUsedPromotion> UserUsedPromotions { get; set; }
         public DbSet<PropertyCategory> PropertyCategories { get; set; }
         public DbSet<PropertyAvailability> PropertyAvailabilities { get; set; }
+        //public DbSet<Models.Host> Hosts { get; set; }
+        public DbSet<HostPayout> HostPayouts { get; set; }
+        public DbSet<Violation> Violations { get; set; }
         public DbSet<Notification> Notifications { get; set; }
         public DbSet<BookingPayout> BookingPayouts { get; set; }
 
 
 
-
+        public DbSet<Models.Host> HostProfules { get; set; }
         public DbSet<VwPropertyDetails> VwPropertyDetails { get; set; }
         public DbSet<VwHostPerformance> VwHostPerformance { get; set; }
         public DbSet<VwActivePromotions> VwActivePromotions { get; set; }
-
-
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -47,7 +46,12 @@ namespace API.Data
             modelBuilder.Entity<VwHostPerformance>().HasNoKey().ToView("vw_host_performance");
             modelBuilder.Entity<VwActivePromotions>().HasNoKey().ToView("vw_active_promotions");
 
+            // Configure Host-HostPayout relationship
+            modelBuilder.Entity<Models.Host>()
+                .HasMany(h => h.Payouts)
+                .WithOne(p => p.Host)
+                .HasForeignKey(p => p.HostId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
-
     }
 }

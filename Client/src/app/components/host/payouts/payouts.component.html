@@ -1,0 +1,120 @@
+<div class="container mt-4">
+  <div class="row">
+    <div class="col-md-8">
+      <div class="card">
+        <div class="card-header">
+          <h4>Payouts</h4>
+        </div>
+        <div class="card-body">
+          <!-- Error Alert -->
+          <div *ngIf="error" class="alert alert-danger alert-dismissible fade show" role="alert">
+            {{ error }}
+            <button type="button" class="btn-close" (click)="error = ''" aria-label="Close"></button>
+          </div>
+
+          <!-- Success Alert -->
+          <div *ngIf="success" class="alert alert-success alert-dismissible fade show" role="alert">
+            {{ success }}
+            <button type="button" class="btn-close" (click)="success = ''" aria-label="Close"></button>
+          </div>
+
+          <!-- Stripe Connect Setup -->
+          <div *ngIf="!isStripeConnected" class="alert alert-info">
+            <h5>Set up your payout account</h5>
+            <p>To receive payouts, you need to connect your Stripe account. This allows us to send money directly to your bank account.</p>
+            <button class="btn btn-primary" (click)="setupStripeConnect()">
+              <i class="fab fa-stripe me-2"></i>Connect with Stripe
+            </button>
+          </div>
+
+          <!-- Payout Request Form -->
+          <div *ngIf="isStripeConnected" class="mb-4">
+            <h5>Request Payout</h5>
+            <div class="input-group">
+              <span class="input-group-text">$</span>
+              <input 
+                type="number" 
+                class="form-control" 
+                [(ngModel)]="payoutAmount" 
+                placeholder="Enter amount"
+                [min]="0"
+                [max]="availableBalance"
+              >
+              <button 
+                class="btn btn-success" 
+                (click)="requestPayout()" 
+                [disabled]="payoutAmount <= 0 || payoutAmount > availableBalance">
+                <i class="fas fa-money-bill-wave me-2"></i>Request Payout
+              </button>
+            </div>
+            <small class="text-muted mt-2 d-block">
+              Minimum payout amount: $1.00. Maximum: ${{ availableBalance }}
+            </small>
+          </div>
+
+          <!-- Payout History -->
+          <div class="table-responsive mt-4">
+            <h5 class="mb-3">Payout History</h5>
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Amount</th>
+                  <th>Status</th>
+                  <th>Processed</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let payout of payouts">
+                  <td>{{ formatDate(payout.createdAt) }}</td>
+                  <td>${{ payout.amount.toFixed(2) }}</td>
+                  <td>
+                    <span [class]="'badge ' + getStatusBadgeClass(payout.status)">
+                      {{ payout.status }}
+                    </span>
+                  </td>
+                  <td>{{ payout.processedAt ? formatDate(payout.processedAt) : '-' }}</td>
+                </tr>
+                <tr *ngIf="payouts.length === 0">
+                  <td colspan="4" class="text-center py-4">
+                    <i class="fas fa-history text-muted mb-2 d-block" style="font-size: 24px;"></i>
+                    No payouts found
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Balance Summary -->
+    <div class="col-md-4">
+      <div class="card">
+        <div class="card-header">
+          <h4>Balance Summary</h4>
+        </div>
+        <div class="card-body">
+          <div class="mb-4">
+            <h6>Available Balance</h6>
+            <h3 class="text-success">${{ availableBalance.toFixed(2) }}</h3>
+          </div>
+          <div class="alert alert-info">
+            <i class="fas fa-info-circle me-2"></i>
+            <small>
+              Payouts are typically processed within 2-3 business days. Once processed, the funds will be sent to your connected bank account.
+            </small>
+          </div>
+          <!-- Payout Method -->
+          <div *ngIf="isStripeConnected" class="mt-3">
+            <h6>Payout Method</h6>
+            <div class="d-flex align-items-center">
+              <i class="fab fa-stripe text-primary me-2" style="font-size: 24px;"></i>
+              <span>Connected to Stripe</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div> 

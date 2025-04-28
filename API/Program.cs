@@ -22,6 +22,8 @@ using API.Services.AdminRepo;
 using API.Services.HostVerificationRepo;
 using Stripe;
 using API.Hubs;
+using API.Services.BookingPaymentRepo;
+using API.Services.Payoutrepo;
 using API.Services.NotificationRepository;
 using System.Text.Json.Serialization;
 using API.Services.NotificationRepository;
@@ -48,9 +50,11 @@ namespace API
                 options.PayloadSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
             });
 
-
-
-            builder.Services.AddControllers();
+            // Configure to allow reading the raw request body for Stripe webhooks
+            builder.Services.AddControllers(options =>
+            {
+                options.AllowEmptyInputInBodyModelBinding = true;
+            });
 
             builder.Services.AddSwaggerGen(c =>
             {
@@ -162,7 +166,17 @@ namespace API
             builder.Services.AddScoped<IPromotionRepository, PromotionRepository>();
             builder.Services.AddScoped<IHostVerificationRepository, HostVerificationRepository>();
 
-            builder.Services.AddScoped<IBookingRepository, BookingRepository>();
+            builder.Services.AddScoped<IBookingRepository>(sp => 
+                new BookingRepository(
+                    sp.GetRequiredService<AppDbContext>(),
+                    sp.GetRequiredService<IPropertyAvailabilityRepository>(),
+                    sp.GetRequiredService<IPropertyService>(),
+                    sp.GetRequiredService<IPromotionRepository>(),
+                    sp
+                )
+            );
+            builder.Services.AddScoped<IBookingPaymentRepository, BookingPaymentRepository>();
+            builder.Services.AddScoped<IPayoutService, Services.Payoutrepo.PayoutService>();
             builder.Services.AddScoped<IPropertyAvailabilityRepository, PropertyAvailabilityRepository>();
             builder.Services.AddScoped<IAdminRepository, AdminRepository>();
             builder.Services.AddScoped<IHostVerificationRepository, HostVerificationRepository>();
@@ -174,9 +188,8 @@ namespace API
             builder.Services.AddScoped<IOpenAIService, OpenAIService>();
             builder.Services.AddAutoMapper(typeof(Program));
 
-
-
-
+            // Register services
+            builder.Services.AddScoped<IViolationService, ViolationService>();
 
             var app = builder.Build();
             //if (app.Environment.IsDevelopment())
@@ -192,6 +205,13 @@ namespace API
             app.UseSwaggerUI();
             app.UseCors("AllowAll");
             app.UseHttpsRedirection();
+
+            // Configure to read raw request body for Stripe webhooks
+            app.Use(async (context, next) =>
+            {
+                context.Request.EnableBuffering();
+                await next();
+            });
 
             // Ensure the uploads directory exists
             var uploadsPath = Path.Combine(app.Environment.WebRootPath, "uploads");

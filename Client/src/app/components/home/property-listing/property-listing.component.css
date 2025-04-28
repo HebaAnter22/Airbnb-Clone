@@ -1,63 +1,96 @@
 .container {
+  max-width: 1200px;
   margin: 0 auto;
-  padding: 0 24px 24px;
-  background: linear-gradient(to bottom, #ffff, #ffffff);
+  padding: 24px;
+  background: linear-gradient(to bottom, #f8f9fa, #ffffff);
   min-height: 100vh;
 }
 
-.header{
+.header {
   width: 100%;
   margin-bottom: 20px;
 }
 
 .filters-bar {
+  width: 100%;
+  display: flex;
+  justify-content: center; /* Center the filter buttons */
   position: sticky;
-  top: 80px;
+  top: 80px; /* Stick below the header (adjust based on your header height) */
   z-index: 10;
   background-color: white;
   padding: 16px 0;
   border-bottom: 1px solid #ebebeb;
   margin-bottom: 24px;
+  height: 100px; /* Default height */
+  transition: height 0.3s ease, padding 0.3s ease; /* Smooth transition for height and padding */
+}
+
+.filters-bar.scrolled {
+  height: 60px; /* Reduced height when scrolled */
+  padding: 8px 0; /* Reduced padding when scrolled */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Optional: Add a shadow for visual feedback */
+}
+
+/* Ensure the filter buttons wrapper handles overflow */
+.filters-wrapper {
+  display: flex;
+  max-width: 1200px; /* Constrain the width to match typical content width */
+  width: 100%;
+  overflow-x: auto; /* Allow horizontal scrolling if there are too many filters */
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on mobile */
+  padding: 0 16px;
+  gap: 16px; /* Space between filter buttons */
+}
+
+/* Hide scrollbar for a cleaner look */
+.filters-wrapper::-webkit-scrollbar {
+  display: none;
 }
 
 .filters-wrapper {
-  max-width: 1400px;
-  margin: 0 auto;
-  overflow-x: auto;
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
 }
 
+/* Style for filter buttons */
 .filter-buttons {
   display: flex;
-  gap: 24px;
-  padding-bottom: 4px;
+  align-items: center;
+  gap: 16px; /* Space between buttons */
+  white-space: nowrap; /* Prevent buttons from wrapping */
 }
 
 .filter-button {
   display: flex;
-  flex-direction: column;
   align-items: center;
   gap: 8px;
+  padding: 8px 16px;
+  border: 1px solid #ddd;
+  border-radius: 20px;
   background: none;
-  border: none;
   cursor: pointer;
-  font-size: 12px;
-  color: #717171;
-  padding: 4px 0;
-  opacity: 0.8;
-  transition: opacity 0.2s;
+  font-size: 14px;
+  transition: background 0.2s ease, border-color 0.2s ease;
 }
 
 .filter-button:hover {
-  opacity: 1;
-  color: #222;
+  background: #f7f7f7;
 }
 
-.filter-button .material-icons {
-  font-size: 24px;
+.filter-button.active {
+  border-color: #ff385c;
+  background: #fff;
+  font-weight: bold;
+}
+
+.filters-bar.scrolled {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 .property-grid {
-  margin-top: 20px;
+  margin-top: 30px;
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 20px;
@@ -340,6 +373,7 @@
   .property-grid {
     grid-template-columns: repeat(3, 1fr);
     gap: 20px;
+    
   }
 }
 
@@ -348,6 +382,7 @@
     grid-template-columns: repeat(4, 1fr);
     gap: 20px;
   }
+  
 }
 
 .upload-images {
@@ -503,78 +538,72 @@ body {
   transform: translateY(0);
 }
 
-/* Search Results Info */
-.search-info {
+/* Pagination Styles */
+.pagination {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
-  margin: 20px 0;
-  padding: 0 16px;
+  gap: 12px;
+  padding: 24px 0;
+  border-top: 1px solid #ebebeb;
+  margin-top: 24px;
 }
 
-.clear-search {
+.pagination-button {
+  background: #ffffff;
+  border: 1px solid #ebebeb;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
   display: flex;
   align-items: center;
-  gap: 8px;
-  background: none;
-  border: none;
-  color: #222;
-  font-size: 14px;
-  font-weight: 500;
+  justify-content: center;
   cursor: pointer;
-  padding: 8px 16px;
-  border-radius: 20px;
-  transition: background-color 0.2s;
+  color: #222;
+  transition: background 0.2s, transform 0.2s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
-.clear-search:hover {
-  background-color: #f7f7f7;
+.pagination-button:hover {
+  background: #f8f9fa;
+  transform: scale(1.1);
 }
 
-.clear-search mat-icon {
+.pagination-button:disabled {
+  background: #f8f9fa;
+  color: #717171;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.pagination-button .material-icons {
   font-size: 20px;
 }
 
-
-.toast-container {
-  position: fixed;
-  top: 1.5rem;
-  left: 1.5rem;
-  z-index: 1000;
+.pagination-numbers {
+  display: flex;
+  gap: 8px;
 }
 
-.toast {
-  background-color: #fff8f4;
+.pagination-number {
+  background: none;
+  border: none;
+  font-size: 14px;
+  font-weight: 500;
+  color: #717171;
+  cursor: pointer;
+  padding: 8px 12px;
+  border-radius: 8px;
+  transition: background 0.2s, color 0.2s;
+}
+
+.pagination-number:hover {
+  background: #f8f9fa;
   color: #222;
-  border: 1px solid #f7c59f;
-  margin-top: 0.5rem;
-  padding: 1rem 1.5rem;
-  border-radius: 16px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  font-family: 'Airbnb Cereal App', 'Helvetica Neue', sans-serif;
-  font-size: 0.95rem;
-  display: inline-block;
-  max-width: 300px;
-  animation: fadeIn 0.3s ease-out;
 }
 
-.toast a {
-  color: #ff385c;
+.pagination-number.active {
+  background: #FF385C;
+  color: #ffffff;
   font-weight: 600;
-  text-decoration: none;
-  margin-left: 0.5rem;
-}
-
-.toast a:hover {
-  text-decoration: underline;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  } to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }

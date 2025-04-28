@@ -71,15 +71,14 @@ export class EditProfileComponent implements OnInit {
       next: (user) => {
         this.user = user;
         // Check if user is a Guest
-        this.isGuestUser = user.role === 'Guest'|| user.role === 'Admin';
-        
-        this.profileImageUrl = user.profilePictureUrl
-          ? `${this.apiBaseUrl}/${user.profilePictureUrl}`
-          : '';
-              
+        this.isGuestUser = user.role === 'Guest' || user.role === 'Admin';
+
+        this.profileImageUrl = user.profilePictureUrl;
+        console.log('Profile Image URL:', this.profileImageUrl);
+
         // Format the date for the HTML date input (YYYY-MM-DD)
         const formattedDateOfBirth = user.dateOfBirth ? this.formatDateForInput(new Date(user.dateOfBirth)) : '';
-        
+
         // Populate form with user data
         this.profileForm.patchValue({
           firstName: user.firstName || '',
@@ -98,7 +97,7 @@ export class EditProfileComponent implements OnInit {
           whereILive: user.livesIn || '',
           specialAbout: user.specialAbout || ''
         });
-        
+
         // If user is a Guest, disable form controls that they shouldn't edit
         if (this.isGuestUser) {
           this.disableNonGuestFields();
@@ -109,7 +108,7 @@ export class EditProfileComponent implements OnInit {
       }
     });
   }
-  
+
   disableNonGuestFields(): void {
     // Disable all fields except firstName, lastName, and whereIWasBorn (date of birth)
     this.profileForm.get('email')?.disable();
@@ -132,11 +131,11 @@ export class EditProfileComponent implements OnInit {
   // Format date as YYYY-MM-DD for HTML date input
   formatDateForInput(date: Date): string {
     if (!date || isNaN(date.getTime())) return '';
-    
+
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are 0-based
     const day = String(date.getDate()).padStart(2, '0');
-    
+
     return `${year}-${month}-${day}`;
   }
 
@@ -157,7 +156,7 @@ export class EditProfileComponent implements OnInit {
 
     this.profileService.uploadProfilePicture(this.selectedFile).subscribe({
       next: (response) => {
-        this.profileImageUrl = `${this.apiBaseUrl}/${response.fileUrl}`;
+        this.profileImageUrl = `${response.fileUrl}`;
         this.isUploading = false;
         this.uploadProgress = 100;
       },
@@ -174,10 +173,10 @@ export class EditProfileComponent implements OnInit {
       const dateOfBirth = this.profileForm.value.whereIWasBorn
         ? new Date(this.profileForm.value.whereIWasBorn)
         : null;
-      
+
       // Create profile data object based on user role
       let profileData;
-      
+
       if (this.isGuestUser) {
         // For Guest users, only update allowed fields
         profileData = {
@@ -185,7 +184,7 @@ export class EditProfileComponent implements OnInit {
           FirstName: this.profileForm.value.firstName,
           LastName: this.profileForm.value.lastName,
           DateOfBirth: dateOfBirth,
-          ProfilePictureUrl: this.profileImageUrl.split(this.apiBaseUrl)[1] || ''
+          ProfilePictureUrl: this.profileImageUrl || ''
         };
       } else {
         // For other users, update all fields

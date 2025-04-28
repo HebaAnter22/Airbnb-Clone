@@ -1,0 +1,11 @@
+<div class="success-container">
+    <h2>Payment Successful</h2>
+
+    <div *ngIf="paymentStatus" class="payment-status">
+        <p>Payment Status: {{ paymentStatus }}</p>
+    </div>
+
+    <div *ngIf="errorMessage" class="error-message">
+        <p>{{ errorMessage }}</p>
+    </div>
+</div>

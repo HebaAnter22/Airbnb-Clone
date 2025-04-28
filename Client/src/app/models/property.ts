@@ -12,10 +12,19 @@ export interface Amenity {
   iconUrl: string;
 }
 
+export interface CancellationPolicy {
+  id: number;
+  name: string;
+  description: string;
+  refundPercentage: number;
+}
+
 export interface PropertyDto {
   id: number;
   hostId?: number;
   title: string;
+  cancellationPolicyId: number;
+  cancellationPolicy?: CancellationPolicy;
   description: string;
   propertyType: string;
   address: string;

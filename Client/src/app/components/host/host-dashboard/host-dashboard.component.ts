@@ -1,15 +1,28 @@
 import { Component, OnInit } from '@angular/core';
-import { HostPropertiesComponent } from '../host-proprties/host-properties.component';
 import { CommonModule } from '@angular/common';
+import { RouterModule, Router } from '@angular/router';
+import { FormsModule } from '@angular/forms';
+import { PayoutsComponent } from '../payouts/payouts.component';
+import { HostPropertiesComponent } from '../host-proprties/host-properties.component';
+import { BookingComponent } from '../bookings/bookings.component';
+import { EarningsChartComponent } from './earnings';
+import { HostPayoutComponent } from '../../../components/host-payout/host-payout.component';
 import { AuthService } from '../../../services/auth.service';
 import { ProfileService } from '../../../services/profile.service';
-import { BookingComponent } from '../bookings/bookings.component';
-import { Router } from '@angular/router';
-import { EarningsChartComponent } from './earnings';
 
 @Component({
   selector: 'app-host-dashboard',
-  imports: [HostPropertiesComponent, CommonModule , BookingComponent, EarningsChartComponent],
+  standalone: true,
+  imports: [
+    CommonModule,
+    RouterModule,
+    FormsModule,
+    PayoutsComponent,
+    HostPropertiesComponent,
+    BookingComponent,
+    EarningsChartComponent,
+    HostPayoutComponent
+  ],
   templateUrl: './host-dashboard.component.html',
   styleUrls: ['./host-dashboard.component.css']
 })
@@ -18,89 +31,105 @@ export class HostDashboardComponent implements OnInit {
   isListingsDropdownOpen: boolean = false;
   isBookingsDropdownOpen: boolean = false;
   isEarningsDropdownOpen: boolean = false;
-  userProfileImage: string = 'assets/default-profile.png';
   userName: string = '';
   userFirstName: string = '';
+  imageUrl: string = '';
+  userProfile: any;
 
-  imageUrl: string = ''; 
   constructor(
+    private router: Router, 
     private authService: AuthService,
-    private profileService: ProfileService,
-    private router: Router
-  ) { 
-    this.imageUrl= this.profileService.getImageUrl();
+    private profileService: ProfileService
+  ) {}
 
-  }
+  ngOnInit() {
+    // Initialize user data
+    this.authService.getUserProfile().subscribe((userProfile: any) => {
+      console.log('User profile received:', userProfile); // Log the entire object
+      
+      // Set user data from the profile
+      this.userName = userProfile.userName || userProfile.email || '';
+      this.userFirstName = userProfile.firstName || '';
+    });
 
-  ngOnInit(): void {
-    // Get user ID from AuthService
+    // Get user profile from profile service
     const userId = this.authService.userId;
     if (userId) {
-      // Get user profile data
       this.profileService.getUserProfile(userId).subscribe({
-        next: (profile: any) => {
-          this.userName = profile.firstName && profile.lastName 
-            ? `${profile.firstName} ${profile.lastName}`
-            : 'Host';
-            this.imageUrl = profile.profilePictureUrl? 'https://localhost:7228'+ profile.profilePictureUrl:'';
-            this.userFirstName = profile.firstName || 'User';
-            // Use profile picture if available
-          if (profile.profilePictureUrl) {
-            this.userProfileImage = profile.profilePictureUrl;
-          }
+        next: (profile) => {
+          this.userProfile = profile;
+          this.imageUrl = this.userProfile.profilePictureUrl;
+          console.log('User Profile from profile service:', this.userProfile);
         },
-        error: (error) => {
-          console.error('Error loading profile:', error);
-          this.userName = 'Host';
+        error: (err) => {
+          console.error('Error loading user profile:', err);
         }
       });
     }
-  }
 
-  goToUserProfile(): void {
-    this.profileService.navigateToUserProfile();
-  }
-
-  logout(): void {
-    this.authService.logout();
-    this.router.navigate(['/login']);
-  }
-
-  toggleDropdown(type: 'listings' | 'bookings' | 'earnings'): void {
-    if (type === 'listings') {
-      this.isListingsDropdownOpen = !this.isListingsDropdownOpen;
-      this.isBookingsDropdownOpen = false;
-      this.isEarningsDropdownOpen = false;
-    } else if (type === 'bookings') {
-      this.isBookingsDropdownOpen = !this.isBookingsDropdownOpen;
-      this.isListingsDropdownOpen = false;
-      this.isEarningsDropdownOpen = false;
-    } else if (type === 'earnings') {
-      this.isEarningsDropdownOpen = !this.isEarningsDropdownOpen;
-      this.isListingsDropdownOpen = false;
-      this.isBookingsDropdownOpen = false;
+    // Additional fallback - get values from current user if available
+    const currentUser = this.authService.currentUserValue;
+    if (currentUser) {
+      if (!this.userFirstName) {
+        this.userFirstName = currentUser.firstName || '';
+      }
+      if (!this.imageUrl) {
+        this.imageUrl = currentUser.imageUrl || '';
+      }
     }
   }
 
-  setCurrentSection(section: string): void {
+  getProfileImageUrl(): string {
+    if (this.userProfile?.profilePictureUrl) {
+      return this.userProfile.profilePictureUrl;
+    }
+    return '';
+  }
+  
+  toggleDropdown(dropdown: string) {
+    switch (dropdown) {
+      case 'listings':
+        this.isListingsDropdownOpen = !this.isListingsDropdownOpen;
+        this.isBookingsDropdownOpen = false;
+        this.isEarningsDropdownOpen = false;
+        break;
+      case 'bookings':
+        this.isBookingsDropdownOpen = !this.isBookingsDropdownOpen;
+        this.isListingsDropdownOpen = false;
+        this.isEarningsDropdownOpen = false;
+        break;
+      case 'earnings':
+        this.isEarningsDropdownOpen = !this.isEarningsDropdownOpen;
+        this.isListingsDropdownOpen = false;
+        this.isBookingsDropdownOpen = false;
+        break;
+    }
+  }
+
+  setCurrentSection(section: string) {
     this.currentSection = section;
     this.isListingsDropdownOpen = false;
     this.isBookingsDropdownOpen = false;
     this.isEarningsDropdownOpen = false;
   }
 
-  navigateToAddProperty(): void {
+  navigateToAddProperty() {
+    // Implement navigation
     this.router.navigate(['/host/add-property']);
-    this.isListingsDropdownOpen = false;
   }
 
-  // Close dropdowns when clicking outside
-  onDocumentClick(event: MouseEvent): void {
-    const target = event.target as HTMLElement;
-    if (!target.closest('.dropdown')) {
-      this.isListingsDropdownOpen = false;
-      this.isBookingsDropdownOpen = false;
-      this.isEarningsDropdownOpen = false;
-    }
+  navigateToPayouts() {
+    // Navigate to the payouts page
+    this.router.navigate(['/host/payouts']);
+  }
+
+  goToUserProfile() {
+    // Implement navigation
+    this.router.navigate(['/profile']);
+  }
+
+  logout() {
+    this.authService.logout();
+    // Implement logout
   }
 } 

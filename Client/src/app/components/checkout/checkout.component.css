@@ -1,0 +1,155 @@
+/* checkout.component.css */
+.checkout-container {
+  display: flex;
+  max-width: 900px;
+  margin: 50px auto;
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  gap: 40px;
+}
+
+.booking-summary {
+  flex: 1;
+  padding: 20px;
+}
+
+.booking-summary h2 {
+  font-size: 24px;
+  font-weight: 600;
+  color: #222;
+  margin-bottom: 10px;
+}
+
+.amount {
+  font-size: 32px;
+  font-weight: 700;
+  color: #222;
+  margin-bottom: 20px;
+}
+
+.booking-details {
+  font-size: 16px;
+  color: #444;
+}
+
+.booking-details p {
+  margin: 5px 0;
+}
+
+.booking-details strong {
+  color: #222;
+}
+
+.payment-form {
+  flex: 1;
+  padding: 20px;
+  border-left: 1px solid #e0e0e0;
+}
+
+.payment-form h3 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #222;
+  margin-bottom: 20px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #222;
+  margin-bottom: 8px;
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 10px;
+  font-size: 16px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-sizing: border-box;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: #ff5a5f;
+}
+
+.card-element {
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background-color: #fff;
+}
+
+.checkbox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.checkbox input {
+  width: auto;
+}
+
+.checkbox label {
+  font-size: 14px;
+  color: #444;
+  font-weight: normal;
+}
+
+.pay-button {
+  width: 100%;
+  padding: 14px;
+  background-color: #ff5a5f;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.pay-button:hover {
+  background-color: #e04e52;
+}
+
+.pay-button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.payment-status {
+  margin-top: 20px;
+  font-size: 16px;
+  color: #28a745;
+  text-align: center;
+}
+
+.error-message {
+  margin-top: 20px;
+  font-size: 16px;
+  color: #dc3545;
+}
+
+@media (max-width: 768px) {
+  .checkout-container {
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .payment-form {
+    border-left: none;
+    border-top: 1px solid #e0e0e0;
+    padding-top: 20px;
+  }
+}

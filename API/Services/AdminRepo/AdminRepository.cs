@@ -113,6 +113,32 @@ namespace API.Services.AdminRepo
             }
         }
 
+        public async Task<IEnumerable<User>> GetVerifiedHostsAsync()
+        {
+            return await _context.Users
+                .Include(u => u.Host)
+                .ThenInclude(h => h.Properties)
+                .Where(u => u.Role == UserRole.Host.ToString() && u.Host.IsVerified && u.AccountStatus != Account_Status.Blocked.ToString())
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<User>> GetNotVerifiedHostsAsync()
+        {
+            return await _context.Users
+                .Include(u => u.Host)
+                .ThenInclude(h => h.Properties)
+                .Where(u => u.Role == UserRole.Host.ToString() && !u.Host.IsVerified && u.AccountStatus != Account_Status.Blocked.ToString())
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<User>> GetBlockedHostsAsync()
+        {
+            return await _context.Users
+                .Include(u => u.Host)
+                .ThenInclude(h => h.Properties)
+                .Where(u => u.Role == UserRole.Host.ToString() && u.AccountStatus == Account_Status.Blocked.ToString())
+                .ToListAsync();
+        }
 
         #endregion
 

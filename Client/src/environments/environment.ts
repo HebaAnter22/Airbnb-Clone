@@ -1,6 +1,6 @@
 export const environment = {
   production: false,
-  stripePublicKey: 'pk_test_51RA9CxCKVbCWpibYKZ5CAsFZg0S6zASLbkF0fIooMfvRhw0KBgL1i5ezsx2MPDpIdtbc8zYgxNdAWyj2OnINeq9W007No0nWjM'
+  stripePublicKey: 'pk_test_51RGtmjRmZNI84H1fLpWKyawf8I15oU6VHUwAaOYQ1oK8WXGmUrIkYB4dSc4rp04ostgODlFu3cCb1w5gdDAdx1cq00xijE1SNL'
 ,
   googleClientId: '1031756027306-qt40so8h1a59955ra6huff4f835hn315.apps.googleusercontent.com',
   apiUrl: 'https://localhost:7228/api',

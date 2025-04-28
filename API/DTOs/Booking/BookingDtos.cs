@@ -51,6 +51,7 @@ namespace AirBnb.BL.Dtos.BookingDtos
         public string GuestName { get; set; }
         public string PropertyTitle { get; set; }
         public List<PaymentDTO> Payments { get; set; } = new List<PaymentDTO>();
+        public CancellationPolicyDTO CancellationPolicy { get; set; }
     }
 
     public class PaymentDTO
@@ -60,6 +61,12 @@ namespace AirBnb.BL.Dtos.BookingDtos
         public string PaymentMethodType { get; set; }
         public string Status { get; set; }
         public DateTime CreatedAt { get; set; }
+    }
+
+    public class CreatePaymentIntentDto
+    {
+        public int BookingId { get; set; }
+        public decimal Amount { get; set; }
     }
 
     public class BookingGetAllDto
@@ -129,5 +136,12 @@ namespace AirBnb.BL.Dtos.BookingDtos
 
 	}
 
+    public class CancellationPolicyDTO
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public string Description { get; set; }
+        public decimal RefundPercentage { get; set; }
+    }
 
 }

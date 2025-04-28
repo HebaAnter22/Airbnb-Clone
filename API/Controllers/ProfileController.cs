@@ -127,7 +127,7 @@ namespace API.Controllers
                 }
 
                 // Construct the URL that will be accessible from the frontend
-                var fileUrl = $"/uploads/profile-pictures/{uniqueFileName}";
+                var fileUrl = $"https://localhost:7228/uploads/profile-pictures/{uniqueFileName}";
                 user.ProfilePictureUrl = fileUrl;
                 await _profileService.UpdateUserAsync(user);
 

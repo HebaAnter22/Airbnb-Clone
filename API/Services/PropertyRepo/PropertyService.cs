@@ -556,6 +556,7 @@ namespace API.Services
                 .Where(p => p.Id == propertyId)
                 .Include(p => p.PropertyImages)
                 .Include(p => p.Category)
+                .Include(p => p.CancellationPolicy)
                 .Include(p => p.Amenities)
                 .Include(p => p.Host)
                     .ThenInclude(h => h.User)
@@ -587,33 +588,73 @@ namespace API.Services
             return _mapper.Map<List<PropertyDto>>(properties);
         }
 
-        public async Task<List<PropertyDto>> GetAllPropertiesAsync()
+        public async Task<(List<PropertyDto> Properties, int Total)> GetAllPropertiesAsync(int page, int pageSize, int? categoryId = null)
         {
-            var properties = await _context.Properties
-                .Where(p => p.Status == "Active")
+            // Validate pagination parameters
+            if (page < 1) page = 1;
+            if (pageSize < 1) pageSize = 12;
+
+            // Build the base query for active properties
+            IQueryable<Property> query = _context.Properties
+                .Where(p => p.Status == "Active" && p.Host.IsVerified && p.Host.User.AccountStatus == "Active")
                 .Include(p => p.Category)
                 .Include(p => p.PropertyImages)
+                .Include(p => p.CancellationPolicy)
                 .Include(p => p.Amenities)
                 .Include(p => p.Host)
                     .ThenInclude(h => h.User)
-                    //.Where(h => h.Status == "Active" && h.ve)
                 .Include(p => p.Bookings)
-                    .ThenInclude(b => b.Review)
+                    .ThenInclude(b => b.Review);
+
+
+            // Apply category filter if categoryId is provided
+            if (categoryId.HasValue)
+            {
+                query = query.Where(p => p.CategoryId == categoryId.Value);
+            }
+
+            // Get the total count of filtered properties
+            var total = await query.CountAsync();
+
+            // Fetch paginated properties
+            var properties = await query
+                .OrderBy(p => p.Id) // Optional: Define a consistent order
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .ToListAsync();
 
-            return _mapper.Map<List<PropertyDto>>(properties);
+            return (_mapper.Map<List<PropertyDto>>(properties), total);
         }
 
-
-
+        public async Task<List<string>> GetUniqueCountriesAsync()
+        {
+            return await _context.Properties
+                .Where(p => p.Status == "Active")
+                .Select(p => p.Country)
+                .Distinct()
+                .Where(c => !string.IsNullOrEmpty(c))
+                .OrderBy(c => c)
+                .ToListAsync();
+        }
 
 
         public async Task<List<PropertyDto>> SearchPropertiesAsync(string title = null, string country = null, int? minNights = null, int? maxNights = null, DateTime? startDate = null, DateTime? endDate = null, int? maxGuests = null)
         {
+            // Start with all active properties
             var query = _context.Properties
                 .Where(p => p.Status == "Active")
                 .AsQueryable();
 
+            // If no specific search criteria, return all active properties (limited filtering)
+            bool hasSearchCriteria = !string.IsNullOrWhiteSpace(title) || 
+                                    !string.IsNullOrWhiteSpace(country) ||
+                                    minNights.HasValue || 
+                                    maxNights.HasValue || 
+                                    startDate.HasValue || 
+                                    endDate.HasValue || 
+                                    maxGuests.HasValue;
+
+            // Apply filters only if specific criteria are provided
             if (!string.IsNullOrWhiteSpace(title))
             {
                 query = query.Where(p => p.Title.Contains(title));
@@ -621,7 +662,7 @@ namespace API.Services
 
             if (!string.IsNullOrWhiteSpace(country))
             {
-                query = query.Where(p => p.Country.Equals(country));
+                query = query.Where(p => p.Country.ToLower() == country.ToLower());
             }
 
             if (minNights.HasValue && maxNights.HasValue)
