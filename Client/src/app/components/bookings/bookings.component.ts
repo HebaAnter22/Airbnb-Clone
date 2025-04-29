@@ -123,7 +123,18 @@ export class BookingComponent implements OnInit {
   }
 
   submitReview(): void {
-    if (!this.currentBooking || !this.reviewRating || !this.reviewComment.trim()) {
+    if (!this.currentBooking) {
+      this.showErrorToast('No booking selected for review.');
+      return;
+    }
+    
+    if (!this.reviewRating || this.reviewRating < 1 || this.reviewRating > 5) {
+      this.showErrorToast('Please select a rating between 1 and 5 stars.');
+      return;
+    }
+    
+    if (!this.reviewComment.trim()) {
+      this.showErrorToast('Please provide a comment for your review.');
       return;
     }
 
@@ -142,6 +153,9 @@ export class BookingComponent implements OnInit {
               rating: this.reviewRating,
               comment: this.reviewComment,
             };
+            
+            // Update the review in our userReviews array too
+            this.loadUserReviews();
           }
           
           // Close the modal
@@ -150,7 +164,22 @@ export class BookingComponent implements OnInit {
         },
         error: (err) => {
           console.error('Error submitting review', err);
-          this.showErrorToast('Failed to submit review. Please try again.');
+          let errorMessage = 'Failed to submit review. Please try again.';
+          
+          // Check for specific error messages from the server
+          if (err.error && typeof err.error === 'object' && err.error.message) {
+            errorMessage = err.error.message;
+          } else if (err.error && typeof err.error === 'string') {
+            errorMessage = err.error;
+          } else if (err.status === 400) {
+            errorMessage = 'You have already submitted a review for this booking.';
+          } else if (err.status === 404) {
+            errorMessage = 'Booking not found. It may have been deleted.';
+          } else if (err.status === 500) {
+            errorMessage = 'Server error. Please try again later.';
+          }
+          
+          this.showErrorToast(errorMessage);
         }
       });
   }

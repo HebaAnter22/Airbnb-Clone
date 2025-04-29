@@ -42,21 +42,68 @@ export class PaymentService {
     }
 
     confirmPayment(bookingId: number, paymentIntentId: string, paymentMethodId: string): Observable<any> {
-      const url = `${this.apiUrl}/BookingPayment/confirm-booking-payment`; // Fixed route
-      const token = localStorage.getItem('token');
-      const headers = new HttpHeaders({
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-      });
-  
-      return this.http.post(url, { bookingId, paymentIntentId, paymentMethodId }, { headers }).pipe(
-          tap(response => console.log('Confirm Payment Response:', response)),
-          catchError(error => {
-              console.error('Error confirming payment:', error);
-              return throwError(error);
-          })
-      );
-  }
+        const url = `${this.apiUrl}/BookingPayment/confirm-booking-payment`;
+        const token = localStorage.getItem('token');
+        const headers = new HttpHeaders({
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        });
+
+        return new Observable(observer => {
+            // Implementation of client-side retry with exponential backoff
+            const maxRetries = 3;
+            let retryCount = 0;
+            let lastError: any = null;
+            
+            const retryRequest = () => {
+                // Start with a longer initial delay (1 second)
+                const delay = Math.pow(2, retryCount) * 1000; // 1000ms, 2000ms, 4000ms
+                
+                console.log(`Payment confirmation attempt ${retryCount + 1}/${maxRetries + 1}${retryCount > 0 ? ` (retry after ${delay}ms)` : ''}`);
+                
+                // Wait before making the request (even on first attempt)
+                setTimeout(() => {
+                    this.http.post(url, { bookingId, paymentIntentId, paymentMethodId }, { headers })
+                        .subscribe({
+                            next: (response) => {
+                                console.log('Payment confirmation successful:', response);
+                                observer.next(response);
+                                observer.complete();
+                            },
+                            error: (error) => {
+                                console.error(`Payment confirmation attempt ${retryCount + 1} failed:`, error);
+                                lastError = error;
+                                
+                                const isRetryableError = 
+                                    // Include all 4xx errors except 401/403 as retryable
+                                    (error.status >= 400 && error.status < 500 && error.status !== 401 && error.status !== 403) || 
+                                    // Check for specific error messages
+                                    (error?.error?.message && (
+                                        error.error.message.includes('second operation was started') ||
+                                        error.error.message.includes('busy') || 
+                                        error.error.message.includes('try again')
+                                    ));
+                                
+                                if (retryCount < maxRetries && isRetryableError) {
+                                    retryCount++;
+                                    console.log(`Will retry payment confirmation (attempt ${retryCount + 1}/${maxRetries + 1})`);
+                                    retryRequest(); // Recursive retry
+                                } else {
+                                    // Out of retries or non-retryable error
+                                    if (retryCount === maxRetries) {
+                                        console.error('Maximum retry attempts reached for payment confirmation');
+                                    }
+                                    observer.error(lastError);
+                                }
+                            }
+                        });
+                }, retryCount === 0 ? 0 : delay); // No delay for first attempt
+            };
+            
+            // Start the retry process
+            retryRequest();
+        });
+    }
 
     getPaymentStatus(transactionId: string): Observable<any> {
         const url = `${this.apiUrl}/BookingPayment/GetPaymentByTransactionId/${transactionId}`;

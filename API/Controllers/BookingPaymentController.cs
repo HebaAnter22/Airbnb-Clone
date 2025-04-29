@@ -2,7 +2,6 @@
 using API.Data;
 using API.Models;
 using API.DTOs.BookingPayment;
-using API.Models;
 using API.Services.BookingPaymentRepo;
 using API.Services.BookingRepo;
 using API.Services.NotificationRepository;
@@ -13,6 +12,7 @@ using Microsoft.EntityFrameworkCore;
 using Stripe;
 using Stripe.Checkout;
 using Microsoft.Extensions.Logging;
+using API.Services.PropertyAvailabilityRepo;
 
 namespace API.Controllers
 {
@@ -25,17 +25,19 @@ namespace API.Controllers
         private readonly ILogger<BookingPaymentController> _logger;
         private readonly IBookingRepository _bookingRepo;
         private readonly INotificationRepository _notificationRepo;
+        private readonly IPropertyAvailabilityRepository _propertyAvailabilityRepo;
 
         public BookingPaymentController(
             IBookingPaymentRepository bookingPaymentRepository,
             AppDbContext context,
-            ILogger<BookingPaymentController> logger, IBookingRepository bookingRepo, INotificationRepository notificationRepository)
+            ILogger<BookingPaymentController> logger, IBookingRepository bookingRepo, INotificationRepository notificationRepository, IPropertyAvailabilityRepository propertyAvailabilityRepository)
         {
             _bookingPaymentRepo = bookingPaymentRepository;
             _context = context;
             _logger = logger;
             _bookingRepo = bookingRepo;
             _notificationRepo = notificationRepository;
+            _propertyAvailabilityRepo = propertyAvailabilityRepository;
         }
 
         [HttpPost("create-payment-intent")]
@@ -171,125 +173,119 @@ namespace API.Controllers
 
         [HttpPost("confirm-booking-payment")]
         [Authorize]
-        public async Task<IActionResult> ConfirmBookingPaymentAsync([FromBody] ConfirmPaymentDto confirmPaymentDto)
+        public async Task<IActionResult> ConfirmBookingPayment([FromBody] ConfirmPaymentDto confirmPaymentDto)
         {
-            _logger.LogInformation("ConfirmBookingPaymentAsync called for bookingId: {BookingId}, paymentIntentId: {PaymentIntentId}",
+            if (confirmPaymentDto == null || string.IsNullOrEmpty(confirmPaymentDto.PaymentIntentId))
+            {
+                return BadRequest(new { Message = "Invalid payment data. Payment intent ID is required." });
+            }
+
+            _logger.LogInformation("Confirming payment for booking {BookingId} with intent {PaymentIntentId}",
                 confirmPaymentDto.BookingId, confirmPaymentDto.PaymentIntentId);
 
-            // Try to use the repository method first, which handles everything including earnings update
-            try
+            // Check if booking exists (read only)
+            var booking = await _context.Bookings
+                .AsNoTracking()
+                .FirstOrDefaultAsync(b => b.Id == confirmPaymentDto.BookingId);
+                
+            if (booking == null)
             {
-                var paymentIntentService = new PaymentIntentService();
-                var paymentIntent = await paymentIntentService.GetAsync(confirmPaymentDto.PaymentIntentId);
-                await _bookingPaymentRepo.ConfirmBookingPaymentAsync(
-                    confirmPaymentDto.BookingId,
-                    confirmPaymentDto.PaymentIntentId);
-                var booking = await _bookingRepo.getBookingByIdWithData(confirmPaymentDto.BookingId);
-                var notification1 = new Notification
-                {
-                    UserId = booking.GuestId,
-                    SenderId = booking.Property.HostId,
-                    Message = $"Your payment of {paymentIntent.Amount / 100m}$ was successful.",
-                    CreatedAt = DateTime.UtcNow,
-                    IsRead = false
-                };
-                var notification2 = new Notification
-                {
-                    UserId = booking.Property.HostId,
-                    SenderId = booking.GuestId,
-                    Message = $"You have received a payment of {paymentIntent.Amount / 100m}$ from {booking.Guest.FirstName} {booking.Guest.LastName}.",
-                    CreatedAt = DateTime.UtcNow,
-                    IsRead = false
-                };
-                await _notificationRepo.CreateNotificationAsync(notification1);
-                await _notificationRepo.CreateNotificationAsync(notification2);
-
-                _logger.LogInformation("Payment confirmed and host earnings updated via repository.");
-                return Ok(new { Message = "Payment confirmed and host earnings updated." });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error using repository method to confirm payment. Falling back to controller implementation.");
-                // Fall back to controller implementation if the repository method fails
+                _logger.LogWarning("Booking {BookingId} not found for payment confirmation", confirmPaymentDto.BookingId);
+                return NotFound(new { Message = $"Booking {confirmPaymentDto.BookingId} not found" });
             }
 
-            // Fall back implementation
-            var existingPayment = await _context.BookingPayments
-                .FirstOrDefaultAsync(p => p.TransactionId == confirmPaymentDto.PaymentIntentId);
-
-            decimal paymentAmount = 0;
-            bool isNewPayment = false;
-
-            if (existingPayment == null)
+            // Exponential backoff retry logic
+            const int maxRetries = 3;
+            for (int attempt = 1; attempt <= maxRetries; attempt++)
             {
                 try
                 {
                     var paymentIntentService = new PaymentIntentService();
                     var paymentIntent = await paymentIntentService.GetAsync(confirmPaymentDto.PaymentIntentId);
-                    _logger.LogInformation("PaymentIntent retrieved: Amount: {Amount}, Status: {Status}",
-                        paymentIntent.Amount, paymentIntent.Status);
-
-                    paymentAmount = paymentIntent.Amount / 100m;
-                    isNewPayment = true;
-
-                    await InsertPaymentAsync(
-                        confirmPaymentDto.BookingId,
-                        paymentAmount,
-                        confirmPaymentDto.PaymentIntentId,
-                        paymentIntent.Status
-                    );
-                    _logger.LogInformation("Payment record inserted successfully.");
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Error inserting payment");
-                    return BadRequest(new { Message = $"Error inserting payment: {ex.Message}" });
-                }
-            }
-            else
-            {
-                _logger.LogInformation("Payment already exists with TransactionId: {TransactionId}. Updating status to succeeded.",
-                    confirmPaymentDto.PaymentIntentId);
-
-                if (existingPayment.Status != "succeeded")
-                {
-                    existingPayment.Status = "succeeded";
-                    paymentAmount = existingPayment.Amount;
-                    isNewPayment = true;
-
-                    // Update booking status to Confirmed when payment is marked as successful
-                    var booking = await _context.Bookings.FindAsync(confirmPaymentDto.BookingId);
-                    if (booking != null && booking.Status == "Pending")
+                    _logger.LogInformation("Attempt {Attempt} of {MaxAttempts} to confirm payment", attempt, maxRetries);
+                    
+                    // Wait longer between each retry attempt
+                    if (attempt > 1)
                     {
-                        booking.Status = "Confirmed";
-                        _context.Update(booking);
-                        _logger.LogInformation("Booking {BookingId} status updated to Confirmed", booking.Id);
+                        int delayMs = (int)Math.Pow(2, attempt - 1) * 500; // 500ms, 1000ms, 2000ms
+                        await Task.Delay(delayMs);
+                        _logger.LogInformation("Retrying after {Delay}ms delay", delayMs);
                     }
+                    
+                    // Try to confirm the payment
+                    await _bookingPaymentRepo.ConfirmBookingPaymentAsync(
+                        confirmPaymentDto.BookingId,
+                        confirmPaymentDto.PaymentIntentId
+                    );
 
-                    await _context.SaveChangesAsync();
-                }
-            }
+                    var bookingn = await _bookingRepo.getBookingByIdWithData(confirmPaymentDto.BookingId);
+                    var notification1 = new Notification
+                    {
+                        UserId = bookingn.GuestId,
+                        SenderId = bookingn.Property.HostId,
+                        Message = $"Your payment of {paymentIntent.Amount / 100m}$ was successful.",
+                        CreatedAt = DateTime.UtcNow,
+                        IsRead = false
+                    };
+                    var notification2 = new Notification
+                    {
+                        UserId = bookingn.Property.HostId,
+                        SenderId = bookingn.GuestId,
+                        Message = $"You have received a payment of {paymentIntent.Amount / 100m}$ from {bookingn.Guest.FirstName} {bookingn.Guest.LastName}.",
+                        CreatedAt = DateTime.UtcNow,
+                        IsRead = false
+                    };
+                    await _notificationRepo.CreateNotificationAsync(notification1);
+                    await _notificationRepo.CreateNotificationAsync(notification2);
 
-            // Update host earnings if this is a new/updated payment
-            if (isNewPayment && paymentAmount > 0)
-            {
-                try
-                {
-                    _logger.LogInformation("Updating host earnings for booking {BookingId}, amount {Amount}",
-                        confirmPaymentDto.BookingId, paymentAmount);
+                    // Instead of passing the tracked entity, just pass the ID and dates
+                    // This prevents entity tracking conflicts
+                    await _propertyAvailabilityRepo.UpdateAvailabilityAsync(
+                        booking.PropertyId,
+                        booking.StartDate,
+                        booking.EndDate,
+                        isAvailable: false
+                    );
 
-                    await _bookingPaymentRepo.UpdateHostEarningsAsync(confirmPaymentDto.BookingId, paymentAmount);
-
-                    _logger.LogInformation("Host earnings updated successfully");
+                    return Ok(new { Message = "Payment confirmed successfully", Success = true });
                 }
                 catch (Exception ex)
                 {
-                    // Don't fail the request if earnings update fails, just log it
-                    _logger.LogError(ex, "Error updating host earnings");
+                    string errorMessage = ex.Message;
+                    bool shouldRetry = ex.Message.Contains("second operation was started");
+                    
+                    // Log detailed error for debugging
+                    if (ex.InnerException != null)
+                    {
+                        _logger.LogError(ex, "Inner exception on attempt {Attempt}: {InnerError}", 
+                            attempt, ex.InnerException.Message);
+                        errorMessage = $"{errorMessage} - {ex.InnerException.Message}";
+                    }
+                    
+                    _logger.LogError(ex, "Error on attempt {Attempt}: {ErrorMessage}", attempt, errorMessage);
+                    
+                    // If this is the last attempt or we shouldn't retry this type of error, return error response
+                    if (attempt == maxRetries || !shouldRetry)
+                    {
+                        string friendlyMessage = shouldRetry 
+                            ? "Payment system is busy. Please try again in a few moments." 
+                            : "Error confirming payment. Please check your payment details and try again.";
+                            
+                        return BadRequest(new { 
+                            Message = friendlyMessage,
+                            Details = errorMessage,
+                            Success = false
+                        });
+                    }
+                    
+                    // Otherwise, continue to the next retry attempt
+                    _logger.LogWarning("Will retry payment confirmation. Attempt {Attempt} failed with: {Error}", 
+                        attempt, errorMessage);
                 }
             }
-
-            return Ok(new { Message = "Payment confirmed successfully." });
+            
+            // This should never be reached because the last attempt will either return Ok or BadRequest
+            return StatusCode(500, new { Message = "An unexpected error occurred during payment processing" });
         }
 
         private async Task InsertPaymentAsync(int bookingId, decimal amount, string transactionId, string status)

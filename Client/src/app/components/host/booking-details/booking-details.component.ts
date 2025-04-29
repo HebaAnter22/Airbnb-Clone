@@ -76,6 +76,6 @@ export class BookingDetailsComponent implements OnInit {
   }
 
   goBack(): void {
-    this.router.navigate(['/bookings']);
+    this.router.navigate(['/host']);
   }
 } 

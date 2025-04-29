@@ -20,13 +20,16 @@ namespace API.Services
 
         public Task<User> GetUserByIdAsync(string id)
         {
+            if (string.IsNullOrEmpty(id))
+            {
+                return Task.FromResult<User>(null);
+            }
+            
             var user = _context.Users.FirstOrDefault(x =>
                 x.Id.ToString() == id
             );
-            if (user == null)
-            {
-                throw new Exception("User not found");
-            }
+            
+            // Return null instead of throwing an exception
             return Task.FromResult(user);
         }
         public Task<Models.Host> GetHostByUserIdAsync(int userId)
@@ -283,18 +286,50 @@ namespace API.Services
         }
         public async Task<Review> addReview(ReviewRequestDto review)
         {
-            var newReview = new Review
+            try
             {
-                BookingId = review.BookingId,
-                ReviewerId = review.ReviewerId,
-                Rating = review.Rating,
-                Comment = review.Comment,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
-            };
-            await _context.Reviews.AddAsync(newReview);
-            await _context.SaveChangesAsync();
-            return newReview;
+                // Check if the booking exists
+                var booking = await _context.Bookings.FindAsync(review.BookingId);
+                if (booking == null)
+                {
+                    throw new Exception($"Booking with ID {review.BookingId} not found");
+                }
+                
+                // Check if a review already exists for this booking
+                var existingReview = await _context.Reviews
+                    .FirstOrDefaultAsync(r => r.BookingId == review.BookingId);
+                    
+                if (existingReview != null)
+                {
+                    throw new Exception($"A review already exists for booking with ID {review.BookingId}");
+                }
+                
+                // Validate the reviewer exists
+                var reviewer = await _context.Users.FindAsync(review.ReviewerId);
+                if (reviewer == null)
+                {
+                    throw new Exception($"Reviewer with ID {review.ReviewerId} not found");
+                }
+                
+                // Create and save the new review
+                var newReview = new Review
+                {
+                    BookingId = review.BookingId,
+                    ReviewerId = review.ReviewerId,
+                    Rating = review.Rating,
+                    Comment = review.Comment,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                };
+                
+                await _context.Reviews.AddAsync(newReview);
+                await _context.SaveChangesAsync();
+                return newReview;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error adding review: {ex.Message}", ex);
+            }
         }
         public Task<IEnumerable<Review>> GetUserReviewsAsync(int userId)
         {

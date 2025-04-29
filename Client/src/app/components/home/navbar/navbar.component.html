@@ -15,7 +15,7 @@
       <span class="profile-icon" style="color: #484848;">
         <img *ngIf="loggedIn && imageUrl" [src]="imageUrl" alt="Profile" class="profile-image" />
         <div *ngIf="loggedIn && !imageUrl" class="profile-avatar">
-          <div class="profile-placeholder">{{ userFirstName ? userFirstName[0] : 'G' }}</div>
+        <div class="profile-placeholder">{{ userFirstName ? userFirstName[0] : 'G' }}</div>
         </div>
         <span class="profile-placeholder" *ngIf="!loggedIn">👤</span>
       </span>

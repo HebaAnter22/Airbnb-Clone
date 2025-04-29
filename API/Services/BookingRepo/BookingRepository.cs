@@ -194,7 +194,7 @@ namespace API.Services.BookingRepo
 
             try
             {
-                await _context.Bookings.AddAsync(booking);
+                //await _context.Bookings.AddAsync(booking);
 
                 await _propertyAvailabilityRepo.UpdateAvailabilityAsync(
                     booking.PropertyId,

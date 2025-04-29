@@ -183,10 +183,12 @@ namespace API
             builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
 
 
+
             // Add AI Services
             builder.Services.Configure<AIConfiguration>(builder.Configuration.GetSection("OpenAI"));
             builder.Services.AddScoped<IOpenAIService, OpenAIService>();
             builder.Services.AddAutoMapper(typeof(Program));
+
 
             // Register services
             builder.Services.AddScoped<IViolationService, ViolationService>();

@@ -274,7 +274,7 @@ namespace API.Controllers
         #region Guest Methods
         // Get all bookings made by a specific user (paginated).
         [HttpGet("userBookings")]
-        [Authorize(Roles = "Guest")]
+        [Authorize(Roles = "Guest,Host")]
         public async Task<IActionResult> GetAllUserBooking(int page = 1, int pageSize = 10)
         {
             var userId = GetCurrentUserId();
@@ -343,7 +343,7 @@ namespace API.Controllers
 
         // Get detailed information about a specific booking
         [HttpGet("{bookingId}/details")]
-        [Authorize(Roles = "Guest,Admin")]
+        [Authorize(Roles = "Guest,Admin,Host")]
         public async Task<IActionResult> GetUserBookingDetails(int bookingId)
         {
             try
@@ -407,7 +407,7 @@ namespace API.Controllers
         }
 
         [HttpPost("{bookingId}/apply-promotion")]
-        [Authorize(Roles = "Guest")]
+        [Authorize(Roles = "Guest, Host")]
         public async Task<IActionResult> ApplyPromotion(int bookingId, [FromBody] ApplyPromotionDto input)
         {
             try
@@ -489,7 +489,7 @@ namespace API.Controllers
 
 
         [HttpPost]
-        [Authorize(Roles = "Guest")]
+        [Authorize(Roles = "Guest, Host")]
         public async Task<IActionResult> CreateBooking([FromBody] BookingInputDTO input)
         {
             if (!ModelState.IsValid)
@@ -598,8 +598,10 @@ namespace API.Controllers
 
 
 
-                await _bookingRepo.CreateBookingAndUpdateAvailabilityAsync(booking);
+                //await _bookingRepo.CreateBookingAndUpdateAvailabilityAsync(booking);
+                await _bookingRepo.AddAsync(booking);
                 await _notificationRepo.CreateNotificationAsync(notification1);
+
 
                 var usedPromotion = new UserUsedPromotion
                 {
@@ -656,7 +658,7 @@ namespace API.Controllers
 
         // Update an existing booking.
         [HttpPut("{id}")]
-        [Authorize(Roles = "Guest")]
+        [Authorize(Roles = "Guest, Host")]
         public async Task<IActionResult> UpdateBooking(int id, [FromBody] BookingInputDTO input)
         {
             if (!ModelState.IsValid)

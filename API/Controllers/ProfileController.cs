@@ -1,4 +1,5 @@
 ﻿using System.Security.Claims;
+using API.Data;
 using API.DTOs.Profile;
 using API.Models;
 using API.Services;
@@ -14,12 +15,14 @@ namespace API.Controllers
     public class ProfileController : Controller
     {
         private readonly IProfileService _profileService;
+        private readonly AppDbContext _context;
         public ProfileController(
-            IProfileService _profileService
+            IProfileService _profileService,
+            AppDbContext context
             )
         {
             this._profileService = _profileService;
-
+            this._context = context;
         }
 
 
@@ -28,25 +31,39 @@ namespace API.Controllers
         //[Authorize]
         public async Task<ActionResult<User>> GetUserProfile(string? userId = null)
         {
-            var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-            string wantedUserId = ""; 
-            if(userId!=null&& userId != currentUserId)
+            try
             {
-                wantedUserId = userId;
+                var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
+                string wantedUserId = ""; 
+                if(userId!=null&& userId != currentUserId)
+                {
+                    wantedUserId = userId;
+                }
+                else
+                {
+                    wantedUserId = currentUserId;
+                }
+                
+                // Handle case where no user ID is available
+                if (string.IsNullOrEmpty(wantedUserId))
+                {
+                    return Unauthorized("No user is currently authenticated");
+                }
+                
+                var user = await _profileService.GetUserByIdAsync(wantedUserId);
+                if (user == null)
+                {
+                    return NotFound($"User with ID {wantedUserId} not found");
+                }
+                return Ok(user);
             }
-            else
+            catch (Exception ex)
             {
-                wantedUserId = currentUserId;
+                // Log the exception
+                Console.WriteLine($"Error in GetUserProfile: {ex.Message}");
+                return StatusCode(500, "An error occurred while retrieving the user profile");
             }
-            var user= await _profileService.GetUserByIdAsync( wantedUserId );
-            if (user == null)
-            {
-                return BadRequest("user not found");
-            }
-            return Ok(user);
-
         }
 
         // Gets host-specific information for a user
@@ -256,17 +273,46 @@ namespace API.Controllers
         [Authorize]
         public async Task<IActionResult> AddReview([FromBody] ReviewRequestDto reviewDto)
         {
-
-            var currentUserId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
-            if (currentUserId == null)
+            try
             {
-                return Unauthorized("User not found");
-            }
-           
-            reviewDto.ReviewerId = currentUserId;
+                var currentUserId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+                if (currentUserId == 0)
+                {
+                    return Unauthorized("User not found");
+                }
+               
+                reviewDto.ReviewerId = currentUserId;
 
-            var res = await _profileService.addReview(reviewDto);
-            return Ok(res);
+                // Validate the booking exists
+                var booking = await _context.Bookings.FindAsync(reviewDto.BookingId);
+                if (booking == null)
+                {
+                    return NotFound($"Booking with ID {reviewDto.BookingId} not found");
+                }
+
+                // Check if a review already exists for this booking
+                var existingReview = await _context.Reviews
+                    .FirstOrDefaultAsync(r => r.BookingId == reviewDto.BookingId);
+                
+                if (existingReview != null)
+                {
+                    return BadRequest("A review already exists for this booking");
+                }
+
+                var res = await _profileService.addReview(reviewDto);
+                return Ok(res);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in AddReview: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                if (ex.InnerException != null)
+                {
+                    Console.WriteLine($"Inner exception: {ex.InnerException.Message}");
+                }
+                
+                return StatusCode(500, "An error occurred while adding the review");
+            }
         }
 
         [HttpGet("guest/reviews")]

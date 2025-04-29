@@ -7,6 +7,7 @@ import { environment } from '../../../environments/environment';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DatePipe } from '@angular/common';
+import { firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-checkout',
@@ -100,7 +101,7 @@ export class CheckoutComponent implements OnInit {
     this.paymentStatus = null;
 
     try {
-      const paymentIntentResponse = await this.paymentService.createPaymentIntent(this.amount, this.bookingId).toPromise();
+      const paymentIntentResponse = await firstValueFrom(this.paymentService.createPaymentIntent(this.amount, this.bookingId));
       this.paymentIntentId = paymentIntentResponse.clientSecret.split('_secret_')[0];
 
       const stripe = await this.stripePromise;
@@ -122,11 +123,16 @@ export class CheckoutComponent implements OnInit {
       }
 
       if (paymentIntent && paymentIntent.status === 'succeeded') {
-        await this.paymentService.confirmPayment(this.bookingId, this.paymentIntentId!, 'pm_card_visa').toPromise();
+        await firstValueFrom(this.paymentService.confirmPayment(this.bookingId, this.paymentIntentId!, 'pm_card_visa'));
         this.paymentStatus = 'Payment successful!';
+        // Navigate to success page after successful payment
+        setTimeout(() => {
+          this.router.navigate(['/bookings']);
+        }, 1500);
       }
     } catch (error) {
       this.errorMessage = error instanceof Error ? error.message : 'Payment failed';
+      console.error('Payment error:', error);
     }
   }
 }

@@ -1,6 +1,7 @@
 import { Component, HostListener, Input, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { DomSanitizer } from '@angular/platform-browser';
 import { AuthService } from '../../../services/auth.service';
 import { ProfileService } from '../../../services/profile.service';
 import { NotificationComponent } from '../notification/notification.component';
@@ -40,7 +41,8 @@ export class NavbarComponent implements OnInit {
   constructor(private authService: AuthService,
     private profileService: ProfileService,
     private router: Router,
-    private chatService: ChatSignalRService
+    private chatService: ChatSignalRService,
+    private sanitizer: DomSanitizer
   ) {
     if (this.authService.userId) {
       this.loggedIn = true;
@@ -48,12 +50,14 @@ export class NavbarComponent implements OnInit {
   }
 
   ngOnInit() {
-
     this.profileService.getUserProfile(this.authService.userId ? this.authService.userId : '').subscribe(
-
       (profile: any) => {
         this.userFirstName = profile.firstName || 'User'; // Default to 'User' if first name is not available
-        this.imageUrl = profile.profilePictureUrl?  profile.profilePictureUrl :this.imageUrl// Use default image if profile picture URL is not available
+        if (profile.profilePictureUrl) {
+          // Just store the raw URL, we'll sanitize it in the template
+          this.imageUrl = profile.profilePictureUrl;
+        }
+        console.log(this.imageUrl);
       },
       (error) => {
         console.error('Error loading profile:', error);

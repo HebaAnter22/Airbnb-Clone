@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Stripe;
 using Stripe.Checkout;
 using WebApiDotNet.Repos;
+using System.Transactions;
 
 namespace API.Services.BookingPaymentRepo
 {
@@ -103,89 +104,142 @@ namespace API.Services.BookingPaymentRepo
         
         public async Task ConfirmBookingPaymentAsync(int bookingId, string paymentIntentId)
         {
-            // Check if payment already exists to avoid duplicates
-            var existingPayment = await _context.BookingPayments
-                .FirstOrDefaultAsync(p => p.TransactionId == paymentIntentId);
-
-            decimal paymentAmount = 0;
-            bool isNewPayment = false;
-            int? hostId = null;
-
-            if (existingPayment == null)
+            // Use a completely separate database operation for each step
+            try
             {
-                // Fetch the PaymentIntent to get the amount
+                // Step 1: Check if payment already exists (outside of any transaction)
+                var existingPayment = await _context.BookingPayments
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(p => p.TransactionId == paymentIntentId);
+
+                // If payment exists and is already succeeded, just return success
+                if (existingPayment != null && existingPayment.Status == "succeeded")
+                {
+                    _logger.LogInformation("Payment with ID {PaymentId} already confirmed, skipping processing", existingPayment.Id);
+                    return;
+                }
+                    
+                // Get Stripe payment information
                 var paymentIntentService = new PaymentIntentService();
                 var paymentIntent = await paymentIntentService.GetAsync(paymentIntentId);
-
-                paymentAmount = paymentIntent.Amount / 100m; // Convert from cents to dollars
-                isNewPayment = true;
-
-                // First, get the host ID to ensure we can update earnings even if the main method fails
-                var booking = await _context.Bookings
-                    .Include(b => b.Property)
-                    .ThenInclude(p => p.Host)
-                    .FirstOrDefaultAsync(b => b.Id == bookingId);
-
-                if (booking?.Property?.Host != null)
+                
+                // Calculate payment amount
+                decimal paymentAmount = paymentIntent.Amount / 100m;
+                    
+                // Step 2: If payment doesn't exist, create it
+                if (existingPayment == null)
                 {
-                    hostId = booking.Property.Host.HostId;
-                }
-
-                // Insert the payment record
-                await InsertPaymentAsync(
-                    bookingId,
-                    paymentAmount,
-                    paymentIntentId,
-                    paymentIntent.Status
-                );
-            }
-            else
-            {
-                // Update the status if the payment already exists but wasn't successful yet
-                if (existingPayment.Status != "succeeded")
-                {
-                    existingPayment.Status = "succeeded";
-                    paymentAmount = existingPayment.Amount;
-                    isNewPayment = true;
-
-                    // Get host ID
+                    // Check if the booking exists
                     var booking = await _context.Bookings
+                        .AsNoTracking()
+                        .Include(b => b.Property)
+                        .FirstOrDefaultAsync(b => b.Id == bookingId);
+                        
+                    if (booking == null)
+                    {
+                        _logger.LogError("Booking {BookingId} not found", bookingId);
+                        throw new Exception($"Booking {bookingId} not found");
+                    }
+                        
+                    // Create new payment record
+                    var payment = new BookingPayment
+                    {
+                        BookingId = bookingId,
+                        Amount = paymentAmount,
+                        PaymentMethodType = "Stripe",
+                        TransactionId = paymentIntentId,
+                        Status = paymentIntent.Status,
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow
+                    };
+                    
+                    // Create a new context using the DbContextOptions
+                    using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+                    {
+                        _context.BookingPayments.Add(payment);
+                        await _context.SaveChangesAsync();
+                        _logger.LogInformation("Payment record created for booking {BookingId}", bookingId);
+                        scope.Complete();
+                    }
+
+                    // Step 3: Update the booking status in a separate operation
+                    using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+                    {
+                        var bookingToUpdate = await _context.Bookings.FindAsync(bookingId);
+                        if (bookingToUpdate != null && bookingToUpdate.Status != "Confirmed")
+                        {
+                            bookingToUpdate.Status = "Confirmed";
+                            bookingToUpdate.UpdatedAt = DateTime.UtcNow;
+                            await _context.SaveChangesAsync();
+                            _logger.LogInformation("Booking {BookingId} status updated to Confirmed", bookingId);
+                        }
+                        scope.Complete();
+                    }
+                }
+                // Step 4: If payment exists but isn't successful, update it
+                else if (existingPayment.Status != "succeeded")
+                {
+                    using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+                    {
+                        var paymentToUpdate = await _context.BookingPayments.FindAsync(existingPayment.Id);
+                        if (paymentToUpdate != null)
+                        {
+                            paymentToUpdate.Status = "succeeded";
+                            paymentToUpdate.UpdatedAt = DateTime.UtcNow;
+                            await _context.SaveChangesAsync();
+                            _logger.LogInformation("Payment {PaymentId} status updated to succeeded", existingPayment.Id);
+                        }
+                        scope.Complete();
+                    }
+                }
+                
+                // Step 5: Update host earnings if needed (in a separate transaction)
+                if (existingPayment == null || existingPayment.Status != "succeeded")
+                {
+                    // Get host ID from booking
+                    int? hostId = null;
+                    var booking = await _context.Bookings
+                        .AsNoTracking()
                         .Include(b => b.Property)
                         .ThenInclude(p => p.Host)
                         .FirstOrDefaultAsync(b => b.Id == bookingId);
-
+                        
                     if (booking?.Property?.Host != null)
                     {
                         hostId = booking.Property.Host.HostId;
+                        
+                        if (hostId.HasValue)
+                        {
+                            try
+                            {
+                                using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+                                {
+                                    var host = await _context.HostProfules.FindAsync(hostId.Value);
+                                    if (host != null)
+                                    {
+                                        // Update host earnings (85% of payment amount)
+                                        decimal hostAmount = paymentAmount * 0.85m;
+                                        host.TotalEarnings += hostAmount;
+                                        host.AvailableBalance += hostAmount;
+                                        await _context.SaveChangesAsync();
+                                        _logger.LogInformation("Host {HostId} earnings updated: added {Amount}", hostId.Value, hostAmount);
+                                    }
+                                    scope.Complete();
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                _logger.LogError(ex, "Error updating host earnings for host {HostId}", hostId.Value);
+                                // Don't rethrow - payment confirmation was successful
+                            }
+                        }
                     }
-
-                    await _context.SaveChangesAsync();
                 }
             }
-
-            // Only update host earnings for new successful payments
-            if (isNewPayment && paymentAmount > 0)
+            catch (Exception ex)
             {
-                try
-                {
-                    // Try the standard method first
-                    await UpdateHostEarningsAsync(bookingId, paymentAmount);
-                    await _bookingRepository.UpdateBookingStatusAsync(bookingId, "Confirmed");
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Error updating host earnings through booking. Trying direct method...");
-                    
-                    // If there's an error, try the direct method if we have the host ID
-                    if (hostId.HasValue)
-                    {
-                        await UpdateHostEarningsDirectlyAsync(hostId.Value, paymentAmount);
-                    }
-                    else
-                    {
-                        _logger.LogError("Cannot update host earnings: no host ID available");
-                    }
-                }
+                _logger.LogError(ex, "Error in ConfirmBookingPaymentAsync for booking {BookingId}", bookingId);
+                throw;
             }
         }
 

@@ -16,6 +16,8 @@ import { StickyNavComponent } from '../sticky-nav/sticky-nav.component';
 import { CreatePropertyService } from '../../../services/property-crud.service';
 import { Output, EventEmitter, HostListener } from '@angular/core';
 import { AuthService } from '../../../services/auth.service';
+import { ProfileService } from '../../../services/profile.service';
+
 @Component({
   selector: 'app-property-listings',
   standalone: true,
@@ -50,6 +52,9 @@ export class PropertyListingsComponent implements OnInit {
   minPrice: number | null = null;
   maxPrice: number | null = null;
   showPriceFilter: boolean = false;
+  wishlistProperties: number[] = [];
+  showToast: boolean = false;
+  toastMessage: string = '';
 
   @Output() scrollStateChanged = new EventEmitter<boolean>();
   @Output() searchPerformed = new EventEmitter<any>();
@@ -71,6 +76,7 @@ export class PropertyListingsComponent implements OnInit {
     }
   }
   constructor(
+    private profileService: ProfileService,
     private router: Router,
     private propertyService: PropertyService,
     private createPropertyService: CreatePropertyService,
@@ -82,8 +88,21 @@ export class PropertyListingsComponent implements OnInit {
     this.fetchProperties();
     this.fetchCategories();
     this.loadFavoritesFromStorage();
+    this.loadWishlistProperties();
   }
 
+
+  loadWishlistProperties(): void {
+    this.profileService.getUserFavorites().subscribe({
+      next: (properties) => {
+        // Assuming the service returns an array of property IDs or objects with IDs
+        console.log('Wishlist properties from API:', properties);
+        this.wishlistProperties = properties.map((property: any) => property.propertyId);
+        console.log('Wishlist properties loaded:', this.wishlistProperties);
+      },
+      error: (err) => console.error('Error loading wishlist:', err)
+    });
+  }
   fetchCategories(): void {
     this.isLoading = true;
     this.createPropertyService.getCategories().subscribe({
@@ -234,19 +253,45 @@ export class PropertyListingsComponent implements OnInit {
     this.router.navigate(['/property', propertyId]);
   }
 
-  toggleFavorite(propertyId: number, event: MouseEvent) {
-    event.stopPropagation();
-    if (this.favorites.has(propertyId)) {
-      this.favorites.delete(propertyId);
-    } else {
-      this.favorites.add(propertyId);
-    }
-    this.saveFavoritesToStorage();
-  }
+  toggleFavorite(propertyId: number, event: Event): void {
+    event.stopPropagation(); // Prevent click from bubbling to parent elements
 
-  isFavorite(propertyId: number): boolean {
-    return this.favorites.has(propertyId);
+    if (this.isFavorite(propertyId)) {
+      this.removeFromWishlist(propertyId);
+    } else {
+      this.addToWishlist(propertyId);
+    }
   }
+  isFavorite(propertyId: number): boolean {
+    return this.wishlistProperties.includes(propertyId);
+
+  }
+  addToWishlist(propertyId: number): void {
+    this.profileService.addOrRemoveToFavourites(propertyId).subscribe({
+      next: () => {
+        if (!this.wishlistProperties.includes(propertyId)) {
+          this.wishlistProperties.push(propertyId);
+          this.showToast = true;
+          this.toastMessage = "?? Property added to your wishlist! <a href='/wishlist'>Click here to view</a>";
+
+          setTimeout(() => {
+            this.showToast = false;
+          }, 3000);
+        }
+      },
+      error: (err) => console.error('Error adding to wishlist:', err)
+});
+}
+
+removeFromWishlist(propertyId: number): void {
+  this.profileService.addOrRemoveToFavourites(propertyId).subscribe({
+    next: () => {
+      this.wishlistProperties = this.wishlistProperties.filter(id => id !== propertyId);
+    },
+    error: (err) => console.error('Error removing from wishlist:', err)
+});
+}
+
 
   private loadFavoritesFromStorage() {
     const storedFavorites = localStorage.getItem('favorites');
