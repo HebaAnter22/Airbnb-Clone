@@ -116,9 +116,10 @@ namespace API.Controllers
         [Authorize(Roles = "Host,Admin")]
         public async Task<IActionResult> GetPropertyBookingDetails(int propertyId)
         {
-            try {
+            try
+            {
                 var bookings = await _bookingRepo.GetPropertyBookingDetails(propertyId);
-                
+
                 // If user is admin, skip the host authorization check
                 var userRole = User.FindFirst(ClaimTypes.Role)?.Value;
                 if (userRole != "Admin")
@@ -382,14 +383,14 @@ namespace API.Controllers
                         Status = p.Status,
                         CreatedAt = p.CreatedAt
                     }).ToList(),
-                    CancellationPolicy = booking.Property?.CancellationPolicy != null 
+                    CancellationPolicy = booking.Property?.CancellationPolicy != null
                         ? new CancellationPolicyDTO
                         {
                             Id = booking.Property.CancellationPolicy.Id,
                             Name = booking.Property.CancellationPolicy.Name,
                             Description = booking.Property.CancellationPolicy.Description,
                             RefundPercentage = booking.Property.CancellationPolicy.RefundPercentage
-                        } 
+                        }
                         : null
                 };
 
@@ -528,14 +529,14 @@ namespace API.Controllers
                     return BadRequest("The property is not available for the selected dates.");
 
                 var stayDuration = (input.EndDate - input.StartDate).TotalDays;
-                
+
                 var basePrice = (property.Result.PricePerNight + property.Result.CleaningFee + property.Result.ServiceFee) * (decimal)stayDuration;
 
-                Promotion promotion=null ;
-                if (input.PromotionId>0)
+                Promotion promotion = null;
+                if (input.PromotionId > 0)
                 {
 
-                 promotion = await _bookingRepo.GetPromotionByIdAsync(input.PromotionId);
+                    promotion = await _bookingRepo.GetPromotionByIdAsync(input.PromotionId);
                 }
                 decimal discountedPrice = (decimal)basePrice;
 
@@ -588,13 +589,13 @@ namespace API.Controllers
                 {
                     UserId = guestId,
                     SenderId = (int)property.Result.HostId,
-                    Message = $"Your booking for property {property.Result.Title} has been confirmed.",
+                    Message = $"Your booked property {property.Result.Title} from {booking.StartDate} to {booking.EndDate}.",
                     IsRead = false,
                     CreatedAt = DateTime.UtcNow
                 };
-                    await _notificationRepo.CreateNotificationAsync(notification2);
-                
-              
+                await _notificationRepo.CreateNotificationAsync(notification2);
+
+
 
 
                 await _bookingRepo.CreateBookingAndUpdateAvailabilityAsync(booking);

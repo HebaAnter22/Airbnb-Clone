@@ -8,7 +8,11 @@ import {
   User,
   authState,
   sendPasswordResetEmail,
-  updateProfile
+  updateProfile,
+  applyActionCode,
+  confirmPasswordReset,
+  verifyPasswordResetCode,
+  ActionCodeSettings
 } from '@angular/fire/auth';
 import { Observable } from 'rxjs';
 
@@ -17,6 +21,11 @@ import { Observable } from 'rxjs';
 })
 export class FirebaseAuthService {
   currentUser$: Observable<User | null>;
+
+  private actionCodeSettings: ActionCodeSettings = {
+    url: 'http://localhost:4200/reset-password',
+    handleCodeInApp: true,
+  };
 
   constructor(private auth: Auth) {
     this.currentUser$ = authState(this.auth);
@@ -81,4 +90,46 @@ export class FirebaseAuthService {
       await updateProfile(this.auth.currentUser, { displayName });
     }
   }
+  async sendPasswordResetEmail(email: string): Promise<boolean> {
+    try {
+      await sendPasswordResetEmail(this.auth, email,
+        this.actionCodeSettings
+      );
+      return true;
+    } catch (error: any) {
+      console.error('Error sending password reset email:', error);
+      if (error.code === 'auth/user-not-found') {
+        throw new Error('No account exists with this email address.');
+      }
+      return false;
+    }
+  }
+  async verifyPasswordResetCode(code: string): Promise<string> {
+    try {
+      return await verifyPasswordResetCode(this.auth, code);
+    } catch (error) {
+      console.error('Invalid or expired action code', error);
+      throw error;
+    }
+  }
+  async confirmPasswordReset(code: string, newPassword: string): Promise<boolean> {
+    try {
+      await confirmPasswordReset(this.auth, code, newPassword);
+
+      return true;
+    } catch (error) {
+      console.error('Error confirming password reset:', error);
+      return false;
+    }
+  }
+  async verifyEmail(actionCode: string): Promise<boolean> {
+    try {
+      await applyActionCode(this.auth, actionCode);
+      return true;
+    } catch (error) {
+      console.error('Error verifying email:', error);
+      return false;
+    }
+  }
+
 }

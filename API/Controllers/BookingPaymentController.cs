@@ -23,15 +23,19 @@ namespace API.Controllers
         private readonly IBookingPaymentRepository _bookingPaymentRepo;
         private readonly AppDbContext _context;
         private readonly ILogger<BookingPaymentController> _logger;
+        private readonly IBookingRepository _bookingRepo;
+        private readonly INotificationRepository _notificationRepo;
 
         public BookingPaymentController(
-            IBookingPaymentRepository bookingPaymentRepository, 
+            IBookingPaymentRepository bookingPaymentRepository,
             AppDbContext context,
-            ILogger<BookingPaymentController> logger)
+            ILogger<BookingPaymentController> logger, IBookingRepository bookingRepo, INotificationRepository notificationRepository)
         {
             _bookingPaymentRepo = bookingPaymentRepository;
             _context = context;
             _logger = logger;
+            _bookingRepo = bookingRepo;
+            _notificationRepo = notificationRepository;
         }
 
         [HttpPost("create-payment-intent")]
@@ -91,9 +95,9 @@ namespace API.Controllers
         [Authorize]
         public async Task<IActionResult> RefundPayment([FromBody] RefundPaymentDto refundDto)
         {
-            _logger.LogInformation("RefundPayment called for paymentId: {PaymentId}, amount: {Amount}", 
+            _logger.LogInformation("RefundPayment called for paymentId: {PaymentId}, amount: {Amount}",
                 refundDto.PaymentId, refundDto.RefundAmount);
-            
+
             try
             {
                 // Validate refund request
@@ -101,38 +105,40 @@ namespace API.Controllers
                 {
                     return BadRequest(new { error = "Refund amount must be greater than zero." });
                 }
-                
+
                 // Get the payment to verify it exists and is eligible for refund
                 var payment = await _context.BookingPayments.FindAsync(refundDto.PaymentId);
                 if (payment == null)
                 {
                     return NotFound(new { error = "Payment not found." });
                 }
-                
+
                 if (payment.Status == "refunded")
                 {
                     return BadRequest(new { error = "Payment has already been fully refunded." });
                 }
-                
+
                 if (payment.RefundedAmount + refundDto.RefundAmount > payment.Amount)
                 {
                     return BadRequest(new { error = $"Refund amount exceeds available amount. Maximum refund available: {payment.Amount - payment.RefundedAmount:F2}" });
                 }
-                
+
                 // Process the refund
                 var success = await _bookingPaymentRepo.RefundPaymentAsync(
-                    refundDto.PaymentId, 
-                    refundDto.RefundAmount, 
+                    refundDto.PaymentId,
+                    refundDto.RefundAmount,
                     refundDto.Reason);
-                
+
                 if (!success)
                 {
                     return BadRequest(new { error = "Refund failed to process. Please check the logs for details." });
                 }
-                
-                return Ok(new { 
+
+                return Ok(new
+                {
                     message = "Refund processed successfully.",
-                    data = new {
+                    data = new
+                    {
                         paymentId = payment.Id,
                         bookingId = payment.BookingId,
                         refundedAmount = refundDto.RefundAmount,
@@ -159,7 +165,7 @@ namespace API.Controllers
                 PaymentId = paymentId,
                 RefundAmount = refundAmount
             };
-            
+
             return await RefundPayment(refundDto);
         }
 
@@ -167,16 +173,37 @@ namespace API.Controllers
         [Authorize]
         public async Task<IActionResult> ConfirmBookingPaymentAsync([FromBody] ConfirmPaymentDto confirmPaymentDto)
         {
-            _logger.LogInformation("ConfirmBookingPaymentAsync called for bookingId: {BookingId}, paymentIntentId: {PaymentIntentId}", 
+            _logger.LogInformation("ConfirmBookingPaymentAsync called for bookingId: {BookingId}, paymentIntentId: {PaymentIntentId}",
                 confirmPaymentDto.BookingId, confirmPaymentDto.PaymentIntentId);
 
             // Try to use the repository method first, which handles everything including earnings update
             try
             {
+                var paymentIntentService = new PaymentIntentService();
+                var paymentIntent = await paymentIntentService.GetAsync(confirmPaymentDto.PaymentIntentId);
                 await _bookingPaymentRepo.ConfirmBookingPaymentAsync(
-                    confirmPaymentDto.BookingId, 
+                    confirmPaymentDto.BookingId,
                     confirmPaymentDto.PaymentIntentId);
-                
+                var booking = await _bookingRepo.getBookingByIdWithData(confirmPaymentDto.BookingId);
+                var notification1 = new Notification
+                {
+                    UserId = booking.GuestId,
+                    SenderId = booking.Property.HostId,
+                    Message = $"Your payment of {paymentIntent.Amount / 100m}$ was successful.",
+                    CreatedAt = DateTime.UtcNow,
+                    IsRead = false
+                };
+                var notification2 = new Notification
+                {
+                    UserId = booking.Property.HostId,
+                    SenderId = booking.GuestId,
+                    Message = $"You have received a payment of {paymentIntent.Amount / 100m}$ from {booking.Guest.FirstName} {booking.Guest.LastName}.",
+                    CreatedAt = DateTime.UtcNow,
+                    IsRead = false
+                };
+                await _notificationRepo.CreateNotificationAsync(notification1);
+                await _notificationRepo.CreateNotificationAsync(notification2);
+
                 _logger.LogInformation("Payment confirmed and host earnings updated via repository.");
                 return Ok(new { Message = "Payment confirmed and host earnings updated." });
             }
@@ -199,7 +226,7 @@ namespace API.Controllers
                 {
                     var paymentIntentService = new PaymentIntentService();
                     var paymentIntent = await paymentIntentService.GetAsync(confirmPaymentDto.PaymentIntentId);
-                    _logger.LogInformation("PaymentIntent retrieved: Amount: {Amount}, Status: {Status}", 
+                    _logger.LogInformation("PaymentIntent retrieved: Amount: {Amount}, Status: {Status}",
                         paymentIntent.Amount, paymentIntent.Status);
 
                     paymentAmount = paymentIntent.Amount / 100m;
@@ -221,15 +248,15 @@ namespace API.Controllers
             }
             else
             {
-                _logger.LogInformation("Payment already exists with TransactionId: {TransactionId}. Updating status to succeeded.", 
+                _logger.LogInformation("Payment already exists with TransactionId: {TransactionId}. Updating status to succeeded.",
                     confirmPaymentDto.PaymentIntentId);
-                
+
                 if (existingPayment.Status != "succeeded")
                 {
                     existingPayment.Status = "succeeded";
                     paymentAmount = existingPayment.Amount;
                     isNewPayment = true;
-                    
+
                     // Update booking status to Confirmed when payment is marked as successful
                     var booking = await _context.Bookings.FindAsync(confirmPaymentDto.BookingId);
                     if (booking != null && booking.Status == "Pending")
@@ -238,7 +265,7 @@ namespace API.Controllers
                         _context.Update(booking);
                         _logger.LogInformation("Booking {BookingId} status updated to Confirmed", booking.Id);
                     }
-                    
+
                     await _context.SaveChangesAsync();
                 }
             }
@@ -248,11 +275,11 @@ namespace API.Controllers
             {
                 try
                 {
-                    _logger.LogInformation("Updating host earnings for booking {BookingId}, amount {Amount}", 
+                    _logger.LogInformation("Updating host earnings for booking {BookingId}, amount {Amount}",
                         confirmPaymentDto.BookingId, paymentAmount);
-                    
+
                     await _bookingPaymentRepo.UpdateHostEarningsAsync(confirmPaymentDto.BookingId, paymentAmount);
-                    
+
                     _logger.LogInformation("Host earnings updated successfully");
                 }
                 catch (Exception ex)
@@ -286,12 +313,12 @@ namespace API.Controllers
             {
                 throw new Exception($"Booking with ID {bookingId} is not in a valid state for payment.");
             }
-            
+
             booking.Status = "Confirmed"; // Update booking status to Confirmed
             _context.Update(booking);
             _context.BookingPayments.Add(payment);
             await _context.SaveChangesAsync();
-            
+
             _logger.LogInformation("Booking {BookingId} status updated to Confirmed", bookingId);
         }
 
@@ -323,9 +350,9 @@ namespace API.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> AdminRefund([FromBody] AdminRefundDto refundDto)
         {
-            _logger.LogInformation("AdminRefund called for paymentId: {PaymentId}, amount: {Amount}, violationId: {ViolationId}", 
+            _logger.LogInformation("AdminRefund called for paymentId: {PaymentId}, amount: {Amount}, violationId: {ViolationId}",
                 refundDto.PaymentId, refundDto.RefundAmount, refundDto.ViolationId);
-            
+
             try
             {
                 // Validate refund request
@@ -333,44 +360,44 @@ namespace API.Controllers
                 {
                     return BadRequest(new { error = "Refund amount must be greater than zero." });
                 }
-                
+
                 // Get the payment to verify it exists and is eligible for refund
                 var payment = await _context.BookingPayments.FindAsync(refundDto.PaymentId);
                 if (payment == null)
                 {
                     return NotFound(new { error = "Payment not found." });
                 }
-                
+
                 if (payment.Status == "refunded")
                 {
                     return BadRequest(new { error = "Payment has already been fully refunded." });
                 }
-                
+
                 if (payment.RefundedAmount + refundDto.RefundAmount > payment.Amount)
                 {
                     return BadRequest(new { error = $"Refund amount exceeds available amount. Maximum refund available: {payment.Amount - payment.RefundedAmount:F2}" });
                 }
-                
+
                 // Verify that the violation exists and is resolved or under review
                 var violation = await _context.Violations.FindAsync(refundDto.ViolationId);
                 if (violation == null)
                 {
                     return NotFound(new { error = "Violation not found." });
                 }
-                
+
                 // Make sure the violation is either under review or resolved
                 if (violation.Status != "UnderReview" && violation.Status != "Resolved")
                 {
                     return BadRequest(new { error = $"Violation must be under review or resolved to issue a refund. Current status: {violation.Status}" });
                 }
-                
+
                 // Make sure the violation is related to the booking payment
                 var booking = await _context.Bookings.FindAsync(payment.BookingId);
                 if (booking == null)
                 {
                     return BadRequest(new { error = "Booking not found." });
                 }
-                
+
                 bool isRelated = false;
                 if (violation.ReportedPropertyId.HasValue && booking.PropertyId == violation.ReportedPropertyId.Value)
                 {
@@ -380,39 +407,41 @@ namespace API.Controllers
                 {
                     isRelated = true;
                 }
-                
+
                 if (!isRelated)
                 {
                     return BadRequest(new { error = "The violation is not related to this booking's property or host." });
                 }
-                
+
                 // Process the refund
                 var success = await _bookingPaymentRepo.RefundPaymentAsync(
-                    refundDto.PaymentId, 
-                    refundDto.RefundAmount, 
+                    refundDto.PaymentId,
+                    refundDto.RefundAmount,
                     refundDto.Reason);
-                
+
                 if (!success)
                 {
                     return BadRequest(new { error = "Refund failed to process. Please check the logs for details." });
                 }
-                
+
                 // Update the violation status to resolved if not already
                 if (violation.Status != "Resolved")
                 {
                     violation.Status = "Resolved";
-                    violation.AdminNotes = (violation.AdminNotes ?? "") + 
+                    violation.AdminNotes = (violation.AdminNotes ?? "") +
                         $"\n[{DateTime.UtcNow}] Refund of ${refundDto.RefundAmount} issued. Admin notes: {refundDto.AdminNotes}";
                     violation.ResolvedAt = DateTime.UtcNow;
                     violation.UpdatedAt = DateTime.UtcNow;
-                    
+
                     _context.Violations.Update(violation);
                     await _context.SaveChangesAsync();
                 }
-                
-                return Ok(new { 
+
+                return Ok(new
+                {
                     message = "Refund processed successfully.",
-                    data = new {
+                    data = new
+                    {
                         paymentId = payment.Id,
                         bookingId = payment.BookingId,
                         violationId = refundDto.ViolationId,
@@ -424,7 +453,7 @@ namespace API.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error processing admin refund for payment {PaymentId}, violation {ViolationId}", 
+                _logger.LogError(ex, "Error processing admin refund for payment {PaymentId}, violation {ViolationId}",
                     refundDto.PaymentId, refundDto.ViolationId);
                 return StatusCode(500, new { error = "An error occurred while processing the refund." });
             }
