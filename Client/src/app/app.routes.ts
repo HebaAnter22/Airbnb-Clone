@@ -30,6 +30,8 @@ import { PaymentSuccessComponent } from './components/payment-success/payment-su
 import { HostPayoutComponent } from './components/host-payout/host-payout.component';
 import { HostDashboardComponent } from './components/host/host-dashboard/host-dashboard.component';
 import { AdminGuard } from './guards/admin.guard';
+import { ForgotPasswordComponent } from './components/auth/forgot-password/forgot-password.component';
+import { ResetPasswordComponent } from './components/auth/reset-password/reset-password.component';
 export const routes: Routes = [
   { path: 'home', component: PropertyListingsComponent },
   { path: '', redirectTo: 'home', pathMatch: 'full' },
@@ -40,6 +42,8 @@ export const routes: Routes = [
   },
   { path: 'login', component: LoginComponent },
   { path: 'register', component: RegisterComponent },
+  { path: 'forgot-password', component: ForgotPasswordComponent },
+  { path: 'reset-password', component: ResetPasswordComponent },
   {
     path: 'dashboard',
     component: DashboardComponent,
@@ -55,6 +59,7 @@ export const routes: Routes = [
   { path: 'checkout/:bookingId', component: CheckoutComponent },
   { path: 'payment-success', component: PaymentSuccessComponent },
   // { path: 'payment-cancel', component: PaymentCancelComponent }, // Optional
+
 
   {
     path: 'host/payouts',

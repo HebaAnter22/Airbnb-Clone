@@ -245,6 +245,24 @@ namespace API.Services
             return host;
         }
 
+        public async Task UpdatePasswordResetTimestamp(string email, DateTime resetTime)
+        {
+            try
+            {
+                var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+                if(user == null) {
+
+                    throw new Exception("User not found");
+                }
+
+
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
 
     }
 }

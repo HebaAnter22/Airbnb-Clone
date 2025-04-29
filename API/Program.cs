@@ -82,7 +82,7 @@ namespace API
                         }
                     });
                 });
-
+            builder.Services.AddRateLimiting();
             builder.Services.AddDALService(builder.Configuration);
             builder.Services.AddControllers()
             .AddJsonOptions(options =>
@@ -226,7 +226,7 @@ namespace API
             app.UseAuthentication();
             app.UseStaticFiles();
             app.UseWebSockets();
-
+            app.UseRateLimiting(maxRequests: 100, windowInSeconds: 60);
             app.UseAuthorization();
             app.MapControllers();
             app.Run();

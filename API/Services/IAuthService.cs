@@ -19,6 +19,5 @@ namespace API.Services
          Task<Models.Host> CreateHost(int id);
 
 
-
     }
 }

@@ -1,65 +1,57 @@
 <app-main-navbar></app-main-navbar>
 <div class="login-container">
-    <div class="login-card">
-      <h1>Login to your account</h1>
-      <h2>Welcome to Airbnb</h2>
-      
-      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
-        <div class="form-group">
-          <label>Email</label>
-          <input 
-            type="text" 
-            formControlName="email" 
-            class="form-control" 
-            placeholder="Enter your email">
-        </div>
-        
-        <div class="form-group">
-          <label>Password</label>
-          <div class="password-input-container">
-            <input
-              [type]="showPassword ? 'text' : 'password'"
-              formControlName="password"
-              class="form-control"
-              placeholder="Enter your password">
-            <button 
-              type="button" 
-              class="password-toggle-btn" 
-              (click)="togglePasswordVisibility()"
-              [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'">
-              <i class="fa" [ngClass]="showPassword ? 'fa-eye-slash' : 'fa-eye'"></i>
-            </button>
-          </div>
-        </div>
-        
-        <button type="submit" class="btn-primary" [disabled]="!loginForm.valid">Continue</button>
-      </form>
-      
-      <div class="divider">
-        <span>or</span>
-      </div>
-      
-      <div class="btn-social google-btn" >
-        
-        <asl-google-signin-button class="google-btn ">
-          
-        </asl-google-signin-button>
-        <span>
-          Continue with Google
-        </span> 
+  <div class="login-card">
+    <h1>Login to your account</h1>
+    <h2>Welcome to Airbnb</h2>
+
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+      <div class="form-group">
+        <label>Email</label>
+        <input type="text" formControlName="email" class="form-control" placeholder="Enter your email">
       </div>
 
-        
-      <button class="btn-social">
-        <i class="fab fa-apple"></i> Continue with Apple
-      </button>
-      
-      <div class="signup-link">
-        Don't have an account? <a (click)="goToRegister()">Sign up</a>
+      <div class="form-group">
+        <label>Password</label>
+        <div class="password-input-container">
+          <input [type]="showPassword ? 'text' : 'password'" formControlName="password" class="form-control"
+            placeholder="Enter your password">
+          <button type="button" class="password-toggle-btn" (click)="togglePasswordVisibility()"
+            [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'">
+            <i class="fa" [ngClass]="showPassword ? 'fa-eye-slash' : 'fa-eye'"></i>
+          </button>
+        </div>
       </div>
-      
-      <div *ngIf="errorMessage" class="alert alert-danger">
-        {{ errorMessage }}
+      <div class="forgot-password-link">
+        <a href="/forgot-password">Forgot password?</a>
       </div>
+      <button type="submit" class="btn-primary" [disabled]="!loginForm.valid">Continue</button>
+    </form>
+
+    <div class="divider">
+      <span>or</span>
+    </div>
+
+    <div class="btn-social google-btn">
+
+      <asl-google-signin-button class="google-btn ">
+
+      </asl-google-signin-button>
+      <span>
+        Continue with Google
+      </span>
+    </div>
+
+
+    <button class="btn-social">
+      <i class="fab fa-apple"></i> Continue with Apple
+    </button>
+
+    <div class="signup-link">
+      Don't have an account? <a (click)="goToRegister()">Sign up</a>
+    </div>
+
+    <div *ngIf="errorMessage" class="alert alert-danger">
+      {{ errorMessage }}
     </div>
   </div>
+</div>
