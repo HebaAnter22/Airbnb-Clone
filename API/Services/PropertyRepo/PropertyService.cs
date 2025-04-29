@@ -588,7 +588,7 @@ namespace API.Services
             return _mapper.Map<List<PropertyDto>>(properties);
         }
 
-        public async Task<(List<PropertyDto> Properties, int Total)> GetAllPropertiesAsync(int page, int pageSize, int? categoryId = null)
+        public async Task<(List<PropertyDto> Properties, int Total)> GetAllPropertiesAsync(int page, int pageSize, int? categoryId = null, decimal? minPrice = null, decimal? maxPrice = null, int? excludeHostId = null)
         {
             // Validate pagination parameters
             if (page < 1) page = 1;
@@ -606,11 +606,27 @@ namespace API.Services
                 .Include(p => p.Bookings)
                     .ThenInclude(b => b.Review);
 
+            // Exclude properties owned by the specified host
+            if (excludeHostId.HasValue)
+            {
+                query = query.Where(p => p.HostId != excludeHostId.Value);
+            }
 
             // Apply category filter if categoryId is provided
             if (categoryId.HasValue)
             {
                 query = query.Where(p => p.CategoryId == categoryId.Value);
+            }
+
+            // Apply price range filters if provided
+            if (minPrice.HasValue)
+            {
+                query = query.Where(p => p.PricePerNight >= minPrice.Value);
+            }
+
+            if (maxPrice.HasValue)
+            {
+                query = query.Where(p => p.PricePerNight <= maxPrice.Value);
             }
 
             // Get the total count of filtered properties
@@ -626,6 +642,7 @@ namespace API.Services
             return (_mapper.Map<List<PropertyDto>>(properties), total);
         }
 
+
         public async Task<List<string>> GetUniqueCountriesAsync()
         {
             return await _context.Properties
@@ -638,64 +655,38 @@ namespace API.Services
         }
 
 
-        public async Task<List<PropertyDto>> SearchPropertiesAsync(string title = null, string country = null, int? minNights = null, int? maxNights = null, DateTime? startDate = null, DateTime? endDate = null, int? maxGuests = null)
+        public async Task<List<PropertyDto>> SearchPropertiesAsync(string title = null, string country = null, int? minNights = null, int? maxNights = null, DateTime? startDate = null, DateTime? endDate = null, int? maxGuests = null, int? excludeHostId = null, int? page = null, int? pageSize = null, int? categoryId = null)
         {
             // Start with all active properties
             var query = _context.Properties
                 .Where(p => p.Status == "Active")
                 .AsQueryable();
 
-            // If no specific search criteria, return all active properties (limited filtering)
-            bool hasSearchCriteria = !string.IsNullOrWhiteSpace(title) || 
-                                    !string.IsNullOrWhiteSpace(country) ||
-                                    minNights.HasValue || 
-                                    maxNights.HasValue || 
-                                    startDate.HasValue || 
-                                    endDate.HasValue || 
-                                    maxGuests.HasValue;
+            // Exclude properties owned by the specified host
+            if (excludeHostId.HasValue)
+            {
+                query = query.Where(p => p.HostId != excludeHostId.Value);
+            }
 
-            // Apply filters only if specific criteria are provided
-            if (!string.IsNullOrWhiteSpace(title))
+            // Apply filters based on search criteria
+            if (!string.IsNullOrEmpty(title))
             {
                 query = query.Where(p => p.Title.Contains(title));
             }
 
-            if (!string.IsNullOrWhiteSpace(country))
+            if (!string.IsNullOrEmpty(country))
             {
-                query = query.Where(p => p.Country.ToLower() == country.ToLower());
+                query = query.Where(p => p.Country.Contains(country));
             }
 
-            if (minNights.HasValue && maxNights.HasValue)
-            {
-                query = query.Where(p => p.MinNights >= minNights.Value && p.MaxNights <= maxNights.Value);
-            }
-            else if (minNights.HasValue)
+            if (minNights.HasValue)
             {
                 query = query.Where(p => p.MinNights >= minNights.Value);
             }
-            else if (maxNights.HasValue)
+
+            if (maxNights.HasValue)
             {
                 query = query.Where(p => p.MaxNights <= maxNights.Value);
-            }
-
-            if (startDate.HasValue && endDate.HasValue)
-            {
-                var dateRange = Enumerable.Range(0, (endDate.Value - startDate.Value).Days + 1)
-                                          .Select(offset => startDate.Value.AddDays(offset))
-                                          .ToList();
-
-                query = query.Where(p => dateRange.All(date =>
-                    p.Availabilities.Any(pa => pa.Date == date && pa.IsAvailable)));
-            }
-            else if (startDate.HasValue)
-            {
-                query = query.Where(p => p.Availabilities
-                    .Any(pa => pa.Date == startDate.Value && pa.IsAvailable));
-            }
-            else if (endDate.HasValue)
-            {
-                query = query.Where(p => p.Availabilities
-                    .Any(pa => pa.Date == endDate.Value && pa.IsAvailable));
             }
 
             if (maxGuests.HasValue)
@@ -703,10 +694,29 @@ namespace API.Services
                 query = query.Where(p => p.MaxGuests >= maxGuests.Value);
             }
 
-            var properties = await query
-                .Include(p => p.PropertyImages)
-                .ToListAsync();
+            if (categoryId.HasValue)
+            {
+                query = query.Where(p => p.CategoryId == categoryId.Value);
+            }
 
+            // Include necessary relationships
+            query = query
+                .Include(p => p.Category)
+                .Include(p => p.PropertyImages)
+                .Include(p => p.Amenities)
+                .Include(p => p.Host)
+                    .ThenInclude(h => h.User)
+                .Include(p => p.Bookings)
+                    .ThenInclude(b => b.Review);
+
+            // Apply pagination if provided
+            if (page.HasValue && pageSize.HasValue)
+            {
+                int skipCount = (page.Value - 1) * pageSize.Value;
+                query = query.Skip(skipCount).Take(pageSize.Value);
+            }
+
+            var properties = await query.ToListAsync();
             return _mapper.Map<List<PropertyDto>>(properties);
         }
 

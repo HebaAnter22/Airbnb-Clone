@@ -195,13 +195,97 @@ textarea:focus {
   border-color: #ff385c;
 }
 
+.audio-controls {
+  margin-top: 10px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.play-button {
+  background-color: #3498db;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.play-button .material-icons {
+  font-size: 18px;
+}
+
+.play-button:hover {
+  background-color: #2980b9;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.play-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.1);
+}
+
+.play-button.playing {
+  background-color: #e74c3c;
+  animation: pulse 1.5s infinite;
+}
+
+.play-button.playing:hover {
+  background-color: #c0392b;
+}
+
+.play-button:disabled {
+  background-color: #95a5a6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+  opacity: 0.7;
+}
+
+.play-text {
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 8px rgba(231, 76, 60, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(231, 76, 60, 0);
+  }
+}
+
+.audio-controls button .material-icons {
+  font-size: 16px;
+}
+
+.audio-controls button:hover {
+  background-color: #45a049;
+}
+
+.audio-controls button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
 .button-group {
   display: flex;
   justify-content: space-between;
   gap: 8px;
 }
 
-.send-btn, .clear-btn {
+.send-btn, .clear-btn, .record-button {
   padding: 6px 12px;
   border: none;
   border-radius: 6px;
@@ -222,6 +306,20 @@ textarea:focus {
   color: #666;
 }
 
+.record-button {
+  background-color: #f44336;
+  color: white;
+}
+
+.record-button:hover {
+  background-color: #d32f2f;
+}
+
+.record-button:disabled {
+  background-color: #ffcdd2;
+  cursor: not-allowed;
+}
+
 .send-btn:hover, .clear-btn:hover {
   opacity: 0.9;
 }
@@ -229,6 +327,12 @@ textarea:focus {
 .send-btn:disabled {
   background-color: #ffa5b5;
   cursor: not-allowed;
+}
+
+.input-controls {
+  display: flex;
+  align-items: center;
+  margin-top: 10px;
 }
 
 .loading-indicator {

@@ -13,10 +13,20 @@
       </button>
     </div>
     <div class="chat-messages" #chatMessages>
-      <div *ngFor="let message of messages" class="message" [class.user-message]="message.sender === 'You'" [class.ai-message]="message.sender === 'Assistant'">
+      <div *ngFor="let message of messages; let i = index" class="message" [class.user-message]="message.sender === 'You'" [class.ai-message]="message.sender === 'Assistant'">
         <div class="message-bubble">
           <div class="message-sender">{{ message.sender }}</div>
           <div class="message-content" [innerHTML]="formatMessage(message.content)"></div>
+          <div *ngIf="message.audioUrl && message.sender === 'Assistant'" class="audio-controls">
+            <button class="play-button" (click)="playAudio(message.audioUrl!, i)" [disabled]="isPlaying && currentPlayingMessageIndex === i" [class.playing]="isPlaying && currentPlayingMessageIndex === i">
+              <span class="material-icons">
+                {{ isPlaying && currentPlayingMessageIndex === i ? 'pause_circle' : 'play_circle' }}
+              </span>
+              <span class="play-text">
+                {{ isPlaying && currentPlayingMessageIndex === i ? 'Playing...' : 'Listen' }}
+              </span>
+            </button>
+          </div>
           <div class="message-timestamp">{{ message.timestamp | date:'shortTime' }}</div>
         </div>
       </div>
@@ -27,6 +37,9 @@
     <div class="chat-input">
       <textarea [(ngModel)]="userInput" (keyup.enter)="$event.preventDefault(); onEnterPress($event)" placeholder="Type your message..." rows="2" [disabled]="isLoading"></textarea>
       <div class="button-group">
+        <button class="record-button" (click)="isRecording ? stopRecording() : startRecording()" [disabled]="isLoading">
+          <span class="material-icons">{{ isRecording ? 'stop' : 'mic' }}</span>
+        </button>
         <button class="clear-btn" (click)="clearChat()">
           <span class="material-icons">delete_outline</span>
         </button>
@@ -36,4 +49,7 @@
       </div>
     </div>
   </div>
+
+  <audio #audioPlayer style="display: none"></audio>
+  <audio #audioRecorder style="display: none"></audio>
 </div> 

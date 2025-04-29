@@ -37,13 +37,25 @@ export class PropertyService {
   }
 
   // Fetch paginated properties
-  getPropertiesPaginated(page: number, pageSize: number, categoryId: number | null = null): Observable<{ properties: PropertyDto[], total: number }> {
+  getPropertiesPaginated(page: number, pageSize: number, categoryId: number | null = null, minPrice: number | null = null, maxPrice: number | null = null, excludeHostId: number | null = null): Observable<{ properties: PropertyDto[], total: number }> {
     let params = new HttpParams()
       .set('page', page.toString())
       .set('pageSize', pageSize.toString());
 
     if (categoryId !== null) {
       params = params.set('categoryId', categoryId.toString());
+    }
+
+    if (minPrice !== null) {
+      params = params.set('minPrice', minPrice.toString());
+    }
+
+    if (maxPrice !== null) {
+      params = params.set('maxPrice', maxPrice.toString());
+    }
+    
+    if (excludeHostId !== null) {
+      params = params.set('excludeHostId', excludeHostId.toString());
     }
 
     return this.http.get<{ properties: PropertyDto[], total: number }>(this.API_URL, { params }).pipe(
@@ -96,6 +108,7 @@ export class PropertyService {
       page?: number;
       pageSize?: number;
       categoryId?: number | null;
+      excludeHostId?: number | null;
     }
   ): Observable<{ properties: PropertyDto[], total: number }> {
     let queryParams = new HttpParams();
@@ -129,6 +142,9 @@ export class PropertyService {
     }
     if (params.categoryId !== null && params.categoryId !== undefined) {
       queryParams = queryParams.set('categoryId', params.categoryId.toString());
+    }
+    if (params.excludeHostId !== null && params.excludeHostId !== undefined) {
+      queryParams = queryParams.set('excludeHostId', params.excludeHostId.toString());
     }
 
     const url = `${this.API_URL}/NewSearch`;

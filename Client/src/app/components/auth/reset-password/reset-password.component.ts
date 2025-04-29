@@ -5,11 +5,12 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MainNavbarComponent } from '../../main-navbar/main-navbar.component';
 import { FirebaseAuthService } from '../../../services/firebaseAuth.service';
+import { RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-reset-password',
   standalone: true,
-  imports: [ReactiveFormsModule, CommonModule, MainNavbarComponent],
+  imports: [ReactiveFormsModule, CommonModule, MainNavbarComponent, RouterModule],
   templateUrl: './reset-password.component.html',
   styleUrls: ['./reset-password.component.css']
 })

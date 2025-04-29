@@ -30,11 +30,20 @@ import { PaymentSuccessComponent } from './components/payment-success/payment-su
 import { HostPayoutComponent } from './components/host-payout/host-payout.component';
 import { HostDashboardComponent } from './components/host/host-dashboard/host-dashboard.component';
 import { AdminGuard } from './guards/admin.guard';
+import { HomeGuard } from './guards/home.guard';
 import { ForgotPasswordComponent } from './components/auth/forgot-password/forgot-password.component';
 import { ResetPasswordComponent } from './components/auth/reset-password/reset-password.component';
 export const routes: Routes = [
-  { path: 'home', component: PropertyListingsComponent },
-  { path: '', redirectTo: 'home', pathMatch: 'full' },
+  { 
+    path: 'home', 
+    component: PropertyListingsComponent,
+    canActivate: [HomeGuard] 
+  },
+  { 
+    path: '', 
+    redirectTo: '/home', 
+    pathMatch: 'full'
+  },
   {
     path: 'host/add-property', component: AddPropertyComponent,
     canActivate: [authGuard],
@@ -110,11 +119,16 @@ export const routes: Routes = [
     canActivate: [authGuard]
   },
 
-  { path: 'property/:id', component: PropertyDetailsComponent },
+  { 
+    path: 'property/:id', 
+    component: PropertyDetailsComponent,
+    canActivate: [HomeGuard] 
+  },
   { path: 'profile/:id', component: ProfileComponent },
   {
     path: 'property/:id/gallery',
-    component: PropertyGalleryComponent
+    component: PropertyGalleryComponent,
+    canActivate: [HomeGuard]
   },
   {
     path: 'wishlist',

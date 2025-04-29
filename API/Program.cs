@@ -81,7 +81,7 @@ namespace API
                             Array.Empty<string>()
                         }
                     });
-                });
+            });
             builder.Services.AddRateLimiting();
             builder.Services.AddDALService(builder.Configuration);
             builder.Services.AddControllers()
@@ -166,7 +166,7 @@ namespace API
             builder.Services.AddScoped<IPromotionRepository, PromotionRepository>();
             builder.Services.AddScoped<IHostVerificationRepository, HostVerificationRepository>();
 
-            builder.Services.AddScoped<IBookingRepository>(sp => 
+            builder.Services.AddScoped<IBookingRepository>(sp =>
                 new BookingRepository(
                     sp.GetRequiredService<AppDbContext>(),
                     sp.GetRequiredService<IPropertyAvailabilityRepository>(),

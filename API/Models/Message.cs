@@ -1,4 +1,6 @@
-﻿namespace API.Models
+﻿using System.Text.Json.Serialization;
+
+namespace API.Models
 {
     public class Message
     {
@@ -10,7 +12,9 @@
         public DateTime? ReadAt { get; set; }
 
         // Navigation Properties
+        [JsonIgnore]
         public virtual Conversation Conversation { get; set; } = null!;
+        [JsonIgnore]
         public virtual User Sender { get; set; }= null!;
     }
 }

@@ -61,11 +61,11 @@ export class AIService {
 
   /**
    * Sends a general chat request.
-   * @param query The user's query
+   * @param request The AIRequestDTO containing the query and request type
    * @returns Observable<AIResponseDTO>
    */
-  getChatResponse(query: string): Observable<AIResponseDTO> {
-    return this.sendAIRequest(query, 'chat');
+  getChatResponse(request: AIRequestDTO): Observable<AIResponseDTO> {
+    return this.sendAIRequest(request.Query, 'chat');
   }
 
   /**
@@ -93,6 +93,64 @@ export class AIService {
    */
   getAvailabilityInsights(query: string): Observable<AIResponseDTO> {
     return this.sendAIRequest(query, 'availability');
+  }
+
+  /**
+   * Converts text to speech and returns a base64-encoded audio file.
+   * @param text The text to convert to speech
+   * @returns Observable<AIResponseDTO> containing the base64-encoded audio
+   */
+  textToSpeech(text: string): Observable<AIResponseDTO> {
+    if (!text.trim()) {
+      return throwError(() => new Error('Text cannot be empty'));
+    }
+
+    console.log(`Sending text-to-speech request: ${text.substring(0, 30)}...`);
+
+    const request: AIRequestDTO = {
+      Query: text,
+      RequestType: 'chat'
+    };
+
+    return this.http.post<AIResponseDTO>(`${this.apiUrl}/text-to-speech`, request, {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    }).pipe(
+      map(response => {
+        console.log('Text-to-speech response received:', 
+          response ? 'Response received' : 'No response');
+        
+        if (!response) {
+          throw new Error('Empty response from server');
+        }
+
+        if (typeof response.success === 'undefined') {
+          console.error('Response format:', response);
+          throw new Error('Invalid text-to-speech response format');
+        }
+        
+        if (!response.success) {
+          throw new Error(response.errorMessage || 'Text-to-speech request failed');
+        }
+        
+        // Verify base64 content exists
+        if (!response.response) {
+          console.error('No audio data in response');
+          throw new Error('No audio data returned from server');
+        }
+        
+        console.log(`Base64 audio received, length: ${response.response.length}`);
+        return response;
+      }),
+      catchError(error => {
+        console.error('Text-to-speech error:', error);
+        if (error.status === 404) {
+          console.error('API endpoint not found. Check server routes and configuration.');
+        }
+        return this.handleError(error);
+      })
+    );
   }
 
   /**

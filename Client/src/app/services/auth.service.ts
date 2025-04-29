@@ -55,6 +55,20 @@ export class AuthService {
     const user = this.currentUserSubject.value;
     return user ? user.role === 'Admin' : false;
   }
+  
+  // Method to handle post-login navigation based on user role
+  navigateBasedOnRole() {
+    const user = this.currentUserSubject.value;
+    if (!user) return;
+    
+    if (user.role === 'Admin') {
+      this.router.navigate(['/admin']);
+    } else if (user.role === 'Host') {
+      this.router.navigate(['/host']);
+    } else {
+      this.router.navigate(['/home']);
+    }
+  }
   // auth.service.ts
   switchToHosting(): Observable<TokenResponse> {
     return this.http.post<TokenResponse>(`${this.baseUrl}switch-to-host`, {}).pipe(
@@ -108,7 +122,7 @@ export class AuthService {
 
         localStorage.setItem('currentUser', JSON.stringify(user));
         this.currentUserSubject.next(user);
-        this.router.navigate(['/home']);
+        this.navigateBasedOnRole();
       },
       error: (err) => {
         console.error('Google login error:', err);

@@ -27,6 +27,7 @@
         <li *ngIf="!loggedIn"><a href="/register">Sign up</a></li>
         <li *ngIf="loggedIn && !IsUserGuest"><a href="/host">Host Dashboard</a></li>
         <li *ngIf="loggedIn"><a href='/bookings'>Bookings</a></li>
+        <li *ngIf="loggedIn"><a href="/wishlist">Wishlist</a></li>
         <li *ngIf="loggedIn && !IsUserGuest"><a (click)='ProfileClicked()'>Profile</a></li>
         <li *ngIf="loggedIn"><a (click)='editProfileClicked()'>Edit Profile</a></li>
         <li *ngIf="!IsUserGuest"><a href="/host/add-property">Host your home</a></li>

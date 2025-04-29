@@ -67,8 +67,13 @@ export class NotificationComponent implements OnInit, OnDestroy {
         this.updateNotificationCount();
       },
       error: (error) => {
-        console.error('Error fetching notifications:', error);
-        this.notifications = [];
+        if (error.status === 404) {
+          console.warn('No notifications found');
+          this.notifications = [];
+
+        } else {
+          console.error('Error fetching notifications:', error);
+        }
       }
     });
   }

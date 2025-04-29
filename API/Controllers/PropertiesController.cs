@@ -144,13 +144,17 @@ namespace API.Controllers
             return Ok(properties);
         }
 
+      
         [HttpGet]
         public async Task<IActionResult> GetAllProperties(
-    [FromQuery] int page = 1,
-    [FromQuery] int pageSize = 12,
-    [FromQuery] int? categoryId = null) // Add categoryId as an optional parameter
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 12,
+            [FromQuery] int? categoryId = null,
+            [FromQuery] decimal? minPrice = null,
+            [FromQuery] decimal? maxPrice = null,
+            [FromQuery] int? excludeHostId = null)
         {
-            var result = await _propertyService.GetAllPropertiesAsync(page, pageSize, categoryId);
+            var result = await _propertyService.GetAllPropertiesAsync(page, pageSize, categoryId, minPrice, maxPrice, excludeHostId);
             return Ok(new
             {
                 properties = result.Properties,
@@ -321,13 +325,24 @@ namespace API.Controllers
         }
 
         [HttpGet("Newsearch")]
-        public async Task<IActionResult> SearchProperties([FromQuery] string title = null, [FromQuery] string country = null, [FromQuery] int? minNights = null, [FromQuery] int? maxNights = null, [FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null, [FromQuery] int? maxGuests = null)
+        public async Task<IActionResult> SearchProperties(
+            [FromQuery] string title = null, 
+            [FromQuery] string country = null, 
+            [FromQuery] int? minNights = null, 
+            [FromQuery] int? maxNights = null, 
+            [FromQuery] DateTime? startDate = null, 
+            [FromQuery] DateTime? endDate = null, 
+            [FromQuery] int? maxGuests = null,
+            [FromQuery] int? excludeHostId = null,
+            [FromQuery] int? page = null,
+            [FromQuery] int? pageSize = null,
+            [FromQuery] int? categoryId = null)
         {
             try
             {
-                Console.WriteLine($"Search request - Country: '{country}', StartDate: {startDate}, EndDate: {endDate}, MaxGuests: {maxGuests}");
+                Console.WriteLine($"Search request - Country: '{country}', StartDate: {startDate}, EndDate: {endDate}, MaxGuests: {maxGuests}, ExcludeHostId: {excludeHostId}");
                 
-                var properties = await _propertyService.SearchPropertiesAsync(title, country, minNights, maxNights, startDate, endDate, maxGuests);
+                var properties = await _propertyService.SearchPropertiesAsync(title, country, minNights, maxNights, startDate, endDate, maxGuests, excludeHostId, page, pageSize, categoryId);
                 
                 Console.WriteLine($"Search results - Found {properties.Count} properties");
 

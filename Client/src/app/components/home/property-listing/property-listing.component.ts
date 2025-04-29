@@ -2,22 +2,20 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { PropertyService } from '../../../services/property.service';
 import { DecimalPipe } from '@angular/common';
-import { PropertyDto } from '../../../models/property';
+import { PropertyDto, PropertyCategory } from '../../../models/property';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { HeaderComponent } from '../header/header.component';
 import { HttpClientModule } from '@angular/common/http';
 import { ImageUploadComponent } from '../../host/image-upload/image-upload.component';
-import { MatSnackBar } from '@angular/material/snack-bar';
-import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatCardModule } from '@angular/material/card';
 import { finalize } from 'rxjs/operators';
 import { StickyNavComponent } from '../sticky-nav/sticky-nav.component';
 import { CreatePropertyService } from '../../../services/property-crud.service';
-import { PropertyCategory } from '../../../models/property';
 import { Output, EventEmitter, HostListener } from '@angular/core';
-import { ProfileService } from '../../../services/profile.service';
+import { AuthService } from '../../../services/auth.service';
 @Component({
   selector: 'app-property-listings',
   standalone: true,
@@ -49,10 +47,9 @@ export class PropertyListingsComponent implements OnInit {
   totalItems: number = 0;
   totalPages: number = 0;
   isScrolled: boolean = false;
-  isSearching: boolean = false;
-  wishlistProperties: number[] = [];
-  showToast: boolean = false;
-  toastMessage: string = '';
+  minPrice: number | null = null;
+  maxPrice: number | null = null;
+  showPriceFilter: boolean = false;
 
   @Output() scrollStateChanged = new EventEmitter<boolean>();
   @Output() searchPerformed = new EventEmitter<any>();
@@ -60,11 +57,11 @@ export class PropertyListingsComponent implements OnInit {
   @HostListener('window:scroll', ['$event'])
   onScroll() {
     const scrolled = window.scrollY > 80;
-
+    
     if (scrolled !== this.isScrolled) {
       this.isScrolled = scrolled;
       this.scrollStateChanged.emit(this.isScrolled);
-
+      
       const header = document.querySelector('.filters-bar');
       if (scrolled) {
         header?.classList.add('scrolled');
@@ -78,8 +75,8 @@ export class PropertyListingsComponent implements OnInit {
     private propertyService: PropertyService,
     private createPropertyService: CreatePropertyService,
     private snackBar: MatSnackBar,
-    private profileService: ProfileService
-  ) { }
+    private authService: AuthService
+  ) {}
 
   ngOnInit() {
     this.fetchProperties();
@@ -109,7 +106,16 @@ export class PropertyListingsComponent implements OnInit {
 
   fetchProperties(page: number = this.currentPage, categoryId: number | null = this.selectedCategoryId) {
     this.isLoading = true;
-    this.propertyService.getPropertiesPaginated(page, this.itemsPerPage, categoryId) // Pass categoryId as-is
+    
+    // Get current user and check if they are a host
+    const currentUser = this.authService.currentUserValue;
+    let excludeHostId: number | null = null;
+    
+    if (currentUser && currentUser.role === 'Host') {
+      excludeHostId = this.authService.getCurrentUserId();
+    }
+    
+    this.propertyService.getPropertiesPaginated(page, this.itemsPerPage, categoryId, this.minPrice, this.maxPrice, excludeHostId)
       .pipe(
         finalize(() => {
           this.isLoading = false;
@@ -136,16 +142,44 @@ export class PropertyListingsComponent implements OnInit {
 
   applyFilter(category: PropertyCategory | 'All homes' | 'Prices') {
     this.currentPage = 1; // Reset to first page
-    if (category === 'All homes' || category === 'Prices') {
+    
+    if (category === 'Prices') {
+      this.activeFilter = category;
+      this.showPriceFilter = !this.showPriceFilter;
+      return;
+    }
+    
+    if (category === 'All homes') {
       this.activeFilter = category;
       this.selectedCategoryId = null;
-      this.fetchProperties(1, null); // Fetch all properties
+      // Keep price filters when changing categories
+      this.fetchProperties(1, null);
     } else {
       this.activeFilter = category.name;
-      this.selectedCategoryId = category.categoryId; // Ensure this matches your PropertyCategory model
-      this.fetchProperties(1, category.categoryId); // Fetch properties for selected category
+      this.selectedCategoryId = category.categoryId;
+      // Keep price filters when changing categories
+      this.fetchProperties(1, category.categoryId);
     }
   }
+  
+  applyPriceFilter(min: number | null, max: number | null) {
+    this.minPrice = min;
+    this.maxPrice = max;
+    this.fetchProperties(1, this.selectedCategoryId);
+    this.showPriceFilter = false;
+    
+    // Update the active filter label to reflect the price range
+    if (min && max) {
+      this.activeFilter = `$${min} - $${max}`;
+    } else if (min) {
+      this.activeFilter = `$${min}+`;
+    } else if (max) {
+      this.activeFilter = `Up to $${max}`;
+    } else {
+      this.activeFilter = 'Prices';
+    }
+  }
+
   showError(message: string) {
     this.snackBar.open(message, 'Close', {
       duration: 5000,
@@ -154,8 +188,6 @@ export class PropertyListingsComponent implements OnInit {
       panelClass: ['error-snackbar']
     });
   }
-
-
 
   getPropertyImage(property: PropertyDto): string {
     if (!property.images || property.images.length === 0) {
@@ -168,14 +200,14 @@ export class PropertyListingsComponent implements OnInit {
   handleImageError(property: PropertyDto) {
     console.warn(`Image failed to load for property ${property.id}:`, this.getPropertyImage(property));
     const currentIndex = this.currentImageIndices[property.id] ?? 0;
-
+    
     if (property.images && property.images.length > currentIndex + 1) {
       this.currentImageIndices[property.id] = currentIndex + 1;
     } else {
-      property.images = [{
-        id: 0,
-        imageUrl: 'assets/images/property-placeholder.jpg',
-        isPrimary: true
+      property.images = [{ 
+        id: 0, 
+        imageUrl: 'assets/images/property-placeholder.jpg', 
+        isPrimary: true 
       }];
     }
   }
@@ -202,27 +234,14 @@ export class PropertyListingsComponent implements OnInit {
     this.router.navigate(['/property', propertyId]);
   }
 
-  // toggleFavorite(propertyId: number, event: MouseEvent) {
-  //   event.stopPropagation();
-  //   if (this.favorites.has(propertyId)) {
-  //     this.favorites.delete(propertyId);
-  //   } else {
-  //     this.favorites.add(propertyId);
-  //   }
-  //   this.saveFavoritesToStorage();
-  // }
-
-
-  loadWishlistProperties(): void {
-    this.profileService.getUserFavorites().subscribe({
-      next: (properties) => {
-        // Assuming the service returns an array of property IDs or objects with IDs
-        console.log('Wishlist properties from API:', properties);
-        this.wishlistProperties = properties.map((property: any) => property.propertyId);
-        console.log('Wishlist properties loaded:', this.wishlistProperties);
-      },
-      error: (err) => console.error('Error loading wishlist:', err)
-    });
+  toggleFavorite(propertyId: number, event: MouseEvent) {
+    event.stopPropagation();
+    if (this.favorites.has(propertyId)) {
+      this.favorites.delete(propertyId);
+    } else {
+      this.favorites.add(propertyId);
+    }
+    this.saveFavoritesToStorage();
   }
 
   isFavorite(propertyId: number): boolean {
@@ -237,53 +256,16 @@ export class PropertyListingsComponent implements OnInit {
     }
   }
 
-  toggleFavorite(propertyId: number, event: Event): void {
-    event.stopPropagation(); // Prevent click from bubbling to parent elements
-
-    if (this.isFavorite(propertyId)) {
-      this.removeFromWishlist(propertyId);
-    } else {
-      this.addToWishlist(propertyId);
-    }
-  }
   private saveFavoritesToStorage() {
     localStorage.setItem('favorites', JSON.stringify(Array.from(this.favorites)));
   }
 
-  generateRandomWeeks(): number {
-    return Math.floor(Math.random() * 8) + 1;
-  }
 
-  generateRandomMonth(): string {
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    return months[Math.floor(Math.random() * months.length)];
-  }
-
-  addToWishlist(propertyId: number): void {
-    this.profileService.addOrRemoveToFavourites(propertyId).subscribe({
-      next: () => {
-        if (!this.wishlistProperties.includes(propertyId)) {
-          this.wishlistProperties.push(propertyId);
-          this.showToast = true;
-          this.toastMessage = "?? Property added to your wishlist! <a href='/wishlist'>Click here to view</a>";
-
-          setTimeout(() => {
-            this.showToast = false;
-          }, 3000);
-        }
-      },
-      error: (err) => console.error('Error adding to wishlist:', err)
-    });
-  }
-  generateRandomDateRange(): string {
-    const startDay = Math.floor(Math.random() * 25) + 1;
-    const endDay = startDay + Math.floor(Math.random() * 5) + 3;
-    return `${startDay}-${endDay}`;
-  }
 
   goToPage(page: number) {
     if (page >= 1 && page <= this.totalPages && page !== this.currentPage) {
-      this.fetchProperties(page, this.selectedCategoryId); // Pass selectedCategoryId
+      // Pass price filters when changing pages
+      this.fetchProperties(page, this.selectedCategoryId);
     }
   }
 
@@ -303,36 +285,50 @@ export class PropertyListingsComponent implements OnInit {
     }
     return pages;
   }
-  removeFromWishlist(propertyId: number): void {
-    this.profileService.addOrRemoveToFavourites(propertyId).subscribe({
-      next: () => {
-        this.wishlistProperties = this.wishlistProperties.filter(id => id !== propertyId);
-      },
-      error: (err) => console.error('Error removing from wishlist:', err)
-    });
-  }
+
   // Add method to handle search results
   handleSearchResults(searchResults: any): void {
     console.log('Handling search results:', searchResults);
-
+    
     if (searchResults && searchResults.properties) {
+      // Check if current user is a host and exclude their properties
+      const currentUser = this.authService.currentUserValue;
+      if (currentUser && currentUser.role === 'Host') {
+        const hostId = this.authService.getCurrentUserId();
+        // Filter out properties owned by the host if any are in search results
+        if (searchResults.properties.properties) {
+          searchResults.properties.properties = searchResults.properties.properties.filter(
+            (property: PropertyDto) => property.hostId !== hostId
+          );
+          searchResults.properties.total = searchResults.properties.properties.length;
+        }
+      }
+      
       this.properties = searchResults.properties.properties; // Extract properties from the nested structure
       this.totalItems = searchResults.properties.total;
       this.totalPages = Math.ceil(this.totalItems / this.itemsPerPage);
-
+      
       // Reset image indices for the new properties
       this.properties.forEach(property => {
         this.currentImageIndices[property.id] = 0;
       });
-
+      
       // Update active filter to reflect the search
       this.activeFilter = `Results for "${searchResults.destination}"`;
-
+      
       console.log('Updated properties:', this.properties);
       console.log('Total items:', this.totalItems);
     } else {
       console.error('Invalid search results structure:', searchResults);
       this.showError('Failed to process search results');
     }
+  }
+
+  resetFilters() {
+    this.activeFilter = 'All homes';
+    this.selectedCategoryId = null;
+    this.minPrice = null;
+    this.maxPrice = null;
+    this.fetchProperties(1, null);
   }
 }
