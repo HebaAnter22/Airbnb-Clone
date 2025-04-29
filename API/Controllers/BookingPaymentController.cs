@@ -23,15 +23,19 @@ namespace API.Controllers
         private readonly IBookingPaymentRepository _bookingPaymentRepo;
         private readonly AppDbContext _context;
         private readonly ILogger<BookingPaymentController> _logger;
+        private readonly IBookingRepository _bookingRepo;
+        private readonly INotificationRepository _notificationRepo;
 
         public BookingPaymentController(
             IBookingPaymentRepository bookingPaymentRepository, 
             AppDbContext context,
-            ILogger<BookingPaymentController> logger)
+            ILogger<BookingPaymentController> logger, IBookingRepository bookingRepo, INotificationRepository notificationRepository)
         {
             _bookingPaymentRepo = bookingPaymentRepository;
             _context = context;
             _logger = logger;
+            _bookingRepo = bookingRepo;
+            _notificationRepo = notificationRepository;
         }
 
         [HttpPost("create-payment-intent")]
@@ -173,10 +177,31 @@ namespace API.Controllers
             // Try to use the repository method first, which handles everything including earnings update
             try
             {
+                var paymentIntentService = new PaymentIntentService();
+                var paymentIntent = await paymentIntentService.GetAsync(confirmPaymentDto.PaymentIntentId);
                 await _bookingPaymentRepo.ConfirmBookingPaymentAsync(
-                    confirmPaymentDto.BookingId, 
+                    confirmPaymentDto.BookingId,
                     confirmPaymentDto.PaymentIntentId);
-                
+                var booking = await _bookingRepo.getBookingByIdWithData(confirmPaymentDto.BookingId);
+                var notification1 = new Notification
+                {
+                    UserId = booking.GuestId,
+                    SenderId = booking.Property.HostId,
+                    Message = $"Your payment of {paymentIntent.Amount / 100m}$ was successful.",
+                    CreatedAt = DateTime.UtcNow,
+                    IsRead = false
+                };
+                var notification2 = new Notification
+                {
+                    UserId = booking.Property.HostId,
+                    SenderId = booking.GuestId,
+                    Message = $"You have received a payment of {paymentIntent.Amount / 100m}$ from {booking.Guest.FirstName} {booking.Guest.LastName}.",
+                    CreatedAt = DateTime.UtcNow,
+                    IsRead = false
+                };
+                await _notificationRepo.CreateNotificationAsync(notification1);
+                await _notificationRepo.CreateNotificationAsync(notification2);
+
                 _logger.LogInformation("Payment confirmed and host earnings updated via repository.");
                 return Ok(new { Message = "Payment confirmed and host earnings updated." });
             }

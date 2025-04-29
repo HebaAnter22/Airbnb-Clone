@@ -588,7 +588,7 @@ namespace API.Controllers
                 {
                     UserId = guestId,
                     SenderId = (int)property.Result.HostId,
-                    Message = $"Your booking for property {property.Result.Title} has been confirmed.",
+                    Message = $"Your booked property {property.Result.Title} from {booking.StartDate} to {booking.EndDate}.",
                     IsRead = false,
                     CreatedAt = DateTime.UtcNow
                 };

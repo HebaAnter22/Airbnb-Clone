@@ -50,7 +50,7 @@ namespace API.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Amenities");
+                    b.ToTable("Amenities", (string)null);
                 });
 
             modelBuilder.Entity("API.Models.Booking", b =>
@@ -122,7 +122,7 @@ namespace API.Migrations
 
                     b.HasIndex("PropertyId");
 
-                    b.ToTable("Bookings", t =>
+                    b.ToTable("Bookings", null, t =>
                         {
                             t.HasCheckConstraint("CK_Bookings_CheckInStatus", "[check_in_status] IN ('pending', 'completed')");
 
@@ -190,7 +190,7 @@ namespace API.Migrations
 
                     b.HasIndex("BookingId");
 
-                    b.ToTable("BookingPayments", t =>
+                    b.ToTable("BookingPayments", null, t =>
                         {
                             t.HasCheckConstraint("CK_BookingPayments_Amount", "[amount] > 0");
 
@@ -224,7 +224,7 @@ namespace API.Migrations
 
                     b.HasIndex("BookingId");
 
-                    b.ToTable("BookingPayouts");
+                    b.ToTable("BookingPayouts", (string)null);
                 });
 
             modelBuilder.Entity("API.Models.CancellationPolicy", b =>
@@ -253,7 +253,7 @@ namespace API.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("CancellationPolicies", t =>
+                    b.ToTable("CancellationPolicies", null, t =>
                         {
                             t.HasCheckConstraint("CK_CancellationPolicies_RefundPercentage", "[name] IN ('flexible', 'moderate', 'strict', 'non_refundable')");
                         });
@@ -299,7 +299,7 @@ namespace API.Migrations
 
                     b.HasIndex("user2Id");
 
-                    b.ToTable("Conversations");
+                    b.ToTable("Conversations", (string)null);
                 });
 
             modelBuilder.Entity("API.Models.Favourite", b =>
@@ -331,7 +331,7 @@ namespace API.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Favourites");
+                    b.ToTable("Favourites", (string)null);
                 });
 
             modelBuilder.Entity("API.Models.Host", b =>
@@ -526,7 +526,7 @@ namespace API.Migrations
 
                     b.HasIndex("HostId");
 
-                    b.ToTable("HostVerifications");
+                    b.ToTable("HostVerifications", (string)null);
                 });
 
             modelBuilder.Entity("API.Models.Message", b =>
@@ -569,7 +569,7 @@ namespace API.Migrations
 
                     b.HasIndex("SenderId");
 
-                    b.ToTable("Messages");
+                    b.ToTable("Messages", (string)null);
                 });
 
             modelBuilder.Entity("API.Models.Notification", b =>
@@ -607,7 +607,7 @@ namespace API.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Notifications");
+                    b.ToTable("Notifications", (string)null);
                 });
 
             modelBuilder.Entity("API.Models.Promotion", b =>
@@ -669,7 +669,7 @@ namespace API.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Promotions", t =>
+                    b.ToTable("Promotions", null, t =>
                         {
                             t.HasCheckConstraint("CK_Promotions_DiscountType", "[discount_type] IN ('percentage', 'fixed')");
                         });
@@ -833,7 +833,7 @@ namespace API.Migrations
 
                     b.HasIndex("HostId");
 
-                    b.ToTable("Properties", t =>
+                    b.ToTable("Properties", null, t =>
                         {
                             t.HasCheckConstraint("CK_Properties_Status", "[status] IN ('active', 'pending', 'suspended')");
                         });
@@ -881,7 +881,7 @@ namespace API.Migrations
 
                     b.HasIndex("PropertyId");
 
-                    b.ToTable("PropertyAvailabilities");
+                    b.ToTable("PropertyAvailabilities", (string)null);
                 });
 
             modelBuilder.Entity("API.Models.PropertyCategory", b =>
@@ -911,7 +911,7 @@ namespace API.Migrations
 
                     b.HasKey("CategoryId");
 
-                    b.ToTable("PropertyCategories");
+                    b.ToTable("PropertyCategories", (string)null);
                 });
 
             modelBuilder.Entity("API.Models.PropertyImage", b =>
@@ -959,7 +959,7 @@ namespace API.Migrations
 
                     b.HasIndex("PropertyId");
 
-                    b.ToTable("PropertyImages", t =>
+                    b.ToTable("PropertyImages", null, t =>
                         {
                             t.HasCheckConstraint("CK_PropertyImages_Category", "[category] IN ('Bedroom', 'Bathroom', 'Living Area', 'Kitchen', 'Exterior', 'Additional')");
                         });
@@ -1008,7 +1008,7 @@ namespace API.Migrations
 
                     b.HasIndex("ReviewerId");
 
-                    b.ToTable("Reviews");
+                    b.ToTable("Reviews", (string)null);
                 });
 
             modelBuilder.Entity("API.Models.User", b =>
@@ -1105,7 +1105,7 @@ namespace API.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Users", t =>
+                    b.ToTable("Users", null, t =>
                         {
                             t.HasCheckConstraint("CK_Users_AccountStatus", "[account_status] IN ('active', 'pending', 'blocked')");
 
@@ -1153,7 +1153,7 @@ namespace API.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("UserUsedPromotions");
+                    b.ToTable("UserUsedPromotions", (string)null);
                 });
 
             modelBuilder.Entity("API.Models.Violation", b =>
@@ -1222,7 +1222,7 @@ namespace API.Migrations
 
                     b.HasIndex("ReportedPropertyId");
 
-                    b.ToTable("Violations");
+                    b.ToTable("Violations", (string)null);
                 });
 
             modelBuilder.Entity("API.Models.VwActivePromotions", b =>
