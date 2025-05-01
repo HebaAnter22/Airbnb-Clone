@@ -46,7 +46,7 @@ export const routes: Routes = [
   },
   {
     path: 'host/add-property', component: AddPropertyComponent,
-    canActivate: [authGuard],
+    canActivate: [authGuard, roleGuard],
     data: { role: 'Host' },
   },
   { path: 'login', component: LoginComponent },

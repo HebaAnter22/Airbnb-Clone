@@ -132,7 +132,7 @@ namespace API.Services.AuthRepo
                 issuer: configuration.GetValue<string>("Jwt:Issuer"),
                 audience: configuration.GetValue<string>("Jwt:Audience"),
                 claims: claims,
-                expires: DateTime.Now.AddMinutes(30),
+                expires: DateTime.Now.AddMinutes(1),
                 signingCredentials: creds
             );
             return new JwtSecurityTokenHandler().WriteToken(tokenDecriptor);

@@ -345,7 +345,7 @@
 
 
       <!-- Booking Form -->
-      <div class="booking-form" *ngIf="loggedInUser && userRole!='Host' && property?.status!='Pending'">
+      <div class="booking-form">
         <div class="dates-container">
           <div class="check-in" (click)="openCalendar('checkIn')">
             <label>CHECK-IN</label>

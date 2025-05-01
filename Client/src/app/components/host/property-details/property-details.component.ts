@@ -85,7 +85,8 @@ export class PropertyDetailsComponent implements OnInit {
     private propertyService: CreatePropertyService,
     private profileService: ProfileService,
     private router: Router,
-    private authService: AuthService
+    private authService: AuthService,
+
 
   ) { }
 
@@ -227,6 +228,10 @@ export class PropertyDetailsComponent implements OnInit {
     return subtotal - discount;
   }
   reserve(): void {
+    if (!this.authService.userId || this.userRole == 'Host' || this.property.status == 'pending') {
+      this.router.navigate(['/login']);
+      return;
+    }
     // Check if dates are selected
     if (!this.checkInDate || !this.checkOutDate) {
       alert('Please select check-in and check-out dates');
