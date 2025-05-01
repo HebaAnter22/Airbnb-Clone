@@ -16,10 +16,10 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
       <h1 class="mb-0">Booking Details</h1>
       <button mat-raised-button color="primary" (click)="goBack()">
-        <mat-icon>arrow_back</mat-icon> Back to Bookings
+        <mat-icon>arrow_back</mat-icon> Back to Dashboard
       </button>
     </div>
-    
+
     <!-- Property Information Card -->
     <mat-card class="booking-card">
       <mat-card-header>
@@ -62,7 +62,7 @@
         <p><strong>End Date:</strong> {{ bookingDetails.endDate | date }}</p>
         <p><strong>Check-in Status:</strong> {{ bookingDetails.checkInStatus }}</p>
         <p><strong>Check-out Status:</strong> {{ bookingDetails.checkOutStatus }}</p>
-        <p><strong>Status:</strong> 
+        <p><strong>Status:</strong>
           <span [class]="'status-' + bookingDetails.status.toLowerCase()">
             {{ bookingDetails.status }}
           </span>
@@ -100,4 +100,4 @@
       </mat-card-content>
     </mat-card>
   </div>
-</div> 
+</div>

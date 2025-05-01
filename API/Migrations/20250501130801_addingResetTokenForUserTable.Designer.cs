@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace API.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250427134157_latestMigrations")]
-    partial class latestMigrations
+    [Migration("20250501130801_addingResetTokenForUserTable")]
+    partial class addingResetTokenForUserTable
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -176,8 +176,8 @@ namespace API.Migrations
 
                     b.Property<string>("Status")
                         .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
                         .HasColumnName("status");
 
                     b.Property<string>("TransactionId")
@@ -349,6 +349,12 @@ namespace API.Migrations
                         .HasColumnType("nvarchar(500)")
                         .HasColumnName("about_me");
 
+                    b.Property<decimal>("AvailableBalance")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("DefaultPayoutMethod")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("DreamDestination")
                         .HasMaxLength(100)
                         .HasColumnType("varchar(100)")
@@ -385,6 +391,9 @@ namespace API.Migrations
                         .HasColumnType("varchar(100)")
                         .HasColumnName("obsessed_with");
 
+                    b.Property<string>("PayoutAccountDetails")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Pets")
                         .HasMaxLength(100)
                         .HasColumnType("varchar(100)")
@@ -407,6 +416,12 @@ namespace API.Migrations
                         .HasColumnName("start_date")
                         .HasDefaultValueSql("GETDATE()");
 
+                    b.Property<string>("StripeAccountId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("TotalEarnings")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<int>("TotalReviews")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int")
@@ -421,6 +436,64 @@ namespace API.Migrations
                     b.HasKey("HostId");
 
                     b.ToTable("hosts", (string)null);
+                });
+
+            modelBuilder.Entity("API.Models.HostPayout", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnName("Amount");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime")
+                        .HasColumnName("CreatedAt")
+                        .HasDefaultValueSql("GETDATE()");
+
+                    b.Property<int>("HostId")
+                        .HasColumnType("int")
+                        .HasColumnName("HostId");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)")
+                        .HasColumnName("Notes");
+
+                    b.Property<string>("PayoutAccountDetails")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)")
+                        .HasColumnName("PayoutAccountDetails");
+
+                    b.Property<string>("PayoutMethod")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnName("PayoutMethod");
+
+                    b.Property<DateTime?>("ProcessedAt")
+                        .HasColumnType("datetime")
+                        .HasColumnName("ProcessedAt");
+
+                    b.Property<string>("Status")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnName("Status");
+
+                    b.Property<string>("TransactionId")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)")
+                        .HasColumnName("TransactionId");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("HostId");
+
+                    b.ToTable("HostPayout", (string)null);
                 });
 
             modelBuilder.Entity("API.Models.HostVerification", b =>
@@ -999,6 +1072,9 @@ namespace API.Migrations
                         .HasColumnType("nvarchar(255)")
                         .HasColumnName("password_hash");
 
+                    b.Property<string>("PasswordResetToken")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("PhoneNumber")
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)")
@@ -1019,6 +1095,9 @@ namespace API.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("RefreshTokenExpiryTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("ResetTokenExpires")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Role")
@@ -1084,6 +1163,75 @@ namespace API.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("UserUsedPromotions");
+                });
+
+            modelBuilder.Entity("API.Models.Violation", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AdminNotes")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("admin_notes");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("SYSDATETIME()");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("description");
+
+                    b.Property<int>("ReportedById")
+                        .HasColumnType("int")
+                        .HasColumnName("reported_by_id");
+
+                    b.Property<int?>("ReportedHostId")
+                        .HasColumnType("int")
+                        .HasColumnName("reported_host_id");
+
+                    b.Property<int?>("ReportedPropertyId")
+                        .HasColumnType("int")
+                        .HasColumnName("reported_property_id");
+
+                    b.Property<DateTime?>("ResolvedAt")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("resolved_at");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
+                        .HasDefaultValue("Pending")
+                        .HasColumnName("status");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("updated_at");
+
+                    b.Property<string>("ViolationType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnName("violation_type");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ReportedById");
+
+                    b.HasIndex("ReportedHostId");
+
+                    b.HasIndex("ReportedPropertyId");
+
+                    b.ToTable("Violations");
                 });
 
             modelBuilder.Entity("API.Models.VwActivePromotions", b =>
@@ -1306,6 +1454,17 @@ namespace API.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("API.Models.HostPayout", b =>
+                {
+                    b.HasOne("API.Models.Host", "Host")
+                        .WithMany("Payouts")
+                        .HasForeignKey("HostId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Host");
+                });
+
             modelBuilder.Entity("API.Models.HostVerification", b =>
                 {
                     b.HasOne("API.Models.Host", "Host")
@@ -1447,6 +1606,31 @@ namespace API.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("API.Models.Violation", b =>
+                {
+                    b.HasOne("API.Models.User", "ReportedBy")
+                        .WithMany()
+                        .HasForeignKey("ReportedById")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("API.Models.Host", "ReportedHost")
+                        .WithMany()
+                        .HasForeignKey("ReportedHostId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("API.Models.Property", "ReportedProperty")
+                        .WithMany()
+                        .HasForeignKey("ReportedPropertyId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("ReportedBy");
+
+                    b.Navigation("ReportedHost");
+
+                    b.Navigation("ReportedProperty");
+                });
+
             modelBuilder.Entity("AmenityProperty", b =>
                 {
                     b.HasOne("API.Models.Amenity", null)
@@ -1483,6 +1667,8 @@ namespace API.Migrations
 
             modelBuilder.Entity("API.Models.Host", b =>
                 {
+                    b.Navigation("Payouts");
+
                     b.Navigation("Properties");
 
                     b.Navigation("Verifications");

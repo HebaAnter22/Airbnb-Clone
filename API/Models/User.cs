@@ -37,6 +37,11 @@ namespace API.Models
         public string? RefreshToken { get; set; }
         public DateTime? RefreshTokenExpiryTime { get; set; }
 
+
+
+        public string? PasswordResetToken { get; set; }
+        public DateTime? ResetTokenExpires { get; set; }
+
         // Navigation Properties
         public Host Host { get; set; }
         public ICollection<Booking> Bookings { get; set; } = new List<Booking>();

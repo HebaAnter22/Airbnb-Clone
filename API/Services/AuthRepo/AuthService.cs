@@ -5,19 +5,20 @@ using System.Text;
 using API.Data;
 using API.DTOs;
 using API.Models;
+using API.Services.AuthRepo;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
-namespace API.Services
+namespace API.Services.AuthRepo
 {
-    public class AuthService:IAuthService
+    public class AuthService : IAuthService
     {
 
         private readonly AppDbContext _context;
         private readonly IConfiguration configuration;
-        public AuthService(AppDbContext context,IConfiguration configuration)
+        public AuthService(AppDbContext context, IConfiguration configuration)
         {
             _context = context;
             this.configuration = configuration;
@@ -40,7 +41,7 @@ namespace API.Services
             return null;
 
         }
-       
+
 
 
         public async Task<TokenResponseDto> CreateTokenResponse(User? user)
@@ -66,9 +67,10 @@ namespace API.Services
         }
         public async Task<User> Register(RegisterUserDto userDto)
         {
-            if(await _context.Users.AnyAsync(x => x.Email == userDto.Email))
+            if (await _context.Users.AnyAsync(x => x.Email == userDto.Email))
             {
-                throw new Exception("User already exists with the same Email");
+                //email already exist
+                throw new Exception("Email already exists");
             }
 
             using var transaction = await _context.Database.BeginTransactionAsync();
@@ -84,7 +86,7 @@ namespace API.Services
                 user.LastName = userDto.LastName;
                 user.Role = "Guest";
                 user.ProfilePictureUrl = "https://localhost:7228/uploads/profile-pictures/default-profile.jpg";
-                
+
                 _context.Users.Add(user);
                 await _context.SaveChangesAsync();
 
@@ -135,7 +137,7 @@ namespace API.Services
             );
             return new JwtSecurityTokenHandler().WriteToken(tokenDecriptor);
         }
-       
+
         public async Task<User?> GetUserById(string id)
         {
             var user = await _context.Users.FirstOrDefaultAsync(x => x.Id.ToString() == id);
@@ -163,7 +165,7 @@ namespace API.Services
             await _context.SaveChangesAsync();
             return refreshToken;
         }
-        private async Task<User?> validateRefreshTokenAsync(int userId,string refreshToken)
+        private async Task<User?> validateRefreshTokenAsync(int userId, string refreshToken)
         {
 
             var user = await _context.Users.FirstOrDefaultAsync(x => x.Id == userId);
@@ -206,17 +208,17 @@ namespace API.Services
                     FirstName = firstName,
                     LastName = lastName,
                     Role = "Guest",
-                    PasswordHash = "" ,// No password for Google users,
-                    ProfilePictureUrl= "https://localhost:7228/uploads/profile-pictures/default-profile.jpg"
+                    PasswordHash = "",// No password for Google users,
+                    ProfilePictureUrl = "https://localhost:7228/uploads/profile-pictures/default-profile.jpg"
 
                 };
-                
+
                 _context.Users.Add(user);
                 await _context.SaveChangesAsync();
-                
-      
+
+
             }
-                return user;
+            return user;
         }
 
         public async Task<Models.Host> CreateHost(int id)
@@ -238,7 +240,7 @@ namespace API.Services
                 Pets = "",
                 ObsessedWith = "",
                 SpecialAbout = "",
-             
+
             };
             _context.HostProfules.Add(host);
             await _context.SaveChangesAsync();
@@ -250,7 +252,8 @@ namespace API.Services
             try
             {
                 var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
-                if(user == null) {
+                if (user == null)
+                {
 
                     throw new Exception("User not found");
                 }

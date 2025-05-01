@@ -16,11 +16,11 @@ import { AdminRedirectService } from './services/admin-redirect.service';
 })
 export class AppComponent implements OnInit {
   title = 'AirBnb';
- 
+
   constructor(
     public authService: AuthService,
     private adminRedirectService: AdminRedirectService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     // Initialize admin redirect service to check current route

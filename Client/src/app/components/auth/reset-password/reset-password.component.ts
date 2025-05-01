@@ -1,82 +1,85 @@
 // src/app/components/auth/reset-password/reset-password.component.ts
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
+import { CommonModule } from '@angular/common';
+import { PasswordResetService } from '../../../services/password-reset.service';
 import { MainNavbarComponent } from '../../main-navbar/main-navbar.component';
-import { FirebaseAuthService } from '../../../services/firebaseAuth.service';
-import { RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-reset-password',
   standalone: true,
-  imports: [ReactiveFormsModule, CommonModule, MainNavbarComponent, RouterModule],
+  imports: [ReactiveFormsModule, CommonModule, MainNavbarComponent],
   templateUrl: './reset-password.component.html',
   styleUrls: ['./reset-password.component.css']
 })
 export class ResetPasswordComponent implements OnInit {
   resetPasswordForm: FormGroup;
-  successMessage: string = '';
-  errorMessage: string = '';
-  isSubmitting: boolean = false;
-  actionCode: string = '';
   email: string = '';
+  token: string = '';
   showPassword: boolean = false;
   showConfirmPassword: boolean = false;
-  codeVerified: boolean = false;
+  isLoading: boolean = true;
+  isSubmitting: boolean = false;
+  errorMessage: string = '';
+  successMessage: string = '';
+  isTokenValid: boolean = false;
 
   constructor(
     private fb: FormBuilder,
-    private firebaseAuthService: FirebaseAuthService,
     private route: ActivatedRoute,
-    private router: Router
+    private router: Router,
+    private passwordResetService: PasswordResetService
   ) {
     this.resetPasswordForm = this.fb.group({
-      password: ['', [Validators.required, Validators.minLength(6)]],
+      newPassword: ['', [Validators.required, Validators.minLength(6)]],
       confirmPassword: ['', Validators.required]
-    }, { validator: this.passwordMatchValidator });
+    }, { validators: this.passwordMatchValidator });
   }
 
   ngOnInit() {
-    // Get action code from URL
+    // Get the email and token from the URL
     this.route.queryParams.subscribe(params => {
-      this.actionCode = params['oobCode'] || '';
-      const mode = params['mode'] || '';
+      this.email = params['email'] || '';
+      this.token = params['token'] || '';
 
-      if (!this.actionCode) {
-        this.errorMessage = 'Invalid password reset link. No action code found.';
+      if (!this.email || !this.token) {
+        this.errorMessage = 'Invalid password reset link';
+        this.isLoading = false;
         return;
       }
 
-      if (mode !== 'resetPassword') {
-        this.errorMessage = 'Invalid action mode. Expected "resetPassword".';
-        return;
-      }
-
-      // Verify the action code
-      this.firebaseAuthService.verifyPasswordResetCode(this.actionCode)
-        .then(email => {
-          // Store the email for the UI and mark code as verified
-          this.email = email;
-          this.codeVerified = true;
-          console.log('Reset code verified for email:', email);
-        })
-        .catch(error => {
-          console.error('Error verifying reset code:', error);
-          this.errorMessage = 'Invalid or expired password reset link. Please request a new one.';
-        });
+      // Validate the token
+      this.validateToken();
     });
   }
 
-  passwordMatchValidator(formGroup: FormGroup) {
-    const password = formGroup.get('password')?.value;
-    const confirmPassword = formGroup.get('confirmPassword')?.value;
+  validateToken() {
+    this.passwordResetService.validateResetToken(this.email, this.token).subscribe({
+      next: (response) => {
+        this.isLoading = false;
+        if (response.success) {
+          this.isTokenValid = true;
+        } else {
+          this.errorMessage = 'Your password reset link is invalid or has expired.';
+        }
+      },
+      error: (error) => {
+        this.isLoading = false;
+        this.errorMessage = 'Your password reset link is invalid or has expired.';
+      }
+    });
+  }
+
+  passwordMatchValidator(form: FormGroup) {
+    const password = form.get('newPassword')?.value;
+    const confirmPassword = form.get('confirmPassword')?.value;
 
     if (password !== confirmPassword) {
-      formGroup.get('confirmPassword')?.setErrors({ passwordMismatch: true });
-      return { passwordMismatch: true };
+      form.get('confirmPassword')?.setErrors({ mismatch: true });
+      return { mismatch: true };
     } else {
-      formGroup.get('confirmPassword')?.setErrors(null);
+      form.get('confirmPassword')?.setErrors(null);
       return null;
     }
   }
@@ -90,52 +93,34 @@ export class ResetPasswordComponent implements OnInit {
   }
 
   onSubmit() {
-    if (this.resetPasswordForm.valid && this.actionCode && this.codeVerified) {
-      this.isSubmitting = true;
-      this.errorMessage = '';
-      this.successMessage = '';
-
-      const newPassword = this.resetPasswordForm.get('password')?.value;
-
-      this.firebaseAuthService.confirmPasswordReset(this.actionCode, newPassword)
-        .then(success => {
-          this.isSubmitting = false;
-          if (success) {
-            this.successMessage = 'Your password has been successfully reset.';
-            this.resetPasswordForm.reset();
-
-            // Redirect to login after a short delay
-            setTimeout(() => {
-              this.router.navigate(['/login']);
-            }, 3000);
-          } else {
-            this.errorMessage = 'Failed to reset password. Please try again.';
-          }
-        })
-        .catch(error => {
-          this.isSubmitting = false;
-
-          // Handle specific Firebase errors
-          if (error.code === 'auth/expired-action-code') {
-            this.errorMessage = 'The password reset link has expired. Please request a new one.';
-          } else if (error.code === 'auth/invalid-action-code') {
-            this.errorMessage = 'The password reset link is invalid. Please request a new one.';
-          } else if (error.code === 'auth/weak-password') {
-            this.errorMessage = 'Password is too weak. Please choose a stronger password.';
-          } else {
-            this.errorMessage = 'Error resetting password: ' + error.message;
-          }
-        });
-    } else if (!this.codeVerified) {
-      this.errorMessage = 'Password reset code has not been verified. Please check your email link.';
+    if (this.resetPasswordForm.invalid) {
+      return;
     }
+
+    this.isSubmitting = true;
+    const newPassword = this.resetPasswordForm.get('newPassword')?.value;
+
+    this.passwordResetService.resetPassword(this.email, this.token, newPassword).subscribe({
+      next: (response) => {
+        this.isSubmitting = false;
+        if (response.success) {
+          this.successMessage = 'Your password has been reset successfully.';
+          this.resetPasswordForm.reset();
+          setTimeout(() => {
+            this.router.navigate(['/login']);
+          }, 3000);
+        } else {
+          this.errorMessage = response.message;
+        }
+      },
+      error: (error) => {
+        this.isSubmitting = false;
+        this.errorMessage = error.error?.message || 'Failed to reset password. Please try again.';
+      }
+    });
   }
 
   goToLogin() {
     this.router.navigate(['/login']);
-  }
-
-  requestNewLink() {
-    this.router.navigate(['/forgot-password']);
   }
 }

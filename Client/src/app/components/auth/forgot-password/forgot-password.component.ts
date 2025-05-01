@@ -1,10 +1,10 @@
 // src/app/components/auth/forgot-password/forgot-password.component.ts
 import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
+import { CommonModule } from '@angular/common';
+import { PasswordResetService } from '../../../services/password-reset.service';
 import { MainNavbarComponent } from '../../main-navbar/main-navbar.component';
-import { FirebaseAuthService } from '../../../services/firebaseAuth.service';
 
 @Component({
   selector: 'app-forgot-password',
@@ -21,7 +21,7 @@ export class ForgotPasswordComponent {
 
   constructor(
     private fb: FormBuilder,
-    private firebaseAuthService: FirebaseAuthService,
+    private passwordResetService: PasswordResetService,
     private router: Router
   ) {
     this.forgotPasswordForm = this.fb.group({
@@ -30,37 +30,32 @@ export class ForgotPasswordComponent {
   }
 
   onSubmit() {
-    if (this.forgotPasswordForm.valid) {
-      this.isSubmitting = true;
-      this.errorMessage = '';
-      this.successMessage = '';
-
-      const email = this.forgotPasswordForm.get('email')?.value;
-
-      this.firebaseAuthService.sendPasswordResetEmail(email)
-        .then(success => {
-          this.isSubmitting = false;
-          if (success) {
-            this.successMessage = 'Password reset email sent! Check your inbox and follow the link to reset your password.';
-            // Optional: Clear the form
-            this.forgotPasswordForm.reset();
-          } else {
-            this.errorMessage = 'Failed to send password reset email. Please try again.';
-          }
-        })
-        .catch(error => {
-          this.isSubmitting = false;
-
-          // Handle specific Firebase errors
-          if (error.code === 'auth/user-not-found') {
-            this.errorMessage = 'No account exists with this email address.';
-          } else if (error.code === 'auth/invalid-email') {
-            this.errorMessage = 'The email address is not valid.';
-          } else {
-            this.errorMessage = 'Error sending reset email: ' + error.message;
-          }
-        });
+    if (this.forgotPasswordForm.invalid) {
+      return;
     }
+
+    this.isSubmitting = true;
+    this.successMessage = '';
+    this.errorMessage = '';
+
+    const email = this.forgotPasswordForm.get('email')?.value;
+
+    this.passwordResetService.forgotPassword(email).subscribe({
+      next: (response) => {
+        this.isSubmitting = false;
+        if (response.success) {
+          this.successMessage = response.message;
+          // Clear the form
+          this.forgotPasswordForm.reset();
+        } else {
+          this.errorMessage = response.message;
+        }
+      },
+      error: (error) => {
+        this.isSubmitting = false;
+        this.errorMessage = error.error?.message || 'An error occurred. Please try again later.';
+      }
+    });
   }
 
   goToLogin() {

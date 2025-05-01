@@ -27,6 +27,8 @@ using API.Services.Payoutrepo;
 using API.Services.NotificationRepository;
 using System.Text.Json.Serialization;
 using API.Services.NotificationRepository;
+using API.Services.AuthRepo;
+using API.Services.EmailService;
 
 namespace API
 {
@@ -82,7 +84,7 @@ namespace API
                         }
                     });
             });
-            builder.Services.AddRateLimiting();
+            //builder.Services.AddRateLimiting();
             builder.Services.AddDALService(builder.Configuration);
             builder.Services.AddControllers()
             .AddJsonOptions(options =>
@@ -182,6 +184,8 @@ namespace API
             builder.Services.AddScoped<IHostVerificationRepository, HostVerificationRepository>();
             builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
 
+            builder.Services.AddScoped<IEmailService, EmailService>();
+            builder.Services.AddScoped<IResetPasswordService, ResetPasswordService>();
 
 
             // Add AI Services
@@ -228,7 +232,7 @@ namespace API
             app.UseAuthentication();
             app.UseStaticFiles();
             app.UseWebSockets();
-            app.UseRateLimiting(maxRequests: 100, windowInSeconds: 60);
+            //app.UseRateLimiting(maxRequests: 100, windowInSeconds: 60);
             app.UseAuthorization();
             app.MapControllers();
             app.Run();

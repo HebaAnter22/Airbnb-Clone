@@ -13,10 +13,10 @@ import { InputValidators } from '../../../validators/input-validators';
   selector: 'app-register',
   standalone: true,
   imports: [
-    ReactiveFormsModule, 
-    CommonModule, 
-    NgIf, 
-    GoogleSigninButtonModule, 
+    ReactiveFormsModule,
+    CommonModule,
+    NgIf,
+    GoogleSigninButtonModule,
     MainNavbarComponent,
     ValidationErrorComponent
   ],
@@ -38,12 +38,12 @@ export class RegisterComponent {
       firstName: ['', [Validators.required, InputValidators.textLength(2, 50), InputValidators.lettersOnly()]],
       lastName: ['', [Validators.required, InputValidators.textLength(2, 50), InputValidators.lettersOnly()]],
       password: ['', [
-        Validators.required, 
+        Validators.required,
         InputValidators.textLength(8, 128),
         InputValidators.strongPassword()
       ]],
       confirmPassword: ['', [Validators.required]]
-    }, { 
+    }, {
       validators: InputValidators.passwordMatch('password', 'confirmPassword')
     });
   }
@@ -61,7 +61,15 @@ export class RegisterComponent {
             this.router.navigate(['/login']);
           },
           error: (err) => {
-            this.errorMessage = err.error || 'Registration failed';
+            //return BadRequest("User already exists");       
+            console.log(err)
+            if (err.status == 409) {
+              this.errorMessage = 'User already exists. Please use a different email.';
+            }
+            else {
+              this.errorMessage = 'An error occurred. Please try again later.';
+            }
+
           }
         });
     } else {

@@ -35,10 +35,10 @@ interface LocationData {
   selector: 'app-add-property',
   standalone: true,
   imports: [
-    CommonModule, 
-    ReactiveFormsModule, 
-    MatIconModule, 
-    MatButtonModule, 
+    CommonModule,
+    ReactiveFormsModule,
+    MatIconModule,
+    MatButtonModule,
     MatInputModule,
     MatProgressSpinnerModule,
     LocationMapComponent,
@@ -189,7 +189,7 @@ export class AddPropertyComponent implements OnInit {
     if (step > this.currentStep) {
       return false;
     }
-    
+
     const previousStep = this.currentStep;
     this.currentStep = step;
     const isValid = this.validateCurrentStep();
@@ -223,7 +223,7 @@ export class AddPropertyComponent implements OnInit {
   onImageUpload(event: Event) {
     this.errorMessage = '';
     const input = event.target as HTMLInputElement;
-    
+
     if (!input.files || input.files.length === 0) {
       this.errorMessage = 'No files selected';
       return;
@@ -245,7 +245,7 @@ export class AddPropertyComponent implements OnInit {
         if (e.target?.result) {
           const imageData = e.target.result as string;
           this.uploadedImages.push(file);
-          
+
           // Update form control
           const currentImages = this.propertyForm.get('images')?.value || [];
           this.propertyForm.patchValue({
@@ -281,7 +281,7 @@ export class AddPropertyComponent implements OnInit {
       touched: this.propertyForm.touched,
       imageUrls: this.uploadedImageUrls
     });
-    
+
     if (this.propertyForm.invalid) {
       console.error('Form submission failed: Invalid form');
       console.log('Validation errors:', this.getFormValidationErrors());
@@ -296,14 +296,14 @@ export class AddPropertyComponent implements OnInit {
     try {
       // Format the property data according to API expectations
       const formValues = this.propertyForm.value;
-      
+
       // Ensure amenities is an array of IDs, not null values
       const amenities = formValues.amenities || [];
       const validAmenities = amenities.filter((id: number | null | undefined) => id !== null && id !== undefined);
-      
+
       // According to your comment, the API uses propertyType for what we collect as sharingType
       // So we'll map the sharingType value to propertyType in the API request
-      
+
       // The API now expects full URLs, so we don't need to strip the base URL
       const propertyData: PropertyCreateDto = {
         categoryId: formValues.categoryId,
@@ -333,16 +333,16 @@ export class AddPropertyComponent implements OnInit {
           isPrimary: index === 0
         }))
       };
-      
+
       console.log('Prepared property data:', propertyData);
 
       const createdProperty = await this.propertyService.addProperty(propertyData).toPromise();
       console.log('Property created successfully:', createdProperty);
-      
+
       if (!createdProperty?.id) {
         throw new Error('Failed to create property: No ID returned');
       }
-      
+
       this.snackBar.open('Property created successfully!', 'Close', { duration: 3000 });
       this.router.navigate(['/property/' + createdProperty.id]);
     } catch (error) {
@@ -393,7 +393,7 @@ export class AddPropertyComponent implements OnInit {
 
   updateAmenities(amenityValue: string, isChecked: boolean) {
     const currentAmenities = this.propertyForm.get('amenities')?.value || [];
-    
+
     if (isChecked) {
       // Add the amenity if checked
       this.propertyForm.patchValue({
@@ -420,12 +420,12 @@ export class AddPropertyComponent implements OnInit {
   private async loadAmenities() {
     try {
       const amenities = await this.propertyService.getAmenities().toPromise();
-      
+
       // Map the amenities to ensure they have the correct property names
       this.amenities = (amenities || []).map(amenity => {
         // Log the original amenity object
         console.log('Original amenity:', amenity);
-        
+
         // Check if the amenity has an 'id' property instead of 'amenityId'
         const amenityAny = amenity as any;
         if (amenityAny.id !== undefined && amenityAny.amenityId === undefined) {
@@ -435,10 +435,10 @@ export class AddPropertyComponent implements OnInit {
             amenityId: amenityAny.id
           };
         }
-        
+
         return amenity;
       });
-      
+
       // Debug the amenities
       console.log('Mapped amenities:', this.amenities);
       if (this.amenities.length > 0) {
@@ -446,7 +446,7 @@ export class AddPropertyComponent implements OnInit {
         console.log('First amenity ID:', this.amenities[0].id);
         console.log('First amenity keys:', Object.keys(this.amenities[0]));
       }
-      
+
       // Initialize the form with empty amenities array
       this.propertyForm.patchValue({
         amenities: []
@@ -459,17 +459,17 @@ export class AddPropertyComponent implements OnInit {
 
   toggleAmenity(amenityId: number) {
     console.log('Toggling amenity:', amenityId);
-    
+
     // Check if amenityId is valid
     if (amenityId === undefined || amenityId === null) {
       console.error('Invalid amenity ID:', amenityId);
       return;
     }
-    
+
     // Get the current amenities array
     const currentAmenities = this.propertyForm.get('amenities')?.value || [];
     console.log('Current amenities:', currentAmenities);
-    
+
     // Create a new array based on whether the amenity is already selected
     let newAmenities: number[];
     if (currentAmenities.includes(amenityId)) {
@@ -481,12 +481,12 @@ export class AddPropertyComponent implements OnInit {
       newAmenities = [...currentAmenities, amenityId];
       console.log('Adding amenity, new array:', newAmenities);
     }
-    
+
     // Update the form with the new amenities array
     this.propertyForm.patchValue({
       amenities: newAmenities
     });
-    
+
     // Mark as touched to trigger validation
     this.propertyForm.get('amenities')?.markAsTouched();
   }
@@ -497,7 +497,7 @@ export class AddPropertyComponent implements OnInit {
       console.error('Invalid amenity ID in isAmenitySelected:', amenityId);
       return false;
     }
-    
+
     const amenities = this.propertyForm.get('amenities')?.value || [];
     return amenities.includes(amenityId);
   }
@@ -516,8 +516,8 @@ export class AddPropertyComponent implements OnInit {
     });
 
     // Save the location data
-    this.savedFormData = { 
-      ...this.savedFormData, 
+    this.savedFormData = {
+      ...this.savedFormData,
       address: location.address,
       city: location.city,
       country: location.country,
@@ -536,7 +536,7 @@ export class AddPropertyComponent implements OnInit {
   onImagesUploaded(urls: string[]): void {
     console.log('Images uploaded successfully:', urls);
     this.uploadedImageUrls = urls;
-    
+
     // Update the form control
     this.propertyForm.patchValue({
       images: urls.map((url, index) => ({
@@ -544,10 +544,10 @@ export class AddPropertyComponent implements OnInit {
         isPrimary: index === 0
       }))
     });
-    
+
     console.log('Updated form with image URLs');
     this.propertyForm.get('images')?.markAsTouched();
-    
+
     if (urls.length === 0) {
       console.warn('No images uploaded');
       this.errorMessage = 'Please upload at least one image';
@@ -565,7 +565,7 @@ export class AddPropertyComponent implements OnInit {
 
   validateCurrentStep(): boolean {
     console.log(`Validating step ${this.currentStep}: ${this.steps[this.currentStep - 1]}`);
-    
+
     switch (this.currentStep) {
       case 1: // Property Type
         if (!this.propertyForm.get('propertyType')?.valid) {
@@ -643,7 +643,7 @@ export class AddPropertyComponent implements OnInit {
         }
         break;
     }
-    
+
     console.log(`Step ${this.currentStep} validation successful`);
     this.errorMessage = '';
     return true;
@@ -654,7 +654,7 @@ export class AddPropertyComponent implements OnInit {
     console.log('Form valid:', this.propertyForm.valid);
     console.log('Form errors:', this.getFormValidationErrors());
     console.log('Current step:', this.currentStep);
-    
+
     // Log specific field validations for the current step
     switch (this.currentStep) {
       case 1: // Property Type
@@ -664,7 +664,7 @@ export class AddPropertyComponent implements OnInit {
           errors: this.propertyForm.get('propertyType')?.errors
         });
         break;
-        
+
       case 2: // Sharing Type
         console.log('Sharing Type validation:', {
           value: this.propertyForm.get('sharingType')?.value,
@@ -672,7 +672,7 @@ export class AddPropertyComponent implements OnInit {
           errors: this.propertyForm.get('sharingType')?.errors
         });
         break;
-        
+
       case 3: // Location
         const locationControls = ['address', 'city', 'country', 'latitude', 'longitude'];
         console.log('Location validation:', locationControls.map(control => ({
@@ -682,7 +682,7 @@ export class AddPropertyComponent implements OnInit {
           errors: this.propertyForm.get(control)?.errors
         })));
         break;
-        
+
       case 4: // Basics
         const basicControls = ['bedrooms', 'bathrooms', 'maxGuests'];
         console.log('Basics validation:', basicControls.map(control => ({
@@ -692,7 +692,7 @@ export class AddPropertyComponent implements OnInit {
           errors: this.propertyForm.get(control)?.errors
         })));
         break;
-        
+
       case 5: // Amenities
         console.log('Amenities validation:', {
           value: this.propertyForm.get('amenities')?.value,
@@ -700,14 +700,14 @@ export class AddPropertyComponent implements OnInit {
           errors: this.propertyForm.get('amenities')?.errors
         });
         break;
-        
+
       case 6: // Photos
         console.log('Photos validation:', {
           uploadedImageUrls: this.uploadedImageUrls,
           length: this.uploadedImageUrls.length
         });
         break;
-        
+
       case 7: // Title & Description
         console.log('Title & Description validation:', {
           title: {
@@ -722,7 +722,7 @@ export class AddPropertyComponent implements OnInit {
           }
         });
         break;
-        
+
       case 8: // Price & Booking
         console.log('Price & Booking validation:', {
           pricePerNight: {
@@ -756,8 +756,8 @@ export class AddPropertyComponent implements OnInit {
     return result;
   }
   help(): void {
-    this.snackBar.open('Please contact customer service for assistance.', 'Close', { 
-      duration: 5000, 
+    this.snackBar.open('Please contact customer service for assistance.', 'Close', {
+      duration: 5000,
       panelClass: ['snackbar-help']
     });
   }

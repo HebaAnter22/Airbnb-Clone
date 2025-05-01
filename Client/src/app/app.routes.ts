@@ -1,5 +1,4 @@
 import { Routes } from '@angular/router';
-import { LoginComponent } from './components/auth/login/login.component';
 import { RegisterComponent } from './components/auth/register/register.component';
 import { DashboardComponent } from './components/protected/dashboard/dashboard.component';
 import { HostComponent } from './components/protected/host/host.component';
@@ -31,17 +30,18 @@ import { HostPayoutComponent } from './components/host-payout/host-payout.compon
 import { HostDashboardComponent } from './components/host/host-dashboard/host-dashboard.component';
 import { AdminGuard } from './guards/admin.guard';
 import { HomeGuard } from './guards/home.guard';
-import { ForgotPasswordComponent } from './components/auth/forgot-password/forgot-password.component';
 import { ResetPasswordComponent } from './components/auth/reset-password/reset-password.component';
+import { ForgotPasswordComponent } from './components/auth/forgot-password/forgot-password.component';
+import { LoginComponent } from './components/auth/login/login.component';
 export const routes: Routes = [
-  { 
-    path: 'home', 
+  {
+    path: 'home',
     component: PropertyListingsComponent,
-    canActivate: [HomeGuard] 
+    canActivate: [HomeGuard]
   },
-  { 
-    path: '', 
-    redirectTo: '/home', 
+  {
+    path: '',
+    redirectTo: '/home',
     pathMatch: 'full'
   },
   {
@@ -51,8 +51,16 @@ export const routes: Routes = [
   },
   { path: 'login', component: LoginComponent },
   { path: 'register', component: RegisterComponent },
-  { path: 'forgot-password', component: ForgotPasswordComponent },
-  { path: 'reset-password', component: ResetPasswordComponent },
+
+  {
+    path: 'forgot-password',
+    loadComponent: () => import('./components/auth/forgot-password/forgot-password.component').then(m => m.ForgotPasswordComponent)
+  },
+  {
+    path: 'reset-password',
+    loadComponent: () => import('./components/auth/reset-password/reset-password.component').then(m => m.ResetPasswordComponent)
+  },
+
   {
     path: 'dashboard',
     component: DashboardComponent,
@@ -119,10 +127,10 @@ export const routes: Routes = [
     canActivate: [authGuard]
   },
 
-  { 
-    path: 'property/:id', 
+  {
+    path: 'property/:id',
     component: PropertyDetailsComponent,
-    canActivate: [HomeGuard] 
+    canActivate: [HomeGuard]
   },
   { path: 'profile/:id', component: ProfileComponent },
   {
@@ -133,7 +141,7 @@ export const routes: Routes = [
   {
     path: 'wishlist',
     component: WishlistComponent,
-    canActivate: [authGuard] // If you have an auth guard
+    canActivate: [authGuard]
   },
   { path: 'bookings', component: BookingComponent, canActivate: [authGuard] },
   { path: 'verification', component: VerificationComponent, canActivate: [authGuard] },

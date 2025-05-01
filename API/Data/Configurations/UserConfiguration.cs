@@ -25,7 +25,9 @@ namespace API.Data.Configurations
             builder.Property(u => u.Role).IsRequired().HasMaxLength(20).HasConversion<string>().HasDefaultValue(UserRole.Guest.ToString()).HasColumnName("role");
             builder.Property(u => u.CreatedAt).HasDefaultValueSql("SYSDATETIME()").HasColumnName("created_at").HasColumnType("datetime");
             builder.Property(u => u.UpdatedAt).HasColumnName("updated_at").HasColumnType("datetime");
-
+            builder.Property(u => u.PasswordResetToken)
+                .HasMaxLength(255)
+                .IsRequired(false);
             builder.HasCheckConstraint("CK_Users_AccountStatus", "[account_status] IN ('active', 'pending', 'blocked')");
             builder.HasCheckConstraint("CK_Users_Role", "[role] IN ('Guest', 'Host', 'Admin')");
 

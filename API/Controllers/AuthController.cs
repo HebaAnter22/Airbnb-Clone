@@ -4,7 +4,6 @@ using System.Text;
 using API.Data;
 using API.DTOs;
 using API.Models;
-using API.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
@@ -15,6 +14,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Authentication.Google;
 using System.Web;
 using API.DTOs.Auth;
+using API.Services.AuthRepo;
 
 namespace API.Controllers
 {
@@ -24,28 +24,40 @@ namespace API.Controllers
     public class AuthController : ControllerBase
     {
         IAuthService _authService;
-        public AuthController(IAuthService authService)
+        private readonly IResetPasswordService _passwordResetService;
+        public AuthController(IAuthService authService, IResetPasswordService passwordResetService)
         {
 
             _authService = authService;
-
+            _passwordResetService = passwordResetService;
         }
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterUserDto userDto)
         {
-            var user = await _authService.Register(userDto);
-            if (user == null)
+            try
             {
-                return BadRequest("User already exists");
+                var user = await _authService.Register(userDto);
+
+                return Ok(new
+                {
+                    Id = user.Id,
+                    Email = user.Email,
+                    FirstName = user.FirstName,
+                    LastName = user.LastName,
+                    Role = user.Role
+                });
             }
-            return Ok(new
+            
+            catch (Exception ex)
             {
-                Id = user.Id,
-                Email = user.Email,
-                FirstName = user.FirstName,
-                LastName = user.LastName,
-                Role = user.Role
-            });
+
+                if (ex.Message.Contains("Email already exists"))
+                {
+                    return Conflict(new { message = "Email already exists" });
+                }
+
+                return StatusCode(500, new { message = "An unexpected error occurred." });
+            }
         }
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginUserDto userDto)
@@ -286,7 +298,75 @@ namespace API.Controllers
             //            }
             //    );
         }
-        
+
+        [HttpPost("forgot-password")]
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDto request)
+        {
+            if (string.IsNullOrEmpty(request.Email))
+            {
+                return BadRequest(new PasswordResetResponseDto
+                {
+                    Success = false,
+                    Message = "Email is required"
+                });
+            }
+
+            // Request password reset
+            await _passwordResetService.RequestPasswordResetAsync(request.Email);
+
+            // Always return success for security purposes, regardless of whether the email exists
+            return Ok(new PasswordResetResponseDto
+            {
+                Success = true,
+                Message = "If your email is registered, you will receive a password reset link shortly."
+            });
+        }
+
+        [HttpPost("validate-token")]
+        public async Task<IActionResult> ValidateToken([FromBody] ValidateResetTokenDto request)
+        {
+            var isValid = await _passwordResetService.ValidateResetTokenAsync(request.Email, request.Token);
+
+            if (!isValid)
+            {
+                return BadRequest(new PasswordResetResponseDto
+                {
+                    Success = false,
+                    Message = "Invalid or expired reset token"
+                });
+            }
+
+            return Ok(new PasswordResetResponseDto
+            {
+                Success = true,
+                Message = "Token is valid"
+            });
+        }
+
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto request)
+        {
+            var result = await _passwordResetService.ResetPasswordAsync(
+                request.Email,
+                request.Token,
+                request.NewPassword
+            );
+
+            if (!result)
+            {
+                return BadRequest(new PasswordResetResponseDto
+                {
+                    Success = false,
+                    Message = "Password reset failed. The token may be invalid or expired."
+                });
+            }
+
+            return Ok(new PasswordResetResponseDto
+            {
+                Success = true,
+                Message = "Password has been reset successfully"
+            });
+        }
     }
 
 }

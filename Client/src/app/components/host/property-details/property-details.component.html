@@ -325,7 +325,7 @@
     </div>
 
     <!-- Right Column: Booking Details -->
-    <div class="booking-card ">
+    <div class="booking-card">
       <div class="booking-price">
         <h2>{{ formatPrice(property?.pricePerNight+property.cleaningFee+property.serviceFee)}}</h2>
         <span class="per-night">per night</span>
@@ -345,7 +345,7 @@
 
 
       <!-- Booking Form -->
-      <div class="booking-form">
+      <div class="booking-form" *ngIf="loggedInUser && userRole!='Host' && property?.status!='Pending'">
         <div class="dates-container">
           <div class="check-in" (click)="openCalendar('checkIn')">
             <label>CHECK-IN</label>
@@ -556,8 +556,7 @@
             <span>Total</span>
             <span>{{ formatPrice(getTotalPrice()) }}</span>
           </div> -->
-          
-      <!-- </div>
+      </div>
       <div class="host-message-overlay" *ngIf="userRole=='Host'&& property?.status!='Pending'">
         <div class="host-message-ribbon"></div>
         <div class="host-message-content">
@@ -581,7 +580,7 @@
             Please check back soon!</p>
           <i class="fas fa-info-circle"></i> Expected approval time: 24-48 hours
         </div>
-      </div> -->
+      </div>
 
     </div>
   </div>

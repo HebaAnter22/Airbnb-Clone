@@ -55,12 +55,12 @@ export class AuthService {
     const user = this.currentUserSubject.value;
     return user ? user.role === 'Admin' : false;
   }
-  
+
   // Method to handle post-login navigation based on user role
   navigateBasedOnRole() {
     const user = this.currentUserSubject.value;
     if (!user) return;
-    
+
     if (user.role === 'Admin') {
       this.router.navigate(['/admin']);
     } else if (user.role === 'Host') {
@@ -275,8 +275,8 @@ export class AuthService {
 
       catchError(error => {
         if (error.status === 401) {
-          this.logout();
-          this.router.navigate(['/login']);
+          //this.logout();
+          // this.router.navigate(['/login']);
         }
         return throwError(() => error);
       })

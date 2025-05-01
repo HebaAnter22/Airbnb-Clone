@@ -47,14 +47,14 @@ export class ProfileComponent implements OnInit {
   ngOnInit(): void {
     // Get current user ID from auth service
     this.currentUserId = parseInt(this.authService.userId || '0');
-    
+
     // Get profile user ID from route params
     const profileUserId: string = this.route.snapshot.paramMap.get('id') || '';
     this.profileId = Number(profileUserId);
 
     // Compare numeric IDs to determine if this is the current user's profile
     this.isCurrentUserProfile = this.currentUserId === this.profileId;
-    
+
     console.log('Current user ID:', this.currentUserId);
     console.log('Profile ID:', this.profileId);
     console.log('Is current user profile:', this.isCurrentUserProfile);
@@ -244,6 +244,9 @@ export class ProfileComponent implements OnInit {
         if (!this.hostProfile.work) this.hostProfile.work = '';
         if (!this.hostProfile.education) this.hostProfile.education = '';
         if (!this.hostProfile.languages) this.hostProfile.languages = '';
+        if (!this.hostProfile.obsessedWith) this.hostProfile.obsessedWith = '';
+        if (!this.hostProfile.dreamDestination) this.hostProfile.dreamDestination = '';
+        if (!this.hostProfile.specialAbout) this.hostProfile.specialAbout = '';
 
         // Update with review data if available
         if (this.reviews.length > 0) {
