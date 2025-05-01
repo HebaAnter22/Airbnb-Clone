@@ -228,7 +228,7 @@ export class PropertyDetailsComponent implements OnInit {
     return subtotal - discount;
   }
   reserve(): void {
-    if (!this.authService.userId || this.userRole == 'Host' || this.property.status == 'pending') {
+    if (!this.authService.userId || this.property.status == 'pending') {
       this.router.navigate(['/login']);
       return;
     }
