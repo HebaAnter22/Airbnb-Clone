@@ -93,15 +93,19 @@ export class PropertyListingsComponent implements OnInit {
 
 
   loadWishlistProperties(): void {
+    if (this.authService.userId) {
     this.profileService.getUserFavorites().subscribe({
       next: (properties) => {
         // Assuming the service returns an array of property IDs or objects with IDs
-        console.log('Wishlist properties from API:', properties);
+        // console.log('Wishlist properties from API:', properties);
         this.wishlistProperties = properties.map((property: any) => property.propertyId);
-        console.log('Wishlist properties loaded:', this.wishlistProperties);
+        // console.log('Wishlist properties loaded:', this.wishlistProperties);
       },
-      error: (err) => console.error('Error loading wishlist:', err)
-    });
+      error: (err) => console.warn('Error loading wishlist:', err)
+      });
+    }else {
+      return;
+    }
   }
   fetchCategories(): void {
     this.isLoading = true;

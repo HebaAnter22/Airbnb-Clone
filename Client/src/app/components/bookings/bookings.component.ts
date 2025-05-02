@@ -6,6 +6,7 @@ import { RouterModule } from '@angular/router';
 import { environment } from '../../../environments/environment';
 import { FormsModule } from '@angular/forms';
 import { BookingService } from '../../services/booking.service';
+import { PaymentService, RefundRequestDto } from '../../services/payment.service';
 import { RefundCalculation } from '../../models/cancellation-policy.model';
 
 interface Booking {
@@ -26,6 +27,11 @@ interface Booking {
     rating: number;
     comment: string;
   };
+  payments?: {
+    id: number;
+    amount: number;
+    status: string;
+  }[];
 }
 
 interface Property {
@@ -87,7 +93,11 @@ export class BookingComponent implements OnInit {
   toastType = 'success'; // 'success', 'error', etc.
   userReviews: any[] = []; // Array to hold user reviews
 
-  constructor(private http: HttpClient, private bookingService: BookingService) {}
+  constructor(
+    private http: HttpClient, 
+    private bookingService: BookingService,
+    private paymentService: PaymentService
+  ) {}
 
   ngOnInit(): void {
     this.getBookings();
@@ -194,6 +204,20 @@ export class BookingComponent implements OnInit {
     this.showCancellationModal = true;
     this.cancellationLoading = true;
     this.refundInfo = null;
+    
+    // Load payment information for this booking - important for refunds
+    this.http.get<Booking>(`${environment.apiUrl}/Booking/${booking.id}/details`)
+      .subscribe({
+        next: (bookingDetails) => {
+          console.log('[DEBUG] Fetched payment details:', bookingDetails.payments);
+          if (bookingDetails.payments && bookingDetails.payments.length > 0) {
+            this.selectedBooking!.payments = bookingDetails.payments;
+          }
+        },
+        error: (err) => {
+          console.error('[DEBUG] Error fetching payment details:', err);
+        }
+      });
     
     // Create a safety fallback in case we can't load property details
     const safetyFallback = setTimeout(() => {
@@ -309,23 +333,107 @@ export class BookingComponent implements OnInit {
     this.cancellationLoading = true;
     const bookingId = this.selectedBooking.id;
     
-    this.bookingService.cancelBooking(bookingId).subscribe({
-      next: () => {
-        this.bookings = this.bookings.filter(b => b.id !== bookingId);
+    // If we don't have payment data yet, fetch it first
+    if (!this.selectedBooking.payments || this.selectedBooking.payments.length === 0) {
+      console.log('[DEBUG] No payment data found, fetching before refund...');
+      
+      this.http.get<Booking>(`${environment.apiUrl}/Booking/${bookingId}/details`)
+        .subscribe({
+          next: (bookingDetails) => {
+            console.log('[DEBUG] Fetched payment details:', bookingDetails.payments);
+            if (bookingDetails.payments && bookingDetails.payments.length > 0) {
+              if (this.selectedBooking) {
+                this.selectedBooking.payments = bookingDetails.payments;
+                this.processRefund();
+              }
+            } else {
+              console.error('[DEBUG] No payments found for booking');
+              this.cancellationLoading = false;
+              this.showErrorToast('No payment record found for this booking. Please contact support.');
+            }
+          },
+          error: (err) => {
+            console.error('[DEBUG] Error fetching payment details:', err);
+            this.cancellationLoading = false;
+            this.showErrorToast('Unable to process cancellation. Please try again later.');
+          }
+        });
+    } else {
+      // We already have payment data
+      this.processRefund();
+    }
+  }
+  
+  private processRefund(): void {
+    if (!this.selectedBooking || !this.selectedBooking.payments || this.selectedBooking.payments.length === 0) {
+      console.error('[DEBUG] Cannot process refund: Missing booking or payment data');
+      this.cancellationLoading = false;
+      this.showErrorToast('Unable to process refund. Payment information is missing.');
+      return;
+    }
+    
+    // Find a successful payment to refund (filter non-refunded payments)
+    const validPayment = this.selectedBooking.payments.find(p => 
+      p.status === 'succeeded' || p.status === 'payment_succeeded'
+    );
+    
+    if (!validPayment) {
+      console.error('[DEBUG] No valid payment found:', this.selectedBooking.payments);
+      this.cancellationLoading = false;
+      this.showErrorToast('No valid payment found for refund. Please contact support.');
+      return;
+    }
+    
+    console.log('[DEBUG] Found valid payment for refund:', validPayment);
+    
+    const refundRequest: RefundRequestDto = {
+      paymentId: validPayment.id,
+      bookingId: this.selectedBooking.id,
+      cancellationReason: 'requested_by_customer'
+    };
+    
+    console.log('[DEBUG] Sending refund request:', refundRequest);
+    
+    this.paymentService.requestRefund(refundRequest)
+      .subscribe({
+        next: (response) => {
+          console.log('[DEBUG] Refund response:', response);
+          
+          // Remove the cancelled booking from the list
+          if (this.selectedBooking) {
+            this.bookings = this.bookings.filter(b => b.id !== this.selectedBooking!.id);
+          }
+          
         this.cancellationLoading = false;
         this.closeCancellationModal();
         
-        // Show success message with refund info if applicable
-        if (this.refundInfo?.isEligibleForRefund) {
-          this.showSuccessToast(`Booking cancelled. You will receive a refund of $${this.refundInfo.refundAmount.toFixed(2)}.`);
-        } else {
-          this.showSuccessToast('Booking cancelled successfully.');
-        }
+          let message = 'Booking cancelled successfully.';
+          
+          // Check if any refund was processed
+          if (response.payment?.refundProcessed > 0) {
+            message = `Booking cancelled. You will receive a refund of $${response.payment.refundProcessed.toFixed(2)}.`;
+          } else if (response.cancellationPolicy) {
+            message = response.message;
+          }
+          
+          this.showSuccessToast(message);
+          
+          // No need to refresh bookings since we already filtered the cancelled one
       },
       error: (err) => {
-        console.error('Error cancelling booking', err);
+          console.error('[DEBUG] Error cancelling booking:', err);
         this.cancellationLoading = false;
-        this.showErrorToast('Failed to cancel booking. Please try again.');
+          
+          let errorMsg = 'Failed to cancel booking. Please try again.';
+          if (err.error?.error) {
+            errorMsg = err.error.error;
+          } else if (err.error?.message) {
+            errorMsg = err.error.message;
+          } else if (typeof err.error === 'string') {
+            errorMsg = err.error;
+          }
+          
+          this.showErrorToast(errorMsg);
       }
     });
   }
@@ -350,12 +458,20 @@ export class BookingComponent implements OnInit {
     this.http.get<{bookings: Booking[], totalCount: number}>(`${environment.apiUrl}/Booking/userBookings?page=${this.currentPage}&pageSize=${this.pageSize}`)
       .subscribe({
         next: (response) => {
-          this.bookings = response.bookings;
+          // Filter out cancelled bookings
+          this.bookings = response.bookings.filter(booking => 
+            booking.status.toLowerCase() !== 'cancelled' && 
+            booking.status.toLowerCase() !== 'canceled'
+          );
+          
+          // Adjust total count for pagination
           this.totalCount = response.totalCount;
-          // Fetch property details for each booking
+          
+          // Fetch property details for active bookings
           this.bookings.forEach(booking => {
             this.getPropertyDetails(booking);
           });
+          
           this.loading = false;
         },
         error: (err) => {
@@ -394,13 +510,24 @@ export class BookingComponent implements OnInit {
   }
 
   getPropertyDetails(booking: Booking): void {
+    // First get the property details
     this.http.get<Property>(`${environment.apiUrl}/Properties/${booking.propertyId}`)
       .subscribe({
         next: (property) => {
           booking.property = property;
-          if (booking.property?.images?.length) {
-            console.log('First image URL:', booking.property.images[0].imageUrl);
+          
+          // After getting property, get the booking details with payments
+          this.http.get<Booking>(`${environment.apiUrl}/Booking/${booking.id}/details`)
+            .subscribe({
+              next: (bookingDetails) => {
+                // Preserve the property we already loaded but add payment info
+                booking.payments = bookingDetails.payments;
+                console.log(`Loaded payment details for booking ${booking.id}:`, booking.payments);
+              },
+              error: (err) => {
+                console.error(`Error fetching booking details ${booking.id}`, err);
           }
+            });
         },
         error: (err) => {
           console.error(`Error fetching property ${booking.propertyId}`, err);

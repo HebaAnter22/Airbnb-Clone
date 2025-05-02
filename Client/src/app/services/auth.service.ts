@@ -122,7 +122,16 @@ export class AuthService {
 
         localStorage.setItem('currentUser', JSON.stringify(user));
         this.currentUserSubject.next(user);
-        this.navigateBasedOnRole();
+        
+        // Check if there's a saved redirect URL
+        const redirectUrl = this.getRedirectUrl();
+        if (redirectUrl) {
+          // Navigate to the saved URL
+          this.router.navigateByUrl(redirectUrl);
+        } else {
+          // Default navigation based on role
+          this.navigateBasedOnRole();
+        }
       },
       error: (err) => {
         console.error('Google login error:', err);
@@ -281,5 +290,25 @@ export class AuthService {
         return throwError(() => error);
       })
     );
+  }
+
+  // Add these methods to store and retrieve redirect state
+  storeRedirectState(url: string, data: any): void {
+    sessionStorage.setItem('redirectUrl', url);
+    sessionStorage.setItem('redirectData', JSON.stringify(data));
+  }
+
+  getRedirectUrl(): string | null {
+    return sessionStorage.getItem('redirectUrl');
+  }
+
+  getRedirectData(): any {
+    const data = sessionStorage.getItem('redirectData');
+    return data ? JSON.parse(data) : null;
+  }
+
+  clearRedirectState(): void {
+    sessionStorage.removeItem('redirectUrl');
+    sessionStorage.removeItem('redirectData');
   }
 }

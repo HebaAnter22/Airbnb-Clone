@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { HostService, BookingDetails } from '../../../services/host-service.service';
+import { ProfileService } from '../../../services/profile.service';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatCardModule } from '@angular/material/card';
 import { MatTableModule } from '@angular/material/table';
@@ -103,7 +104,8 @@ export class PropertyBookingDetailsComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private hostService: HostService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private profileService: ProfileService
   ) {}
 
   ngOnInit(): void {
@@ -212,6 +214,10 @@ export class PropertyBookingDetailsComponent implements OnInit {
   }
 
   goBack(): void {
-    this.router.navigate(['/host']);
+    if (this.profileService.getUserRole() === 'Host') {
+      this.router.navigate(['/host']);
+    } else {
+      this.router.navigate(['/admin']);
+    }
   }
 } 

@@ -33,6 +33,7 @@ import { HomeGuard } from './guards/home.guard';
 import { ResetPasswordComponent } from './components/auth/reset-password/reset-password.component';
 import { ForgotPasswordComponent } from './components/auth/forgot-password/forgot-password.component';
 import { LoginComponent } from './components/auth/login/login.component';
+import { PropertyHostGuard } from './guards/property-host.guard';
 export const routes: Routes = [
   {
     path: 'home',
@@ -130,13 +131,13 @@ export const routes: Routes = [
   {
     path: 'property/:id',
     component: PropertyDetailsComponent,
-    canActivate: [HomeGuard]
+    canActivate: [HomeGuard, PropertyHostGuard]
   },
   { path: 'profile/:id', component: ProfileComponent },
   {
     path: 'property/:id/gallery',
     component: PropertyGalleryComponent,
-    canActivate: [HomeGuard]
+    canActivate: [HomeGuard, PropertyHostGuard]
   },
   {
     path: 'wishlist',

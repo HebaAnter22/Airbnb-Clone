@@ -243,214 +243,56 @@ namespace API.Services.BookingRepo
 
         public async Task DeleteBookingAndUpdateAvailabilityAsync(int id)
         {
-            using var transaction = await _context.Database.BeginTransactionAsync();
+            var transaction = await _context.Database.BeginTransactionAsync();
 
             try
             {
-                Console.WriteLine($"Starting deletion of booking {id}");
-                
-                // Find the booking with related data
+                // Get booking with payment info
                 var booking = await _context.Bookings
+                    .Include(b => b.Payments)
                     .Include(b => b.Property)
-                        .ThenInclude(p => p.CancellationPolicy)
-                    .Include(b => b.Property)
-                        .ThenInclude(p => p.Host)
-                    .Include(b => b.Payments.Where(p => p.Status == "succeeded"))
                     .FirstOrDefaultAsync(b => b.Id == id);
 
                 if (booking == null)
                 {
-                    Console.WriteLine($"Booking {id} not found");
-                    throw new KeyNotFoundException("Booking not found.");
+                    throw new InvalidOperationException($"Booking with ID {id} not found.");
                 }
 
-                Console.WriteLine($"Found booking {id} for property {booking.PropertyId}");
-                
-                // Log the booking property and cancellation policy details
-                if (booking.Property == null)
-                {
-                    Console.WriteLine($"Warning: Property is null for booking {id}");
-                }
-                else 
-                {
-                    Console.WriteLine($"Property {booking.PropertyId} found for booking {id}");
-                    
-                    if (booking.Property.CancellationPolicy == null)
-                    {
-                        Console.WriteLine($"Warning: No cancellation policy found for property {booking.PropertyId}");
-                    }
-                    else
-                    {
-                        Console.WriteLine($"Cancellation policy: {booking.Property.CancellationPolicy.Name} with refund percentage: {booking.Property.CancellationPolicy.RefundPercentage}%");
-                    }
-                }
-
-                // Calculate refund amount based on cancellation policy
-                decimal refundAmount = 0;
-                bool shouldRefund = false;
-
-                // Check if there are any payments to refund
-                if (booking.Payments == null || !booking.Payments.Any())
-                {
-                    Console.WriteLine($"No payments found for booking {id}");
-                }
-                else
-                {
-                    Console.WriteLine($"Found {booking.Payments.Count()} payments for booking {id}");
-                    var cancellationPolicy = booking.Property?.CancellationPolicy;
-                    
-                    if (cancellationPolicy != null)
-                    {
-                        // Calculate days until check-in
-                        int daysUntilCheckIn = (int)(booking.StartDate - DateTime.UtcNow).TotalDays;
-                        Console.WriteLine($"Days until check-in: {daysUntilCheckIn}");
-                        
-                        // Determine refund percentage based on policy and timing
-                        decimal refundPercentage = 0;
-                        
-                        switch (cancellationPolicy.Name.ToLower())
-                        {
-                            case "flexible":
-                                // Full refund if canceled at least 24 hours before check-in
-                                if (daysUntilCheckIn >= 1)
-                                {
-                                    refundPercentage = cancellationPolicy.RefundPercentage;
-                                    Console.WriteLine($"Flexible policy: eligible for refund ({refundPercentage}%)");
-                                }
-                                else
-                                {
-                                    Console.WriteLine("Flexible policy: not eligible for refund (less than 24 hours before check-in)");
-                                }
-                                break;
-                                
-                            case "moderate":
-                                // Partial refund if canceled at least 5 days before check-in
-                                if (daysUntilCheckIn >= 5)
-                                {
-                                    refundPercentage = cancellationPolicy.RefundPercentage;
-                                    Console.WriteLine($"Moderate policy: eligible for refund ({refundPercentage}%)");
-                                }
-                                else
-                                {
-                                    Console.WriteLine("Moderate policy: not eligible for refund (less than 5 days before check-in)");
-                                }
-                                break;
-                                
-                            case "strict":
-                                // No refund if canceled within 7 days of check-in
-                                if (daysUntilCheckIn >= 7)
-                                {
-                                    refundPercentage = cancellationPolicy.RefundPercentage;
-                                    Console.WriteLine($"Strict policy: eligible for refund ({refundPercentage}%)");
-                                }
-                                else
-                                {
-                                    Console.WriteLine("Strict policy: not eligible for refund (less than 7 days before check-in)");
-                                }
-                                break;
-                                
-                            case "non_refundable":
-                                // No refund for non-refundable bookings
-                                refundPercentage = 0;
-                                Console.WriteLine("Non-refundable policy: no refund");
-                                break;
-                                    
-                            default:
-                                // Default to no refund if policy is unknown
-                                refundPercentage = 0;
-                                Console.WriteLine($"Unknown policy type: {cancellationPolicy.Name}");
-                                break;
-                        }
-                        
-                        // Calculate refund amount based on total paid and refund percentage
-                        var totalPaid = booking.Payments.Sum(p => p.Amount);
-                        refundAmount = totalPaid * (refundPercentage / 100m);
-                        Console.WriteLine($"Total paid: {totalPaid}, Refund percentage: {refundPercentage}%, Refund amount: {refundAmount}");
-                        
-                        // Only process refund if amount is greater than zero
-                        shouldRefund = refundAmount > 0;
-                    }
-                    else
-                    {
-                        Console.WriteLine("No cancellation policy found, defaulting to no refund");
-                    }
-                }
-
-                // Update property availability to mark dates as available again
-                Console.WriteLine($"Updating availability for property {booking.PropertyId} from {booking.StartDate} to {booking.EndDate}");
+                // Update availability
                 await _propertyAvailabilityRepo.UpdateAvailabilityAsync(
                     booking.PropertyId,
                     booking.StartDate,
                     booking.EndDate,
-                    isAvailable: true);
+                    isAvailable: true
+                );
 
-                // Process refund if applicable
-                if (shouldRefund && booking.Payments.Any())
+                // Check if there are any successful payments that need refunding
+                var successfulPayments = booking.Payments?.Where(p => p.Status == "succeeded" && p.RefundedAmount < p.Amount).ToList();
+                if (successfulPayments != null && successfulPayments.Any())
                 {
-                    // Get the payment to refund (typically the first successful payment)
-                    var payment = booking.Payments.FirstOrDefault();
-                    if (payment != null)
-                    {
-                        Console.WriteLine($"Processing refund of {refundAmount} for payment {payment.Id}");
-                        
-                        // Get service to process the refund
-                        var bookingPaymentRepository = new BookingPaymentRepository(
-                            _context, 
-                            this, 
-                            _serviceProvider.GetService<IConfiguration>(),
-                            _serviceProvider.GetService<ILogger<BookingPaymentRepository>>());
-                        
-                        // Process the refund
-                        var refundSuccess = await bookingPaymentRepository.RefundPaymentAsync(
-                            payment.Id, 
-                            refundAmount,
-                            "booking_canceled");
-                        
-                        // If refund failed but was expected, log the issue but continue with cancellation
-                        if (!refundSuccess)
-                        {
-                            // Log the failed refund attempt
-                            Console.WriteLine($"Failed to process refund of {refundAmount} for booking {id}");
-                        }
-                        else
-                        {
-                            Console.WriteLine($"Successfully processed refund of {refundAmount} for booking {id}");
-                            
-                            // Make sure we have the host information
-                            if (booking.Property?.Host != null)
-                            {
-                                var hostId = booking.Property.Host.HostId;
-                                var host = await _context.HostProfules.FindAsync(hostId);
-                                
-                                if (host != null)
-                                {
-                                    // Calculate host's portion of the refund
-                                    decimal hostCommissionRate = 0.85m;
-                                    decimal hostRefundAmount = refundAmount * hostCommissionRate;
-                                    
-                                    // Explicitly update host earnings to ensure they're updated
-                                    host.AvailableBalance -= hostRefundAmount;
-                                    host.TotalEarnings -= hostRefundAmount;
-                                    
-                                    _context.HostProfules.Update(host);
-                                    
-                                    Console.WriteLine($"Updated host {hostId} earnings: deducted {hostRefundAmount} from TotalEarnings and AvailableBalance");
-                                }
-                                else
-                                {
-                                    Console.WriteLine($"Warning: Host profile not found for host ID {hostId}");
-                                }
-                            }
-                            else
-                            {
-                                Console.WriteLine("Warning: Property or host information not available");
-                            }
-                        }
-                    }
+                    // Don't delete - we should process a refund instead
+                    Console.WriteLine($"Booking {id} has payments that need to be refunded. Use the refund API endpoint instead of deleting.");
+                    
+                    // Just cancel the booking
+                    booking.Status = "Cancelled";
+                    booking.UpdatedAt = DateTime.UtcNow;
+                    _context.Bookings.Update(booking);
+                    await _context.SaveChangesAsync();
+                    await transaction.CommitAsync();
+                    Console.WriteLine($"Booking {id} marked as cancelled. Please process refunds separately.");
+                    return;
                 }
-                else
+
+                // No payments or all payments already refunded, proceed with delete
+
+                // Delete associated payments if any exist
+                if (booking.Payments != null && booking.Payments.Any())
                 {
-                    Console.WriteLine($"No refund required for booking {id}");
+                    foreach (var payment in booking.Payments)
+                    {
+                        _context.BookingPayments.Remove(payment);
+                    }
+                    await _context.SaveChangesAsync();
                 }
 
                 // Remove the booking

@@ -91,6 +91,12 @@ export class AuthInterceptor implements HttpInterceptor {
   }
 
   private handleAuthError(): void {
+    // Store the current URL before redirecting
+    const currentUrl = this.router.url;
+    if (currentUrl && currentUrl !== '/login') {
+      this.authService.storeRedirectState(currentUrl, null);
+    }
+    
     // Clear auth data and redirect to login
     this.authService.logout();
     this.router.navigate(['/login']);

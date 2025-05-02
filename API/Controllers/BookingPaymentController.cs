@@ -86,91 +86,6 @@ namespace API.Controllers
             return NoContent();
         }
 
-        public class RefundPaymentDto
-        {
-            public int PaymentId { get; set; }
-            public decimal RefundAmount { get; set; }
-            public string Reason { get; set; } = "requested_by_customer"; // Default reason
-        }
-
-        [HttpPost("refund")]
-        [Authorize]
-        public async Task<IActionResult> RefundPayment([FromBody] RefundPaymentDto refundDto)
-        {
-            _logger.LogInformation("RefundPayment called for paymentId: {PaymentId}, amount: {Amount}",
-                refundDto.PaymentId, refundDto.RefundAmount);
-
-            try
-            {
-                // Validate refund request
-                if (refundDto.RefundAmount <= 0)
-                {
-                    return BadRequest(new { error = "Refund amount must be greater than zero." });
-                }
-
-                // Get the payment to verify it exists and is eligible for refund
-                var payment = await _context.BookingPayments.FindAsync(refundDto.PaymentId);
-                if (payment == null)
-                {
-                    return NotFound(new { error = "Payment not found." });
-                }
-
-                if (payment.Status == "refunded")
-                {
-                    return BadRequest(new { error = "Payment has already been fully refunded." });
-                }
-
-                if (payment.RefundedAmount + refundDto.RefundAmount > payment.Amount)
-                {
-                    return BadRequest(new { error = $"Refund amount exceeds available amount. Maximum refund available: {payment.Amount - payment.RefundedAmount:F2}" });
-                }
-
-                // Process the refund
-                var success = await _bookingPaymentRepo.RefundPaymentAsync(
-                    refundDto.PaymentId,
-                    refundDto.RefundAmount,
-                    refundDto.Reason);
-
-                if (!success)
-                {
-                    return BadRequest(new { error = "Refund failed to process. Please check the logs for details." });
-                }
-
-                return Ok(new
-                {
-                    message = "Refund processed successfully.",
-                    data = new
-                    {
-                        paymentId = payment.Id,
-                        bookingId = payment.BookingId,
-                        refundedAmount = refundDto.RefundAmount,
-                        totalRefunded = payment.RefundedAmount + refundDto.RefundAmount,
-                        remainingAmount = payment.Amount - (payment.RefundedAmount + refundDto.RefundAmount)
-                    }
-                });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error processing refund for payment {PaymentId}", refundDto.PaymentId);
-                return StatusCode(500, new { error = "An error occurred while processing the refund." });
-            }
-        }
-
-        [HttpPost("{paymentId}/refund")]
-        [Authorize]
-        public async Task<IActionResult> RefundPaymentById(int paymentId, [FromBody] decimal refundAmount)
-        {
-            // This endpoint is maintained for backward compatibility
-            // Create a DTO and delegate to the main refund method
-            var refundDto = new RefundPaymentDto
-            {
-                PaymentId = paymentId,
-                RefundAmount = refundAmount
-            };
-
-            return await RefundPayment(refundDto);
-        }
-
         [HttpPost("confirm-booking-payment")]
         [Authorize]
         public async Task<IActionResult> ConfirmBookingPayment([FromBody] ConfirmPaymentDto confirmPaymentDto)
@@ -288,36 +203,6 @@ namespace API.Controllers
             return StatusCode(500, new { Message = "An unexpected error occurred during payment processing" });
         }
 
-        private async Task InsertPaymentAsync(int bookingId, decimal amount, string transactionId, string status)
-        {
-            var payment = new BookingPayment
-            {
-                BookingId = bookingId,
-                Amount = amount,
-                PaymentMethodType = "Stripe",
-                TransactionId = transactionId,
-                Status = "succeeded", // Fixed status value to match expected status
-                CreatedAt = DateTime.UtcNow
-            };
-
-            var booking = await _context.Bookings.FindAsync(bookingId);
-            if (booking == null)
-            {
-                throw new Exception($"Booking with ID {bookingId} not found.");
-            }
-            else if (booking.Status != "Pending")
-            {
-                throw new Exception($"Booking with ID {bookingId} is not in a valid state for payment.");
-            }
-
-            booking.Status = "Confirmed"; // Update booking status to Confirmed
-            _context.Update(booking);
-            _context.BookingPayments.Add(payment);
-            await _context.SaveChangesAsync();
-
-            _logger.LogInformation("Booking {BookingId} status updated to Confirmed", bookingId);
-        }
-
         [HttpGet("GetPaymentBySessionId/{sessionId}")]
         public async Task<IActionResult> GetPaymentBySessionId(string sessionId)
         {
@@ -409,6 +294,13 @@ namespace API.Controllers
                     return BadRequest(new { error = "The violation is not related to this booking's property or host." });
                 }
 
+                // Validate reason to ensure it's Stripe-compliant
+                if (refundDto.Reason != "duplicate" && refundDto.Reason != "fraudulent" && refundDto.Reason != "requested_by_customer")
+                {
+                    _logger.LogWarning("Invalid refund reason '{Reason}'. Using default 'fraudulent'", refundDto.Reason);
+                    refundDto.Reason = "fraudulent"; // Default for admin/violation refunds
+                }
+
                 // Process the refund
                 var success = await _bookingPaymentRepo.RefundPaymentAsync(
                     refundDto.PaymentId,
@@ -419,6 +311,9 @@ namespace API.Controllers
                 {
                     return BadRequest(new { error = "Refund failed to process. Please check the logs for details." });
                 }
+
+                // Get the updated payment record after refund
+                var updatedPayment = await _context.BookingPayments.FindAsync(refundDto.PaymentId);
 
                 // Update the violation status to resolved if not already
                 if (violation.Status != "Resolved")
@@ -438,12 +333,13 @@ namespace API.Controllers
                     message = "Refund processed successfully.",
                     data = new
                     {
-                        paymentId = payment.Id,
-                        bookingId = payment.BookingId,
+                        paymentId = updatedPayment.Id,
+                        bookingId = updatedPayment.BookingId,
                         violationId = refundDto.ViolationId,
                         refundedAmount = refundDto.RefundAmount,
-                        totalRefunded = payment.RefundedAmount + refundDto.RefundAmount,
-                        remainingAmount = payment.Amount - (payment.RefundedAmount + refundDto.RefundAmount)
+                        totalRefunded = updatedPayment.RefundedAmount,
+                        remainingAmount = updatedPayment.Amount - updatedPayment.RefundedAmount,
+                        paymentStatus = updatedPayment.Status
                     }
                 });
             }
@@ -453,6 +349,156 @@ namespace API.Controllers
                     refundDto.PaymentId, refundDto.ViolationId);
                 return StatusCode(500, new { error = "An error occurred while processing the refund." });
             }
+        }
+
+        [HttpGet("{paymentId}")]
+        public async Task<IActionResult> GetPaymentById(int paymentId)
+        {
+            var payment = await _context.BookingPayments.FindAsync(paymentId);
+            if (payment == null)
+            {
+                return NotFound("Payment not found");
+            }
+            return Ok(payment);
+        }
+
+        [HttpPost("refund")]
+        public async Task<IActionResult> Refund([FromBody] RefundRequestDto refundRequest)
+        {
+            try
+            {
+                _logger.LogInformation("Refund called for bookingId: {BookingId}, paymentId: {PaymentId}, reason: {Reason}", 
+                    refundRequest.BookingId, refundRequest.PaymentId, refundRequest.CancellationReason);
+                
+                // Get the payment to verify it exists
+                var payment = await _context.BookingPayments.FindAsync(refundRequest.PaymentId);
+                if (payment == null)
+                {
+                    return NotFound(new { error = "Payment not found." });
+                }
+                
+                _logger.LogInformation("Found payment: Amount={Amount}, Status={Status}, RefundedAmount={RefundedAmount}", 
+                    payment.Amount, payment.Status, payment.RefundedAmount);
+                
+                // Get booking with property and cancellation policy
+                var booking = await _bookingRepo.getBookingByIdWithData(refundRequest.BookingId);
+                if (booking == null)
+                {
+                    return NotFound(new { error = "Booking not found." });
+                }
+                
+                if (booking.Status == "Cancelled")
+                {
+                    return BadRequest(new { error = "Booking is already cancelled." });
+                }
+                
+                // Calculate refund amount based on cancellation policy
+                decimal refundPercentage = 0;
+                string policyName = booking.Property?.CancellationPolicy?.Name?.ToLower() ?? "strict";
+                
+                // Calculate days until check-in
+                int daysUntilCheckIn = (int)Math.Ceiling((booking.StartDate - DateTime.UtcNow).TotalDays);
+                
+                switch (policyName)
+                {
+                    case "flexible":
+                        refundPercentage = daysUntilCheckIn >= 1 ? 100 : 0;
+                        break;
+                    case "moderate":
+                        refundPercentage = daysUntilCheckIn >= 5 ? 50 : 0;
+                        break;
+                    case "strict":
+                    default:
+                        refundPercentage = daysUntilCheckIn >= 7 ? 0 : 0;
+                        break;
+                }
+                
+                // Calculate refund amount
+                decimal refundAmount = payment.Amount * (refundPercentage / 100m);
+                
+                _logger.LogInformation("Calculated refund: Policy={Policy}, DaysUntilCheckIn={Days}, RefundPercentage={Percentage}, RefundAmount={Amount}", 
+                    policyName, daysUntilCheckIn, refundPercentage, refundAmount);
+                
+                // Map cancellation reason to Stripe reason
+                string stripeReason = "requested_by_customer";
+                switch (refundRequest.CancellationReason?.ToLower())
+                {
+                    case "duplicate":
+                        stripeReason = "duplicate";
+                        break;
+                    case "fraudulent":
+                        stripeReason = "fraudulent";
+                        break;
+                    default:
+                        stripeReason = "requested_by_customer";
+                        break;
+                }
+                
+                // Process the refund if amount > 0
+                bool success = false;
+                if (refundAmount > 0)
+                {
+                    success = await _bookingPaymentRepo.RefundPaymentAsync(
+                        refundRequest.PaymentId,
+                        refundAmount,
+                        stripeReason);
+                    
+                    if (!success)
+                    {
+                        _logger.LogError("Refund failed to process");
+                        return BadRequest(new { error = "Refund failed to process. Please check the logs for details." });
+                    }
+                }
+                else
+                {
+                    _logger.LogInformation("No refund to process based on cancellation policy");
+                }
+                
+                // Update booking status to Cancelled regardless of refund amount
+                await _bookingRepo.UpdateBookingStatusAsync(refundRequest.BookingId, "Cancelled");
+                
+                // Get the updated payment after refund
+                var updatedPayment = await _context.BookingPayments.FindAsync(refundRequest.PaymentId);
+                
+                _logger.LogInformation("After refund: Amount={Amount}, Status={Status}, RefundedAmount={RefundedAmount}", 
+                    updatedPayment.Amount, updatedPayment.Status, updatedPayment.RefundedAmount);
+                
+                return Ok(new
+                {
+                    message = refundAmount > 0 
+                        ? "Refund processed successfully." 
+                        : "Booking cancelled successfully, but no refund issued based on cancellation policy.",
+                    cancellationPolicy = new {
+                        name = policyName,
+                        description = booking.Property?.CancellationPolicy?.Description,
+                        refundPercentage = refundPercentage,
+                        daysUntilCheckIn = daysUntilCheckIn
+                    },
+                    payment = new { 
+                        amount = payment.Amount,
+                        status = updatedPayment.Status,
+                        refundedAmount = updatedPayment.RefundedAmount,
+                        refundProcessed = refundAmount
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in refund for booking {BookingId}, payment {PaymentId}", 
+                    refundRequest.BookingId, refundRequest.PaymentId);
+                return StatusCode(500, new { 
+                    error = "An error occurred while processing the refund.",
+                    details = ex.Message,
+                    stackTrace = ex.StackTrace
+                });
+            }
+        }
+
+        public class RefundRequestDto
+        {
+            public int PaymentId { get; set; }
+            public int BookingId { get; set; }
+            public string CancellationReason { get; set; } = "requested_by_customer";
         }
 
     }

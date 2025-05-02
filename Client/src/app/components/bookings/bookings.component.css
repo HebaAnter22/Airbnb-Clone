@@ -805,3 +805,31 @@ p {
   font-size: 14px;
   color: #717171;
 }
+
+/* Add styling for the empty state */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1rem;
+  text-align: center;
+}
+
+.empty-state svg {
+  color: #888;
+  margin-bottom: 1.5rem;
+}
+
+.empty-state h3 {
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+  color: #333;
+}
+
+.empty-state p {
+  font-size: 1rem;
+  color: #666;
+  margin-bottom: 1.5rem;
+  max-width: 400px;
+}

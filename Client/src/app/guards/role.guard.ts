@@ -11,11 +11,19 @@ import { AuthService } from '../services/auth.service';
       const currentUser = this.authService.currentUserValue;
       const requiredRole = route.data['role'];
       
-      if (currentUser && currentUser.role === requiredRole) {
-        return true;
+      // If user is not logged in, store the URL and redirect to login
+      if (!currentUser) {
+        this.authService.storeRedirectState(state.url, null);
+        this.router.navigate(['/login']);
+        return false;
       }
       
-      this.router.navigate(['/forbidden']);
-      return false;
+      // If user is logged in but doesn't have the required role
+      if (currentUser.role !== requiredRole) {
+        this.router.navigate(['/forbidden']);
+        return false;
+      }
+      
+      return true;
     }
   }

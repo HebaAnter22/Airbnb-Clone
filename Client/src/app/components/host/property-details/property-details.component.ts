@@ -14,6 +14,7 @@ import { ReportViolationComponent } from '../../common/report-violation/report-v
 import { ReportViolationDirective } from '../../../directives/report-violation.directive';
 import { MatDialog } from '@angular/material/dialog';
 import { EditReviewModalComponent } from './edit-review-modal/edit-review-modal.component';
+import { RedirectService } from '../../../services/redirect.service';
 
 
 @Component({
@@ -90,8 +91,7 @@ export class PropertyDetailsComponent implements OnInit {
     private profileService: ProfileService,
     private router: Router,
     private authService: AuthService,
-
-
+    private redirectService: RedirectService
   ) {
 
   }
@@ -104,20 +104,56 @@ export class PropertyDetailsComponent implements OnInit {
 
   ngOnInit(): void {
     this.propertyId = +this.route.snapshot.paramMap.get('id')!;
-    this.loadPropertyDetails();
-    this.checkWishlistStatus();
     this.loggedInUser = this.authService.userId;
     this.userRole = this.profileService.getUserRole();
+    
+    // Check for saved booking data
+    this.restoreSavedBookingDataIfAvailable();
+    
+    this.loadPropertyDetails();
+    this.checkWishlistStatus();
 
     this.getUserLocation();
-    const checkIn = new Date(this.checkInDate);
-    const checkOut = new Date(this.checkOutDate);
-    this.selectedDates = {
-      start: checkIn,
-      end: checkOut
-    };
+    
+    // Only initialize default dates if we don't have saved data
+    if (!this.authService.getRedirectData()) {
+      const checkIn = new Date(this.checkInDate);
+      const checkOut = new Date(this.checkOutDate);
+      this.selectedDates = {
+        start: checkIn,
+        end: checkOut
+      };
+    }
 
     this.generateCalendarMonths();
+  }
+
+  // Add a new method to restore saved booking data
+  restoreSavedBookingDataIfAvailable(): void {
+    // Use the redirect service to get saved form data
+    const savedData = this.redirectService.getSavedFormData('/property/' + this.propertyId);
+    
+    if (savedData) {
+      // Restore the saved values
+      if (savedData.checkInDate) this.checkInDate = savedData.checkInDate;
+      if (savedData.checkOutDate) this.checkOutDate = savedData.checkOutDate;
+      if (savedData.guests) this.guests = savedData.guests;
+      if (savedData.promoCode) {
+        this.promoCode = savedData.promoCode;
+        // Optionally re-apply promo code
+        this.applyPromoCode();
+      }
+      
+      // If we have dates, set up the calendar selection
+      if (savedData.checkInDate && savedData.checkOutDate) {
+        const checkIn = new Date(savedData.checkInDate);
+        const checkOut = new Date(savedData.checkOutDate);
+        this.selectedDates = {
+          start: checkIn,
+          end: checkOut
+        };
+      }
+    }
   }
 
   switchToGuestAccount() {
@@ -229,10 +265,38 @@ export class PropertyDetailsComponent implements OnInit {
     return subtotal - discount;
   }
   reserve(): void {
-    if (!this.authService.userId || this.property.status == 'pending') {
-      this.router.navigate(['/login']);
+    // First check if the user is the host of this property
+    if (this.loggedInUser && this.property.hostId && this.loggedInUser === this.property.hostId.toString()) {
+      this.showToast = true;
+      this.toastMessage = "You cannot book your own property.";
+      setTimeout(() => {
+        this.showToast = false;
+      }, 3000);
       return;
     }
+    
+    if (!this.authService.userId) {
+      // Use redirect service to save state before redirecting
+      const bookingData = {
+        propertyId: this.propertyId,
+        checkInDate: this.checkInDate,
+        checkOutDate: this.checkOutDate,
+        guests: this.guests,
+        promoCode: this.promoCode
+      };
+      this.redirectService.redirectToLogin('/property/' + this.propertyId, bookingData);
+      return;
+    }
+
+    if (this.property.status == 'pending') {
+      this.showToast = true;
+      this.toastMessage = "This property is pending approval and cannot be booked yet.";
+      setTimeout(() => {
+        this.showToast = false;
+      }, 3000);
+      return;
+    }
+    
     // Check if dates are selected
     if (!this.checkInDate || !this.checkOutDate) {
       alert('Please select check-in and check-out dates');
@@ -670,6 +734,15 @@ export class PropertyDetailsComponent implements OnInit {
         this.property = data;
         this.loading = false;
         this.maxGuests = this.property.maxGuests; // Set your maximum allowed guests
+        
+        // Check if the current user is the host of this property
+        if (this.loggedInUser && this.property.hostId && this.loggedInUser === this.property.hostId.toString()) {
+          this.guestIsNotHost = false;
+          // Redirect to the host property management page
+          this.router.navigate(['/host/edit', this.propertyId]);
+          return;
+        }
+        
         if (this.userLat && this.userLng) {
           this.calculateDistance();
         } else {

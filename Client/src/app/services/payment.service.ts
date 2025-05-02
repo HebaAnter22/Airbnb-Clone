@@ -13,6 +13,12 @@ export interface AdminRefundDto {
     adminNotes?: string;
 }
 
+export interface RefundRequestDto {
+    paymentId: number;
+    bookingId: number;
+    cancellationReason?: string;
+}
+
 @Injectable({
     providedIn: 'root'
 })
@@ -178,6 +184,36 @@ export class PaymentService {
             tap(response => console.log('Admin Refund Response:', response)),
             catchError(error => {
                 console.error('Error processing admin refund:', error);
+                return throwError(error);
+            })
+        );
+    }
+
+    requestRefund(refundRequest: RefundRequestDto): Observable<any> {
+        const url = `${this.apiUrl}/BookingPayment/refund`;
+        const token = localStorage.getItem('token');
+        const headers = new HttpHeaders({
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        });
+
+        console.log('Sending refund request to backend:', {
+            url,
+            request: refundRequest,
+            headers: headers.keys()
+        });
+
+        return this.http.post(url, refundRequest, { headers }).pipe(
+            tap(response => console.log('Refund Response:', response)),
+            catchError(error => {
+                console.error('Error processing refund:', error);
+                console.error('Error details:', {
+                    status: error.status,
+                    statusText: error.statusText,
+                    error: error.error,
+                    message: error.message,
+                    url: error.url
+                });
                 return throwError(error);
             })
         );

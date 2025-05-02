@@ -50,20 +50,24 @@ export class NavbarComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.profileService.getUserProfile(this.authService.userId ? this.authService.userId : '').subscribe(
-      (profile: any) => {
-        this.userFirstName = profile.firstName || 'User'; // Default to 'User' if first name is not available
-        if (profile.profilePictureUrl) {
-          // Just store the raw URL, we'll sanitize it in the template
-          this.imageUrl = profile.profilePictureUrl;
-        }
-        console.log(this.imageUrl);
-      },
-      (error) => {
-        console.error('Error loading profile:', error);
-      }
-    );
 
+    if (this.authService.userId) {
+      this.profileService.getUserProfile(this.authService.userId ? this.authService.userId : '').subscribe(
+        (profile: any) => {
+          this.userFirstName = profile.firstName || 'User'; // Default to 'User' if first name is not available
+          if (profile.profilePictureUrl) {
+            // Just store the raw URL, we'll sanitize it in the template
+            this.imageUrl = profile.profilePictureUrl;
+          }
+          console.log(this.imageUrl);
+        },
+        (error) => {
+          console.warn('Error loading profile:', error);
+        }
+      );
+    } else {
+      return;
+    }
 
     this.authService.currentUser.subscribe(user => {
       this.loggedIn = !!user;

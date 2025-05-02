@@ -369,6 +369,9 @@ namespace API.Services.BookingPaymentRepo
 
         public async Task<bool> RefundPaymentAsync(int paymentId, decimal refundAmount, string reason = "requested_by_customer")
         {
+            _logger.LogInformation("Starting RefundPaymentAsync for paymentId={PaymentId}, refundAmount={RefundAmount}, reason={Reason}", 
+                paymentId, refundAmount, reason);
+                
             try
             {
                 var payment = await _context.BookingPayments.FindAsync(paymentId);
@@ -377,6 +380,9 @@ namespace API.Services.BookingPaymentRepo
                     _logger.LogWarning("RefundPaymentAsync: Payment with ID {PaymentId} not found", paymentId);
                     return false;
                 }
+
+                _logger.LogInformation("Found payment: ID={PaymentId}, BookingId={BookingId}, Amount={Amount}, Status={Status}, RefundedAmount={RefundedAmount}", 
+                    payment.Id, payment.BookingId, payment.Amount, payment.Status, payment.RefundedAmount);
 
                 // Validate refund amount
                 if (payment.RefundedAmount + refundAmount > payment.Amount)
@@ -394,8 +400,18 @@ namespace API.Services.BookingPaymentRepo
                     return false;
                 }
 
+                // Validate reason to ensure it's one of the valid Stripe reasons
+                // Valid reasons are: 'duplicate', 'fraudulent', or 'requested_by_customer'
+                if (reason != "duplicate" && reason != "fraudulent" && reason != "requested_by_customer")
+                {
+                    _logger.LogWarning("RefundPaymentAsync: Invalid reason '{Reason}'. Using default 'requested_by_customer'", reason);
+                    reason = "requested_by_customer";
+                }
+
                 // Convert refund amount to cents for Stripe
                 long refundAmountCents = (long)(refundAmount * 100);
+                _logger.LogInformation("Calling Stripe to process refund: PaymentIntent={PaymentIntent}, Amount={Amount} cents, Reason={Reason}",
+                    paymentIntentId, refundAmountCents, reason);
 
                 // Process the refund through Stripe
                 var refundOptions = new RefundCreateOptions
@@ -407,47 +423,75 @@ namespace API.Services.BookingPaymentRepo
 
                 var refundService = new RefundService();
                 var refund = await refundService.CreateAsync(refundOptions);
+                _logger.LogInformation("Stripe refund response: ID={RefundId}, Status={Status}, Amount={Amount}", 
+                    refund.Id, refund.Status, refund.Amount);
 
                 if (refund.Status == "succeeded")
                 {
-                    // Update our database record
-                    payment.RefundedAmount += refundAmount;
+                    _logger.LogInformation("Stripe refund succeeded. Updating database records.");
                     
-                    // Set status based on whether this is a full or partial refund
-                    if (payment.RefundedAmount >= payment.Amount)
-                    {
-                        payment.Status = "refunded";
-                    }
-                    else
-                    {
-                        payment.Status = "partially_refunded";
-                    }
-                    
-                    payment.UpdatedAt = DateTime.UtcNow;
-                    _context.BookingPayments.Update(payment);
-                    
-                    // If booking exists, update booking status for full refunds
-                    if (payment.RefundedAmount >= payment.Amount)
-                    {
-                        var booking = await _context.Bookings.FindAsync(payment.BookingId);
-                        if (booking != null)
-                        {
-                            await _bookingRepository.UpdateBookingStatusAsync(payment.BookingId, "Cancelled");
-                        }
-                    }
-
-                    // Update host earnings (deduct the refunded amount)
                     try
                     {
-                        // Deduct from host earnings (85% of the refund amount)
-                        decimal hostCommissionRate = 0.85m;
-                        decimal hostRefundAmount = refundAmount * hostCommissionRate;
+                        // IMPORTANT: Do not use transactions here as they might be causing issues
+                        // Update payment record directly
                         
+                        // Fetch a fresh instance of the payment
+                        var paymentToUpdate = await _context.BookingPayments.FindAsync(paymentId);
+                        if (paymentToUpdate == null)
+                        {
+                            _logger.LogError("Payment {PaymentId} not found when updating after successful Stripe refund", paymentId);
+                            return false;
+                        }
+                        
+                        _logger.LogInformation("Before update: Payment ID={PaymentId}, RefundedAmount={RefundedAmount}, Status={Status}", 
+                            paymentToUpdate.Id, paymentToUpdate.RefundedAmount, paymentToUpdate.Status);
+                        
+                        // Update payment record
+                        paymentToUpdate.RefundedAmount += refundAmount;
+                        
+                        // Set status based on whether this is a full or partial refund
+                        if (paymentToUpdate.RefundedAmount >= paymentToUpdate.Amount)
+                        {
+                            paymentToUpdate.Status = "refunded";
+                        }
+                        else
+                        {
+                            paymentToUpdate.Status = "partially_refunded";
+                        }
+                        
+                        paymentToUpdate.UpdatedAt = DateTime.UtcNow;
+                        _context.BookingPayments.Update(paymentToUpdate);
+                        
+                        // Save payment changes immediately
+                        await _context.SaveChangesAsync();
+                        _logger.LogInformation("Payment record updated: ID={PaymentId}, RefundedAmount={RefundedAmount}, Status={Status}", 
+                            paymentToUpdate.Id, paymentToUpdate.RefundedAmount, paymentToUpdate.Status);
+                        
+                        // Get booking for status update
                         var booking = await _context.Bookings
                             .Include(b => b.Property)
                             .ThenInclude(p => p.Host)
-                            .FirstOrDefaultAsync(b => b.Id == payment.BookingId);
-
+                            .FirstOrDefaultAsync(b => b.Id == paymentToUpdate.BookingId);
+                        
+                        if (booking == null)
+                        {
+                            _logger.LogWarning("Booking {BookingId} not found when processing refund", paymentToUpdate.BookingId);
+                            // Continue with host update even if booking is not found
+                        }
+                        else
+                        {
+                            // Update booking status for full refunds
+                            if (paymentToUpdate.RefundedAmount >= paymentToUpdate.Amount && booking.Status != "Cancelled")
+                            {
+                                booking.Status = "Cancelled";
+                                booking.UpdatedAt = DateTime.UtcNow;
+                                _context.Bookings.Update(booking);
+                                await _context.SaveChangesAsync();
+                                _logger.LogInformation("Updated booking {BookingId} status to Cancelled due to full refund", booking.Id);
+                            }
+                        }
+                        
+                        // Update host earnings in a separate step
                         if (booking?.Property?.Host != null)
                         {
                             var hostId = booking.Property.Host.HostId;
@@ -455,29 +499,41 @@ namespace API.Services.BookingPaymentRepo
                             
                             if (host != null)
                             {
+                                _logger.LogInformation("Updating host earnings: HostId={HostId}, CurrentEarnings={CurrentEarnings}, CurrentBalance={CurrentBalance}", 
+                                    host.HostId, host.TotalEarnings, host.AvailableBalance);
+                                
+                                // Determine the host's commission rate (85% to host)
+                                decimal hostCommissionRate = 0.85m;
+                                decimal hostRefundAmount = refundAmount * hostCommissionRate;
+                                
                                 // Deduct from host's available balance and total earnings
                                 host.AvailableBalance -= hostRefundAmount;
                                 host.TotalEarnings -= hostRefundAmount;
                                 
                                 _context.HostProfules.Update(host);
+                                await _context.SaveChangesAsync();
                                 
                                 _logger.LogInformation(
-                                    "Deducted {Amount} from Host {HostId} earnings due to refund. New Balance: {Balance}, New Total: {Total}",
+                                    "Deducted {Amount} from Host {HostId} earnings. New Balance: {Balance}, New Total: {Total}",
                                     hostRefundAmount, host.HostId, host.AvailableBalance, host.TotalEarnings);
                             }
+                            else
+                            {
+                                _logger.LogWarning("Host profile not found for HostId {HostId} when processing refund", hostId);
+                            }
                         }
+                    
+                        _logger.LogInformation("Successfully processed refund of {RefundAmount} for payment {PaymentId}", 
+                            refundAmount, paymentId);
+                        return true;
                     }
                     catch (Exception ex)
                     {
-                        // Log but continue - we've already processed the refund in Stripe
-                        _logger.LogError(ex, "Error updating host earnings for refund on payment {PaymentId}", paymentId);
+                        _logger.LogError(ex, "Database error when updating payment and host data after successful Stripe refund: {Message}", ex.Message);
+                        // The refund was processed in Stripe but we failed to update our database
+                        // This requires manual intervention
+                        return false;
                     }
-                    
-                    await _context.SaveChangesAsync();
-                    
-                    _logger.LogInformation("Successfully processed refund of {RefundAmount} for payment {PaymentId}", 
-                        refundAmount, paymentId);
-                    return true;
                 }
                 else
                 {
@@ -494,7 +550,8 @@ namespace API.Services.BookingPaymentRepo
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error processing refund for payment {PaymentId}", paymentId);
+                _logger.LogError(ex, "Error processing refund for payment {PaymentId}: {Message}", 
+                    paymentId, ex.Message);
                 return false;
             }
         }

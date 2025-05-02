@@ -51,7 +51,15 @@ export class LoginComponent {
       this.authService.login(email, password)
         .subscribe({
           next: () => {
-            this.authService.navigateBasedOnRole();
+            // Check if there's a saved redirect URL
+            const redirectUrl = this.authService.getRedirectUrl();
+            if (redirectUrl) {
+              // Navigate back to the saved URL
+              this.router.navigateByUrl(redirectUrl);
+            } else {
+              // Default navigation based on role
+              this.authService.navigateBasedOnRole();
+            }
           },
           error: (err) => {
             console.error('Login error:', err); // Log the full error for debugging

@@ -1,6 +1,6 @@
 <div class="footer" id="footer">
     <ul> 
-        <li *ngIf="loggedIn && !IsUserGuest" style="cursor: pointer;">
+        <li  style="cursor: pointer;">
             <a href='/wishlist' style="text-decoration: none; color: #2d2d2d;">
 
             <span class="material-icons" style="color: #ff385c;">favorite</span>
@@ -9,14 +9,14 @@
             </a>                    
         </li>
 
-        <li *ngIf="loggedIn && !IsUserGuest">
+        <li>
             <a href='/bookings' style="text-decoration: none; color: #2d2d2d;">
             <span class="material-icons">explore</span>
             <br>
             <span>Trips</span>
             </a>
         </li>
-        <li *ngIf="loggedIn && !IsUserGuest" style="cursor: pointer;">
+        <li style="cursor: pointer;">
             <a (click)='editProfileClicked()'>
             <span class="material-icons" >account_circle</span>
             <br>
