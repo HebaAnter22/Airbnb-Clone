@@ -12,4 +12,11 @@
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
     }
+    public class updateReviewDto
+    {
+        public int Id { get; set; }
+        public int Rating { get; set; }
+        public string Comment { get; set; }
+
+    }
 }

@@ -44,7 +44,7 @@ export class CreatePropertyService {
   constructor(
     private http: HttpClient,
     private authService: AuthService
-  ) {}
+  ) { }
 
   currentUserValue(): Promise<number> {
     const user = this.authService.currentUserValue;
@@ -69,7 +69,7 @@ export class CreatePropertyService {
 
   updatePromoCode(promoCode: string): Observable<any> {
     return this.http.put<any>(`${this.API_URL}/Promotion/Use`,
-      null,   { params: { promoCode } }
+      null, { params: { promoCode } }
     ).pipe(
       catchError((error) => {
         console.error('Error validating promo code:', error);
@@ -80,14 +80,14 @@ export class CreatePropertyService {
 
 
 
-// In your property-crud.service.ts
-getPropertyAvailability(propertyId: number): Observable<any[]> {
-  return this.http.get<any[]>(`${this.API_URL}/availability/${propertyId}`);
-}
-// Add this to your CreatePropertyService
-createBooking(bookingData: any): Observable<any> {
-  return this.http.post<any>(`${this.API_URL}/booking`, bookingData);
-}
+  // In your property-crud.service.ts
+  getPropertyAvailability(propertyId: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.API_URL}/availability/${propertyId}`);
+  }
+  // Add this to your CreatePropertyService
+  createBooking(bookingData: any): Observable<any> {
+    return this.http.post<any>(`${this.API_URL}/booking`, bookingData);
+  }
 
 
 
@@ -112,15 +112,15 @@ createBooking(bookingData: any): Observable<any> {
       type: f.type,
       size: f.size
     })));
-    
+
     const formData = new FormData();
     files.forEach((file, index) => {
-        console.log(`Adding file ${index} to form data:`, {
-            name: file.name,
-            type: file.type,
-            size: file.size
-        });
-        formData.append('files', file);
+      console.log(`Adding file ${index} to form data:`, {
+        name: file.name,
+        type: file.type,
+        size: file.size
+      });
+      formData.append('files', file);
     });
 
     // The API now returns full URLs, so we don't need to modify them
@@ -132,7 +132,7 @@ createBooking(bookingData: any): Observable<any> {
       propertyId,
       imageUrls
     });
-    
+
     // The API now expects full URLs, so we don't need to process them
     return this.http.post(`${this.API_URL}/Properties/${propertyId}/images`, { imageUrls: imageUrls });
   }
@@ -142,10 +142,10 @@ createBooking(bookingData: any): Observable<any> {
       propertyId,
       fileCount: files.length
     });
-    
+
     const formData = new FormData();
     files.forEach((file, index) => {
-        formData.append('files', file);
+      formData.append('files', file);
     });
 
     return this.http.post(`${this.API_URL}/Properties/${propertyId}/upload-images`, formData);
@@ -170,6 +170,15 @@ createBooking(bookingData: any): Observable<any> {
         return amenities;
       })
     );
+  }
+  updateReview(reviewId: string, updatedReview: any): Observable<any> {
+    return this.http.put<any>(`${this.API_URL}/reviews/${reviewId}`, updatedReview)
+
+  }
+
+  // Method to delete a review
+  deleteReview(reviewId: string): Observable<any> {
+    return this.http.delete<any>(`${this.API_URL}/reviews/${reviewId}`)
   }
 
   getPropertyById(propertyId: number): Observable<any> {

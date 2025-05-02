@@ -12,12 +12,14 @@ import { MainNavbarComponent } from '../../main-navbar/main-navbar.component';
 import { MessageUserButtonComponent } from '../../chatting/components/message-user-button/message-user-button.component';
 import { ReportViolationComponent } from '../../common/report-violation/report-violation.component';
 import { ReportViolationDirective } from '../../../directives/report-violation.directive';
+import { MatDialog } from '@angular/material/dialog';
+import { EditReviewModalComponent } from './edit-review-modal/edit-review-modal.component';
 
 
 @Component({
   selector: 'app-property-details',
   standalone: true,
-  imports: [CommonModule, NgIf, NgForOf, DatePipe, NgClass, GoogleMapsModule, FormsModule, MainNavbarComponent, ReportViolationComponent, ReportViolationDirective, MessageUserButtonComponent],
+  imports: [CommonModule, NgIf, NgForOf, DatePipe, NgClass, GoogleMapsModule, FormsModule, MainNavbarComponent, ReportViolationComponent, ReportViolationDirective, MessageUserButtonComponent, EditReviewModalComponent],
   templateUrl: './property-details.component.html',
 
   styleUrls: ['./property-details.component.scss']
@@ -61,6 +63,8 @@ export class PropertyDetailsComponent implements OnInit {
   // Default coordinates (can be the same as your Google Maps defaults)
   private defaultLat: number = 22;
   private defaultLng: number = 72;
+  selectedReview: any = null;
+  showEditReviewModal: boolean = false;
 
 
   isHostBioModalOpen = false;
@@ -88,7 +92,9 @@ export class PropertyDetailsComponent implements OnInit {
     private authService: AuthService,
 
 
-  ) { }
+  ) {
+
+  }
 
 
 
@@ -104,7 +110,6 @@ export class PropertyDetailsComponent implements OnInit {
     this.userRole = this.profileService.getUserRole();
 
     this.getUserLocation();
-    // Initialize date selection
     const checkIn = new Date(this.checkInDate);
     const checkOut = new Date(this.checkOutDate);
     this.selectedDates = {
@@ -112,15 +117,11 @@ export class PropertyDetailsComponent implements OnInit {
       end: checkOut
     };
 
-    // Initialize calendar
     this.generateCalendarMonths();
   }
 
   switchToGuestAccount() {
-    // You can implement logic here to switch the user's role
-    // This might involve a service call or navigation to a login page
 
-    // Example implementation:
     this.authService.logout(); // Log out the current user
     this.router.navigate(['/login']); // Redirect to login page
 
@@ -291,11 +292,29 @@ export class PropertyDetailsComponent implements OnInit {
         console.error('Error creating booking:', error);
         // Display error message
         if (error.error && typeof error.error === 'string') {
-          alert(`Booking failed: ${error.error}`);
+          this.showToast = true;
+          this.toastMessage = ` ${error.error}`;
+
+          setTimeout(() => {
+            this.showToast = false;
+          }, 3000);
         } else if (error.error && error.error.message) {
-          alert(`Booking failed: ${error.error.message}`);
+
+          this.showToast = true;
+          this.toastMessage = ` ${error.error.message}`;
+
+          setTimeout(() => {
+            this.showToast = false;
+          }, 3000);
+
         } else {
-          alert('Failed to create booking. Please try again later.');
+
+          this.showToast = true;
+          this.toastMessage = ` ${error.message}`;
+
+          setTimeout(() => {
+            this.showToast = false;
+          }, 3000);
         }
       }
     });
@@ -752,8 +771,6 @@ export class PropertyDetailsComponent implements OnInit {
 
 
 
-
-
   isSuperhost(): boolean {
     // Logic to determine if host is a superhost
     // This could be based on rating, review count, etc.
@@ -843,48 +860,6 @@ export class PropertyDetailsComponent implements OnInit {
     return `https://localhost:7228${imageUrl}`;
   }
 
-  reserve2(): void {
-    // Check if dates are selected
-    if (!this.checkInDate || !this.checkOutDate) {
-      alert('Please select check-in and check-out dates');
-      return;
-    }
-    const startDate = new Date(this.checkInDate);
-    startDate.setHours(12, 0, 0, 0);
-
-    const endDate = new Date(this.checkOutDate);
-    endDate.setHours(12, 0, 0, 0);
-
-    // Create booking object
-    const bookingData = {
-      propertyId: this.propertyId,
-      startDate: startDate.toISOString(),
-      endDate: endDate.toISOString(),
-      promotionId: 0 // Default value, you can modify this if you implement promotions
-    };
-
-    // Call API to create booking
-    this.propertyService.createBooking(bookingData).subscribe({
-      next: (response) => {
-        // Navigate to booking confirmation page
-        if (this.promoCode && this.promoCodeApplied) {
-          this.propertyService.updatePromoCode(this.promoCode)
-        }
-        this.router.navigate(['/bookings', response.id]);
-      },
-      error: (error) => {
-        console.error('Error creating booking:', error);
-        // Display error message
-        if (error.error && typeof error.error === 'string') {
-          alert(`Booking failed: ${error.error}`);
-        } else if (error.error && error.error.message) {
-          alert(`Booking failed: ${error.error.message}`);
-        } else {
-          alert('Failed to create booking. Please try again later.');
-        }
-      }
-    });
-  }
 
   formatPrice(price: number): string {
     return new Intl.NumberFormat('en-US', {
@@ -893,16 +868,7 @@ export class PropertyDetailsComponent implements OnInit {
     }).format(price);
   }
 
-  getTotalPrice2(): number {
-    if (!this.property) return 0;
 
-    // Calculate nights from check-in to check-out
-    const checkIn = new Date(this.checkInDate);
-    const checkOut = new Date(this.checkOutDate);
-    const nights = Math.round((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24));
-
-    return (this.property.pricePerNight + this.property.cleaningFee + this.property.serviceFee) * nights;
-  }
 
   // Get reviewer's initial for the avatar placeholder
   getReviewerInitial(reviewer: string): string {
@@ -1204,10 +1170,105 @@ export class PropertyDetailsComponent implements OnInit {
   }
 
 
+  editReview(reviewId: string): void {
+    // Find the review in the property reviews array
+    this.selectedReview = this.property.reviews.find((review: any) => review.id === reviewId);
+
+    if (this.selectedReview) {
+      this.showEditReviewModal = true;
+    } else {
+      console.error('Review not found');
+    }
+  }
+
+  /**
+   * Closes the edit review modal
+   */
+  closeEditReviewModal(): void {
+    this.showEditReviewModal = false;
+    this.selectedReview = null;
+  }
+
+  /**
+   * Handles saving an edited review
+   * @param updatedReview The updated review object
+   */
+  saveEditedReview(updatedReview: any): void {
+    // Call your review service to update the review
+    this.propertyService.updateReview(updatedReview.id, updatedReview).subscribe({
+      next: (response) => {
+        // Update the review in the local array
+        const index = this.property.reviews.findIndex((review: any) => review.id === updatedReview.id);
+        if (index !== -1) {
+          // Preserve other properties of the review that weren't updated
+          this.property.reviews[index] = {
+            ...this.property.reviews[index],
+            rating: updatedReview.rating,
+            comment: updatedReview.comment
+          };
+        }
+
+        // Close the modal
+        this.closeEditReviewModal();
+
+        // Show success message
+
+        this.showToast = true;
+        this.toastMessage = " Review updated successfully!";
+
+        setTimeout(() => {
+          this.showToast = false;
+        }, 3000);
+      },
+      error: (error) => {
+        console.error('Error updating review:', error);
+
+        // Show error message
+        this.showToast = true;
+        this.toastMessage = "Failed to update review!";
+        setTimeout(() => {
+          this.showToast = false;
+        }, 3000);
+      }
+    });
+  }
+
+  /**
+   * Handles deleting a review
+   * @param reviewId The ID of the review to delete
+   */
+  deleteReview(reviewId: string): void {
+    if (confirm('Are you sure you want to delete this review?')) {
+      this.propertyService.deleteReview(reviewId).subscribe({
+        next: (response) => {
+          // Remove the review from the local array
+          this.property.reviews = this.property.reviews.filter((review: any) => review.id !== reviewId);
+
+          // Show success message
+
+          this.showToast = true;
+          this.toastMessage = " Review deleted successfully!";
+
+          setTimeout(() => {
+            this.showToast = false;
+          }, 3000);
+        },
+        error: (error) => {
+          console.error('Error deleting review:', error);
+
+          this.showToast = true;
+          this.toastMessage = "Failed to delete review!";
+
+          setTimeout(() => {
+            this.showToast = false;
+          }, 3000);
+        }
+      });
+    }
+  }
 
 
 
-  // Add to your component class
 
   toggleGuestDropdown(event: Event): void {
     event.stopPropagation(); // Prevent event bubbling

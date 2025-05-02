@@ -29,6 +29,7 @@ using System.Text.Json.Serialization;
 using API.Services.NotificationRepository;
 using API.Services.AuthRepo;
 using API.Services.EmailService;
+using API.Services.ReviewRepo;
 
 namespace API
 {
@@ -183,7 +184,7 @@ namespace API
             builder.Services.AddScoped<IAdminRepository, AdminRepository>();
             builder.Services.AddScoped<IHostVerificationRepository, HostVerificationRepository>();
             builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
-
+            builder.Services.AddScoped<IReviewService, ReviewsService>();
             builder.Services.AddScoped<IEmailService, EmailService>();
             builder.Services.AddScoped<IResetPasswordService, ResetPasswordService>();
 

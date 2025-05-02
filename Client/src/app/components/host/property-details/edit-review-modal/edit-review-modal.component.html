@@ -1,0 +1,54 @@
+<!-- Edit Review Modal -->
+<div class="review-modal" *ngIf="showEditReviewModal">
+    <div class="review-modal-content">
+        <!-- Close button -->
+        <button class="close-modal" (click)="closeEditReviewModal()">
+            <i class="fa fa-times" aria-hidden="true"></i>
+        </button>
+        <!-- Modal Content -->
+        <div class="review-content">
+            <h3 class="edit-title">Edit Your Review</h3>
+
+            <!-- Emoji based on rating -->
+            <div class="emoji-container">
+                <span *ngIf="editReviewRating === 1">😕</span>
+                <span *ngIf="editReviewRating === 2">🙂</span>
+                <span *ngIf="editReviewRating === 3">😊</span>
+                <span *ngIf="editReviewRating === 4">👍</span>
+                <span *ngIf="editReviewRating === 5">❤️</span>
+            </div>
+
+            <!-- Rating description text -->
+            <h2 class="rating-text">
+                <span *ngIf="editReviewRating === 1">Not great</span>
+                <span *ngIf="editReviewRating === 2">Okay</span>
+                <span *ngIf="editReviewRating === 3">Good</span>
+                <span *ngIf="editReviewRating === 4">Great</span>
+                <span *ngIf="editReviewRating === 5">Amazing</span>
+            </h2>
+
+            <!-- Star Rating -->
+            <div class="star-rating">
+                <button *ngFor="let star of [1,2,3,4,5]" (click)="setRating(star)" class="star-btn"
+                    [class.active]="star <= editReviewRating">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="star-icon" fill="currentColor">
+                        <path
+                            d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Review Text Area -->
+            <div class="review-comment-container">
+                <textarea [(ngModel)]="editReviewComment" placeholder="Tell us about your stay"
+                    class="review-comment-input"></textarea>
+            </div>
+
+            <!-- Submit Button -->
+            <button class="submit-review-btn" [disabled]="!editReviewRating || !editReviewComment.trim()"
+                (click)="submitEditedReview()">
+                Save changes
+            </button>
+        </div>
+    </div>
+</div>

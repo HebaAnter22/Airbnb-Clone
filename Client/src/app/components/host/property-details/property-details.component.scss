@@ -2274,3 +2274,20 @@
   display: flex;
   justify-content: flex-end;
 }
+
+.edit-delete-icons {
+  display: flex;
+  gap: 3px;
+  align-items: center;
+  margin-left: auto;
+}
+
+.edit-delete-icons i {
+  font-size: 19px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    color: #ff385c;
+  }
+}

@@ -80,40 +80,6 @@
 
       <hr>
 
-      <!-- What this place offers -->
-      <!-- <div class="amenities-section">
-          <h3>What this place offers</h3>
-          <div class="amenities-grid">
-            <div class="amenity" *ngFor="let amenity of property.amenities?.slice(0, 8)">
-              <div class="amenity-icon">
-                <img [src]="amenity.iconUrl" alt="{{ amenity.name }}">
-              </div>
-              <div class="amenity-name">{{ amenity.name }}</div>
-            </div>
-          </div>
-          <button class="btn-amenities">Show all {{ property.amenities?.length || 0 }} amenities</button>
-        </div> -->
-
-      <!-- <div class="amenities-section">
-            <h3>What this place offers</h3>
-            <div class="amenities-grid">
-              <div class="amenity" *ngFor="let amenity of (showAll ? property.amenities : property.amenities?.slice(0, 8))">
-                <div class="amenity-icon">
-                    <img [src]="amenity.iconUrl" alt="{{ amenity.name }}">
-                  </div>
-                  <div class="amenity-name">{{ amenity.name }}</div>              </div>
-            </div>
-            <button class="btn-amenities" (click)="showAll = !showAll">
-              {{ showAll ? 'Show less ' : 'Show all ' + (property.amenities?.length || 0) + ' amenities' }}
-            </button>
-          </div> -->
-
-
-
-
-
-
-
       <div class="amenities-section">
         <h3>What this place offers</h3>
         <div class="amenities-grid">
@@ -172,57 +138,6 @@
         </div>
       </div>
 
-      <!-- Where you'll sleep section -->
-      <!-- <div class="where-youll-sleep">
-          <h3>Where you'll sleep</h3>
-          <div class="bedrooms-container">
-            <div class="bedroom-card">
-              <img src="/assets/placeholder.jpg" alt="Bedroom 1">
-              <h4>Bedroom 1</h4>
-              <p>1 queen bed</p>
-            </div>
-            <div class="bedroom-card" *ngIf="property.bedrooms > 1">
-              <img src="/assets/placeholder.jpg" alt="Bedroom 2">
-              <h4>Bedroom 2</h4>
-              <p>1 queen bed</p>
-            </div>
-          </div>
-        </div> -->
-
-      <!-- Reviews section -->
-      <!-- <div class="reviews-section" *ngIf="property.reviews && property.reviews.length > 0">
-          <h3>
-            <i class="fa fa-star"></i> 
-            {{ property.averageRating.toFixed(1) }} · {{ property.reviewCount }} reviews
-          </h3>
-          
-          <div class="reviews-grid">
-            <div class="review-card" *ngFor="let review of property.reviews">
-              <div class="reviewer-info">
-                <div class="reviewer-avatar">
-                  <div class="avatar-placeholder">{{ review.reviewerName ? review.reviewerName[0] : 'G' }}</div>
-                </div>
-                <div class="reviewer-details">
-                  <h4>{{ review.reviewerName || 'Guest' }}</h4>
-                  <p>{{ review.createdAt | date:'MMMM yyyy' }}</p>
-                </div>
-              </div>
-              <div class="review-rating">
-                <span *ngFor="let star of [1,2,3,4,5]">
-                  <i class="fa" [ngClass]="star <= review.rating ? 'fa-star' : 'fa-star-o'"></i>
-                </span>
-              </div>
-              <p class="review-comment">{{ review.comment }}</p>
-              <button class="btn-show-more" *ngIf="review.comment.length > 150">Show more</button>
-            </div>
-          </div>
-          
-          <button class="btn-all-reviews" *ngIf="property.reviewCount > 6">
-            Show all {{ property.reviewCount }} reviews
-          </button>
-        </div> -->
-
-      <!-- Modify the reviews section in your main HTML -->
       <div class="reviews-section" *ngIf="property.reviews && property.reviews.length > 0">
         <h3>
           <i class="fa fa-star"></i>
@@ -233,12 +148,21 @@
           <div class="review-card" *ngFor="let review of property.reviews.slice(0, 6)">
             <div class="reviewer-info">
               <div class="reviewer-avatar">
+
                 <div class="avatar-placeholder">{{ review.reviewerName ? review.reviewerName[0] : 'G' }}</div>
               </div>
               <div class="reviewer-details">
                 <h4>{{ review.reviewerName || 'Guest' }}</h4>
+
                 <p>{{ review.createdAt | date:'MMMM yyyy' }}</p>
               </div>
+              <span *ngIf="review.reviewerId == loggedInUser" class="edit-delete-icons" (click)="editReview(review.id)">
+                <i class="fa-solid fa-pen-to-square"></i>
+              </span>
+              <span *ngIf="review.reviewerId == loggedInUser" class="edit-delete-icons"
+                (click)="deleteReview(review.id)">
+                <i class="fa-solid fa-trash"></i>
+              </span>
             </div>
             <div class="review-rating">
               <span *ngFor="let star of [1,2,3,4,5]">
@@ -557,7 +481,7 @@
             <span>{{ formatPrice(getTotalPrice()) }}</span>
           </div> -->
       </div>
-      <div class="host-message-overlay" *ngIf="userRole=='Host'&& property?.status!='Pending'">
+      <!-- <div class="host-message-overlay" *ngIf="userRole=='Host'&& property?.status!='Pending'">
         <div class="host-message-ribbon"></div>
         <div class="host-message-content">
           <div class="host-message-icon">
@@ -580,7 +504,7 @@
             Please check back soon!</p>
           <i class="fas fa-info-circle"></i> Expected approval time: 24-48 hours
         </div>
-      </div>
+      </div> -->
 
     </div>
   </div>
@@ -809,6 +733,8 @@
     (reportSubmitted)="onViolationReported()">
   </app-report-violation>
 </div>
-
+<app-edit-review-modal [review]="selectedReview" [showEditReviewModal]="showEditReviewModal"
+  (closeModal)="closeEditReviewModal()" (saveReview)="saveEditedReview($event)">
+</app-edit-review-modal>
 <!-- Example of directive-based approach for reporting violations -->
 <!-- <div class="property-footer" appReportViolation [propertyId]="property?.id" [hostId]="property?.hostId"></div> -->
